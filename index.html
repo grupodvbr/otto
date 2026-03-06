@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Painel de Reservas • Mercatto Delícia</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+font-family:Arial;
+background:#050b16;
+color:white;
+margin:0;
+}
+
+.wrap{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}
+
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-top:4px;
+margin-bottom:12px;
+background:#081428;
+border:1px solid #1c2a44;
+color:white;
+border-radius:8px;
+}
+
+button{
+padding:10px 14px;
+border:none;
+border-radius:8px;
+background:#3b82f6;
+color:white;
+cursor:pointer;
+}
+
+.card{
+background:#0b1324;
+padding:20px;
+border-radius:14px;
+margin-bottom:20px;
+}
+
+.cal-grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:8px;
+}
+
+.cal-day{
+background:#081428;
+border:1px solid #1c2a44;
+padding:12px;
+min-height:100px;
+cursor:pointer;
+border-radius:10px;
+}
+
+.res-item{
+border:1px solid #1c2a44;
+padding:10px;
+margin-bottom:10px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+<h1>Reservas • Mercatto Delícia</h1>
+
+<div class="card">
+
+<h3>Nova Reserva</h3>
+
+<input id="nome" placeholder="Nome">
+<input id="email" placeholder="Email">
+<input id="telefone" placeholder="Telefone">
+
+<input id="pessoas" type="number" placeholder="Pessoas">
+
+<select id="mesa">
+<option>Sala Paulo Augusto</option>
+<option>Villa Gourmet</option>
+<option>Villa Churrascada</option>
+</select>
+
+<select id="cardapio">
+<option>Buffet Ouro</option>
+<option>Buffet Diamante</option>
+<option>Buffet Master Gold</option>
+</select>
+
+<input id="datahora" type="datetime-local">
+
+<input id="valorEstimado" placeholder="Valor Estimado">
+<input id="pagamentoAntecipado" placeholder="Adiantamento">
+
+<select id="banco">
+<option>SICREDI</option>
+<option>ITAÚ</option>
+<option>CRÉDITO POS</option>
+<option>DÉBITO POS</option>
+</select>
+
+<textarea id="observacoes" placeholder="Observações"></textarea>
+
+<input id="arquivo" type="file">
+
+<button onclick="salvarReserva()">Salvar Reserva</button>
+
+</div>
+
+<div class="card">
+
+<h3 id="mesTitulo"></h3>
+
+<div class="cal-grid" id="calendario"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL = "COLE_SUA_URL";
+const SUPABASE_KEY = "COLE_SUA_ANON_KEY";
+
+const supabase = window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+let reservas = [];
+
+const calendario = document.getElementById("calendario");
+
+async function carregarReservas(){
+
+const {data,error} = await supabase
+.from("reservas")
+.select("*")
+.order("datahora");
+
+if(error){
+alert(error.message);
+return;
+}
+
+reservas = data;
+
+renderCalendario();
+
+}
+
+function renderCalendario(){
+
+calendario.innerHTML = "";
+
+const hoje = new Date();
+
+const mes = hoje.getMonth();
+const ano = hoje.getFullYear();
+
+document.getElementById("mesTitulo").innerText =
+hoje.toLocaleString("pt-BR",{month:"long",year:"numeric"});
+
+const primeiro = new Date(ano,mes,1);
+const inicio = primeiro.getDay();
+
+for(let i=0;i<inicio;i++){
+
+const div = document.createElement("div");
+calendario.appendChild(div);
+
+}
+
+const diasMes = new Date(ano,mes+1,0).getDate();
+
+for(let d=1;d<=diasMes;d++){
+
+const div = document.createElement("div");
+div.className="cal-day";
+
+const data = new Date(ano,mes,d);
+
+const lista = reservas.filter(r=>{
+
+const dt = new Date(r.datahora);
+
+return dt.getDate()==d &&
+dt.getMonth()==mes &&
+dt.getFullYear()==ano;
+
+});
+
+div.innerHTML = "<b>"+d+"</b><br>"+lista.length+" reservas";
+
+div.onclick = ()=>abrirDia(lista);
+
+calendario.appendChild(div);
+
+}
+
+}
+
+function abrirDia(lista){
+
+let html="";
+
+lista.forEach(r=>{
+
+html+=`
+<div class="res-item">
+
+<b>${r.nome}</b><br>
+
+${new Date(r.datahora).toLocaleString("pt-BR")}<br>
+
+${r.mesa}<br>
+
+${r.pessoas} pessoas<br>
+
+Status: ${r.status}<br>
+
+<button onclick="concluir('${r.id}')">Concluir</button>
+<button onclick="excluir('${r.id}')">Excluir</button>
+
+</div>
+`;
+
+});
+
+const w = window.open();
+
+w.document.write(html);
+
+}
+
+async function salvarReserva(){
+
+const nome = document.getElementById("nome").value;
+const email = document.getElementById("email").value;
+const telefone = document.getElementById("telefone").value;
+
+const pessoas = document.getElementById("pessoas").value;
+const mesa = document.getElementById("mesa").value;
+const cardapio = document.getElementById("cardapio").value;
+
+const datahora = document.getElementById("datahora").value;
+
+const valorEstimado = document.getElementById("valorEstimado").value;
+const pagamentoAntecipado = document.getElementById("pagamentoAntecipado").value;
+
+const banco = document.getElementById("banco").value;
+const observacoes = document.getElementById("observacoes").value;
+
+let arquivoURL=null;
+
+const file = document.getElementById("arquivo").files[0];
+
+if(file){
+
+const nomeFile = crypto.randomUUID()+"_"+file.name;
+
+const {error:upError} = await supabase
+.storage
+.from("comprovantes")
+.upload(nomeFile,file);
+
+if(!upError){
+
+const {data} = supabase
+.storage
+.from("comprovantes")
+.getPublicUrl(nomeFile);
+
+arquivoURL = data.publicUrl;
+
+}
+
+}
+
+const {error} = await supabase
+.from("reservas")
+.insert([{
+
+nome,
+email,
+telefone,
+pessoas,
+mesa,
+cardapio,
+datahora,
+valorEstimado,
+pagamentoAntecipado,
+banco,
+observacoes,
+arquivoURL
+
+}]);
+
+if(error){
+alert(error.message);
+return;
+}
+
+alert("Reserva salva");
+
+carregarReservas();
+
+}
+
+async function concluir(id){
+
+const valor = prompt("Valor final pago");
+
+if(!valor) return;
+
+const {error} = await supabase
+.from("reservas")
+.update({
+status:"Concluída",
+valorFinalPago:valor
+})
+.eq("id",id);
+
+if(error) alert(error.message);
+
+carregarReservas();
+
+}
+
+async function excluir(id){
+
+if(!confirm("Excluir reserva?")) return;
+
+const {error} = await supabase
+.from("reservas")
+.delete()
+.eq("id",id);
+
+if(error) alert(error.message);
+
+carregarReservas();
+
+}
+
+carregarReservas();
+
+</script>
+
+</body>
+</html>
