@@ -1419,8 +1419,16 @@ return {ok:true,message:"Excluída"}
 
 const items = state.reservas.filter(r=>{
   if(!r.datahora) return false;
+
   const dt = new Date(String(r.datahora).replace(" ","T"));
-  return !isNaN(dt) && ymd(dt) === ymd(d);
+
+  if(isNaN(dt)) return false;
+
+  // converter para horário local
+  const local = new Date(dt);
+  local.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+
+  return ymd(local) === ymd(d);
 });
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
