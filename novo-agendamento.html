@@ -2129,8 +2129,9 @@ window.open(url,"_blank")
 }
 async function alterarStatus(e){
 
-const id = e.currentTarget.dataset.id
-const novoStatus = e.currentTarget.value
+const select = e.currentTarget
+const id = select.dataset.id
+const novoStatus = select.value
 
 const resp = await supabaseClient
 .from("reservas_mercatto")
@@ -2140,14 +2141,35 @@ const resp = await supabaseClient
 if(resp.error){
 
 toast("Erro ao atualizar status")
-
 return
 
 }
 
 toast("Status atualizado para "+novoStatus)
 
-await loadMonth(state.ano,state.mes)
+/* atualizar estado local */
+const reserva = state.reservas.find(r=>String(r.id)===String(id))
+if(reserva){
+reserva.status = novoStatus
+}
+
+/* atualizar chip visual no popup */
+const item = select.closest(".res-item")
+const chip = item.querySelector(".chip")
+
+chip.textContent = novoStatus
+
+const classe =
+novoStatus
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,'')
+
+chip.className = "chip " + classe
+
+/* atualizar calendário e resumo */
+buildCalendar()
+updateSummary()
 
 }
   
