@@ -1656,10 +1656,14 @@ extrasCount = 0
         return;
       }
 
-      // Marca edição
-      state.editingId = r.id;
-      $('#reservaId').value = r.id;
-      $('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
+  // Marca edição
+state.editingId = r.id;
+
+document.getElementById("editId").value = r.id
+
+$('#reservaId').value = r.id;
+
+$('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
 
       // Preenche formulário principal
       $('#nome').value = r.nome || '';
@@ -1672,7 +1676,7 @@ extrasCount = 0
 
       // Data/hora no formato local
       if (r.datahora){
-        const dt = new Date(r.datahora);
+const dt = new Date(String(r.datahora).replace(" ","T"));
         const off = new Date(dt);
         off.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
         $('#datahora').value = off.toISOString().slice(0,16);
@@ -1693,9 +1697,11 @@ $('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAnte
       $('#banco').required = has;
       $('#bancoReq').style.display = has ? '' : 'none';
 
-      toast('✏️ Editando reserva — altere no formulário e clique em "Salvar Reserva".');
-      // Fecha o modal do dia, se estiver aberto
-      $('#dayModal').classList.remove('show');
+toast('✏️ Editando reserva');
+
+$('#dayModal').classList.remove('show');
+
+document.getElementById("editModal").classList.add("show");
     }
 
 function onClickExcluir(e){
@@ -1855,6 +1861,91 @@ updateSummary()
       $('#datahora').min = nowLocalMin();
       refreshAll();
     });
+
+
+
+/* ==============================
+   SALVAR EDIÇÃO (MODAL)
+============================== */
+
+document.getElementById("saveEditBtn").addEventListener("click", async ()=>{
+
+const id = document.getElementById("editId").value
+
+if(!id){
+toast("Reserva inválida")
+return
+}
+
+const payload = {
+
+nome: document.getElementById("e_nome").value,
+email: document.getElementById("e_email").value,
+telefone: document.getElementById("e_telefone").value,
+pessoas: document.getElementById("e_pessoas").value,
+
+mesa: document.getElementById("e_mesa").value,
+cardapio: document.getElementById("e_cardapio").value,
+
+datahora: new Date(document.getElementById("e_datahora").value).toISOString(),
+
+valorEstimado: parseBRL(document.getElementById("e_valorEstimado").value),
+
+pagamentoAntecipado: parseBRL(document.getElementById("e_pagamentoAntecipado").value),
+
+banco: document.getElementById("e_banco").value,
+
+observacoes: document.getElementById("e_observacoes").value
+
+}
+
+/* ======================
+   PAGAMENTOS EXTRAS
+====================== */
+
+const extras = document.querySelectorAll("#extrasList .extraValor")
+
+extras.forEach((input,i)=>{
+
+const v = parseBRL(input.value)
+
+if(v>0){
+payload["pagamentoExtra"+(i+1)] = v
+}
+
+})
+
+const resp = await api.atualizar(id,payload)
+
+if(resp.ok){
+
+toast("✅ Reserva atualizada")
+
+document.getElementById("editModal").classList.remove("show")
+
+await loadMonth(state.ano,state.mes)
+
+}else{
+
+toast("⚠️ "+resp.message)
+
+}
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 let extrasCount = 0
 
 document.getElementById("addExtraBtn").addEventListener("click",()=>{
