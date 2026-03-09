@@ -1422,15 +1422,13 @@ return {ok:true,message:"Excluída"}
 const items = state.reservas.filter(r=>{
   if(!r.datahora) return false;
 
-  const dt = new Date(String(r.datahora).replace(" ","T"));
+const dt = new Date(r.datahora)
 
-  if(isNaN(dt)) return false;
+const offset = dt.getTimezoneOffset() * 60000
 
-  // converter para horário local
-  const local = new Date(dt);
-  local.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+const local = new Date(dt - offset)
 
-  return ymd(local) === ymd(d);
+return ymd(local) === ymd(d)
 });
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
@@ -1487,14 +1485,15 @@ return keys.reduce((acc,k)=> acc + parseBRL(r[k]), 0);
       const {mes, ano} = state;
 const inMonth = state.reservas.filter(r=>{
 
-const dt = new Date(String(r.datahora).replace(" ","T"))
+const dt = new Date(r.datahora)
 
 if(isNaN(dt)) return false
 
-const local = new Date(dt)
-local.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
+const offset = dt.getTimezoneOffset() * 60000
 
-return local.getMonth()===mes && local.getFullYear()===ano
+const local = new Date(dt - offset)
+
+return local.getMonth()===mes && local.getFullYear()===anoano
 
 })
   const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
@@ -1559,10 +1558,13 @@ $$('#dayModal .status-select')
     dayModal.addEventListener('click', (e)=>{ if(e.target===dayModal) dayModal.classList.remove('show'); });
 
     function renderResItem(r){
-const dt = new Date(String(r.datahora).replace(" ","T"))
-dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
+const dt = new Date(r.datahora)
 
-const hora = dt.toLocaleTimeString(
+const offset = dt.getTimezoneOffset() * 60000
+
+const local = new Date(dt - offset)
+
+const hora = local.toLocaleTimeString(
 'pt-BR',
 {hour:'2-digit',minute:'2-digit'}
 )
@@ -1883,7 +1885,7 @@ function onClickExcluir(e){
 
   deleteText.innerHTML =
   `Tem certeza que deseja excluir a reserva de <b>${r.nome}</b><br>
-   em <b>${new Date(String(r.datahora).replace(" ","T")).toLocaleString('pt-BR')}</b>?`;
+   em <b>${new Date(r.datahora).toLocaleString('pt-BR')}</b>?`;
 
   deleteModal.classList.add('show');
 
