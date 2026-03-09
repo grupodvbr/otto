@@ -1460,6 +1460,7 @@ baixarArquivo(url,nome);
         
         $$('#dayModal .btn-editar').forEach(btn=> btn.addEventListener('click', onClickEditar));
         $$('#dayModal .btn-excluir').forEach(btn=> btn.addEventListener('click', onClickExcluir));
+        $$('#dayModal .btn-whatsapp').forEach(btn=> btn.addEventListener('click', enviarWhatsApp));
       }
       dayModal.classList.add('show');
     }
@@ -1483,6 +1484,15 @@ const anexos = anexoKeys.map((k,i) =>
             <div class="meta">${hora} • ${r.mesa||'—'} • ${r.pessoas||'0'} pessoa(s)</div>
           </div>
           <div class="row" style="margin-left:auto">
+<button class="btn btn-primary btn-whatsapp"
+data-nome="${r.nome}"
+data-telefone="${r.telefone}"
+data-data="${hora}"
+data-pessoas="${r.pessoas}"
+data-local="${r.mesa}"
+data-cardapio="${r.cardapio || ''}"
+style="width:auto">WhatsApp</button>
+          
             <span class="chip">${status}</span>
             ${r._semIdReal
               ? `<button class="btn btn-ghost" style="width:auto" disabled title="Sem ID da planilha">Editar</button>`
@@ -2045,8 +2055,45 @@ a.click()
 a.remove()
 
 }
+function enviarWhatsApp(e){
 
-    
-  </script>
+const btn = e.currentTarget
+
+let telefone = btn.dataset.telefone.replace(/\D/g,'')
+
+if(telefone.length === 11){
+telefone = "55"+telefone
+}
+
+const nome = btn.dataset.nome
+const pessoas = btn.dataset.pessoas
+const local = btn.dataset.local
+const cardapio = btn.dataset.cardapio
+const hora = btn.dataset.data
+
+const mensagem =
+`Olá ${nome}!
+
+Sua reserva foi registrada no Mercatto Delícia.
+
+📅 Horário: ${hora}
+👥 Pessoas: ${pessoas}
+📍 Local: ${local}
+🍽️ Cardápio: ${cardapio}
+
+Aguardamos você!
+
+Mercatto Delícia`
+
+const url =
+`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`
+
+window.open(url,"_blank")
+
+}
+
+  
+  
+</script>
 </body>
 </html>
