@@ -1413,7 +1413,7 @@ const items = state.reservas.filter(r=>{
     }
     function updateSummary(){
       const {mes, ano} = state;
-      const inMonth = state.reservas.filter(r=>{ const d=new Date(r.datahora); return d.getMonth()===mes && d.getFullYear()===ano; });
+      const inMonth = state.reservas.filter(r=>{ const d=new Date(String(r.datahora).replace(" ","T")); return d.getMonth()===mes && d.getFullYear()===ano; });
       const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
       const adiantado = sum(inMonth, r=> parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r));
       const finalPago = sum(inMonth, r=> parseBRL(r.valorFinalPago||0));
@@ -1513,7 +1513,7 @@ Final pago: ${formatBRL(parseBRL(r.valorFinalPago))}
     const form = $('#reservaForm');
     const spinner = $('#spinner');
     const submitBtn = $('#submitBtn');
-    const cancelEditBtn = $('#cancelEdit');
+const cancelEditBtn = $('#cancelEdit') || {style:{display:'none'}};
     const statusChip = $('#statusChip');
 
     const inputTelefone = $('#telefone');
@@ -1663,7 +1663,6 @@ document.getElementById("editId").value = r.id
 $('#reservaId').value = r.id;
 
 $('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
-
 // ==========================
 // PREENCHE MODAL DE EDIÇÃO
 // ==========================
@@ -1816,22 +1815,6 @@ $('#confirmDelete').addEventListener('click', async ()=>{
 });
 
 
-
-    
-cancelEditBtn.addEventListener('click', ()=>{
-  state.editingId = null;
-  $('#reservaId').value = '';
-  $('#cancelEdit').style.display = 'none';
-  form.reset();
-  $('#statusChip').textContent = 'PENDENTE';
-  $('#fileBox').style.display='none';
-  $('#datahora').min = nowLocalMin();
-
-  document.getElementById("extrasList").innerHTML = ""
-  extrasCount = 0
-
-  toast('Edição cancelada.');
-});
 
     /* ==============================
        Navegação e Carregamento
