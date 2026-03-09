@@ -1662,7 +1662,12 @@ document.getElementById("editId").value = r.id
 
 $('#reservaId').value = r.id;
 
-$('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
+state.editingId = r.id;
+
+document.getElementById("editId").value = r.id
+
+$('#reservaId').value = r.id;
+      
 document.getElementById("e_nome").value = r.nome || ""
 document.getElementById("e_email").value = r.email || ""
 document.getElementById("e_telefone").value = r.telefone || ""
