@@ -1322,7 +1322,8 @@ const {data,error} = await supabaseClient
 .select("*")
 .gte("datahora",inicio)
 .lt("datahora",fim)
-
+.order("datahora",{ascending:true})
+  
 if(error) throw error
 
 return data || []
@@ -1956,10 +1957,13 @@ $('#confirmDelete').addEventListener('click', async ()=>{
       try{
         const data = await api.listar(ano, mes);
 state.reservas = data.map((r,i)=> {
-  const idReal = r.id ?? r.ID ?? r.Id ?? r.IdReserva ?? r.IdPlanilha ?? r['Id'] ?? '';
-  return {
-    id: idReal || `ROW-${i+1}`,
-    _semIdReal: !idReal,
+const idReal = r.id ?? r.ID ?? r.Id ?? r.IdReserva ?? r.IdPlanilha ?? r['Id'];
+
+return {
+
+id: idReal ? String(idReal) : crypto.randomUUID(),
+
+_semIdReal: !idReal,
     nome: r.nome||r.Nome||'',
     email:r.email||r.Email||'',
     telefone: r.telefone || r.Telefone || r.Fone || '',
