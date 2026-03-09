@@ -1665,14 +1665,39 @@ $('#reservaId').value = r.id;
 
 $('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
 
-      // Preenche formulário principal
-      $('#nome').value = r.nome || '';
-      $('#email').value = r.email || '';
-      $('#telefone').value = r.telefone || '';
-      $('#pessoas').value = r.pessoas || '';
-      $('#mesa').value = r.mesa || '';
-      $('#cardapio').value = r.cardapio || '';
-      $('#observacoes').value = r.observacoes || '';
+// ==========================
+// PREENCHE MODAL DE EDIÇÃO
+// ==========================
+
+document.getElementById("e_nome").value = r.nome || ""
+document.getElementById("e_email").value = r.email || ""
+document.getElementById("e_telefone").value = r.telefone || ""
+document.getElementById("e_pessoas").value = r.pessoas || ""
+
+document.getElementById("e_mesa").value = r.mesa || ""
+document.getElementById("e_cardapio").value = r.cardapio || ""
+
+document.getElementById("e_observacoes").value = r.observacoes || ""
+
+document.getElementById("e_banco").value = r.banco || ""
+
+document.getElementById("e_valorEstimado").value =
+formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100))
+
+document.getElementById("e_pagamentoAntecipado").value =
+formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100))
+
+if(r.datahora){
+
+const dt = new Date(String(r.datahora).replace(" ","T"))
+
+const off = new Date(dt)
+
+off.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
+
+document.getElementById("e_datahora").value = off.toISOString().slice(0,16)
+
+}
 
       // Data/hora no formato local
       if (r.datahora){
@@ -2000,7 +2025,21 @@ extrasCount--
 }
 
 })
+function baixarArquivo(url,nome){
 
+const a = document.createElement("a")
+
+a.href = url
+
+a.download = nome || "arquivo"
+
+document.body.appendChild(a)
+
+a.click()
+
+a.remove()
+
+}
 
     
   </script>
