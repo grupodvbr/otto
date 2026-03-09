@@ -1475,8 +1475,8 @@ $$('#dayModal .btn-editar')
 $$('#dayModal .btn-excluir')
 .forEach(btn=>btn.addEventListener('click', onClickExcluir))
 
-$$('#dayModal .btn-status')
-.forEach(btn=>btn.addEventListener('click', alterarStatus))
+$$('#dayModal .status-select')
+.forEach(sel=>sel.addEventListener('change', alterarStatus))
       
         $$('#dayModal .btn-whatsapp').forEach(btn=> btn.addEventListener('click', enviarWhatsApp));
       }
@@ -1517,30 +1517,27 @@ ${r._semIdReal
               : `<button class="btn btn-ghost btn-editar" data-id="${r.id}" style="width:auto">Editar</button>`
             }
             <button class="btn btn-danger btn-excluir" data-id="${r.id}" style="width:auto">Excluir</button>
-<div class="row">
-
-<button class="btn btn-ghost btn-status"
+<select class="status-select"
 data-id="${r.id}"
-data-status="Confirmada"
 style="width:auto">
-Confirmar
-</button>
 
-<button class="btn btn-primary btn-status"
-data-id="${r.id}"
-data-status="Concluída"
-style="width:auto">
-Concluir
-</button>
+<option value="Pendente" ${status==="Pendente"?"selected":""}>
+Pendente
+</option>
 
-<button class="btn btn-danger btn-status"
-data-id="${r.id}"
-data-status="Cancelada"
-style="width:auto">
-Cancelar
-</button>
+<option value="Confirmada" ${status==="Confirmada"?"selected":""}>
+Confirmada
+</option>
 
-</div>
+<option value="Concluída" ${status==="Concluída"?"selected":""}>
+Concluída
+</option>
+
+<option value="Cancelada" ${status==="Cancelada"?"selected":""}>
+Cancelada
+</option>
+
+</select>
 </div>
         </div>
         <div class="meta"><b>Email:</b> ${r.email||'—'} • <b>Tel:</b> ${r.telefone||'—'}</div>
@@ -2133,7 +2130,7 @@ window.open(url,"_blank")
 async function alterarStatus(e){
 
 const id = e.currentTarget.dataset.id
-const novoStatus = e.currentTarget.dataset.status
+const novoStatus = e.currentTarget.value
 
 const resp = await supabaseClient
 .from("reservas_mercatto")
