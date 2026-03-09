@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Reservas Mercatto</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+padding:20px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:6px;
+margin-bottom:12px;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#3b82f6;
+color:white;
+cursor:pointer;
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+}
+
+.day{
+background:#1e293b;
+padding:10px;
+border-radius:10px;
+min-height:80px;
+cursor:pointer;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#000000aa;
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal-content{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+width:400px;
+max-height:80vh;
+overflow:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Painel de Reservas</h2>
+
+<div class="card">
+
+<form id="form">
+
+<input type="hidden" id="id">
+
+<label>Nome</label>
+<input id="nome" required>
+
+<label>Email</label>
+<input id="email">
+
+<label>Telefone</label>
+<input id="telefone">
+
+<label>Pessoas</label>
+<input id="pessoas" type="number">
+
+<label>Local</label>
+<select id="mesa">
+<option>Sala Paulo Augusto</option>
+<option>Villa Gourmet</option>
+<option>Villa Churrascada</option>
+</select>
+
+<label>Data e Hora</label>
+<input id="datahora" type="datetime-local">
+
+<label>Valor Estimado</label>
+<input id="estimado">
+
+<label>Pagamento Antecipado</label>
+<input id="antecipado">
+
+<button type="submit">Salvar Reserva</button>
+
+</form>
+
+</div>
+
+<div class="card">
+
+<h3 id="mes"></h3>
+
+<div class="calendar" id="calendar"></div>
+
+</div>
+
+<div class="card">
+
+<h3>Resumo do mês</h3>
+
+<div>Antecipado: <span id="sinal">0</span></div>
+<div>Final Pago: <span id="final">0</span></div>
+<div>A Receber: <span id="receber">0</span></div>
+
+</div>
+
+<div class="modal" id="modal">
+
+<div class="modal-content">
+
+<h3>Reservas do dia</h3>
+
+<div id="lista"></div>
+
+<button onclick="fechar()">Fechar</button>
+
+</div>
+
+</div>
+
+<script>
+
+const supabase = window.supabase.createClient(
+"https://SEU-PROJETO.supabase.co",
+"SUA_ANON_KEY"
+)
+
+let reservas=[]
+
+let mes=new Date().getMonth()
+let ano=new Date().getFullYear()
+
+const calendar=document.getElementById("calendar")
+
+function format(v){
+return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+}
+
+async function carregar(){
+
+const inicio=`${ano}-${String(mes+1).padStart(2,'0')}-01`
+
+const fim=`${ano}-${String(mes+2).padStart(2,'0')}-01`
+
+const {data}=await supabase
+.from("reservas_mercatto")
+.select("*")
+.gte("datahora",inicio)
+.lt("datahora",fim)
+
+reservas=data||[]
+
+desenhar()
+resumo()
+
+}
+
+function desenhar(){
+
+calendar.innerHTML=""
+
+document.getElementById("mes").innerText=
+`${mes+1}/${ano}`
+
+const dias=new Date(ano,mes+1,0).getDate()
+
+for(let d=1;d<=dias;d++){
+
+const date=new Date(ano,mes,d)
+
+const div=document.createElement("div")
+
+div.className="day"
+
+div.innerHTML=`<b>${d}</b>`
+
+div.onclick=()=>abrir(date)
+
+calendar.appendChild(div)
+
+}
+
+}
+
+function abrir(date){
+
+const lista=document.getElementById("lista")
+
+const dia=date.toISOString().slice(0,10)
+
+const items=reservas.filter(r=>r.datahora.slice(0,10)==dia)
+
+lista.innerHTML=""
+
+items.forEach(r=>{
+
+const div=document.createElement("div")
+
+div.innerHTML=`
+
+<b>${r.nome}</b><br>
+
+${r.mesa} • ${r.pessoas} pessoas<br>
+
+${format(r.valor_estimado)}
+
+<br><br>
+
+<button onclick="editar('${r.id}')">Editar</button>
+
+<button onclick="concluir('${r.id}')">Concluir</button>
+
+<button onclick="excluir('${r.id}')">Excluir</button>
+
+<hr>
+`
+
+lista.appendChild(div)
+
+})
+
+document.getElementById("modal").style.display="flex"
+
+}
+
+function fechar(){
+
+document.getElementById("modal").style.display="none"
+
+}
+
+async function excluir(id){
+
+if(!confirm("Excluir reserva?")) return
+
+await supabase
+.from("reservas_mercatto")
+.delete()
+.eq("id",id)
+
+carregar()
+
+}
+
+async function concluir(id){
+
+const valor=prompt("Valor final pago")
+
+if(!valor) return
+
+await supabase
+.from("reservas_mercatto")
+.update({
+status:"Concluída",
+valor_final_pago:valor
+})
+.eq("id",id)
+
+carregar()
+
+}
+
+function editar(id){
+
+const r=reservas.find(x=>x.id==id)
+
+document.getElementById("id").value=r.id
+document.getElementById("nome").value=r.nome
+document.getElementById("email").value=r.email
+document.getElementById("telefone").value=r.telefone
+document.getElementById("pessoas").value=r.pessoas
+document.getElementById("mesa").value=r.mesa
+
+}
+
+document.getElementById("form").onsubmit=async e=>{
+
+e.preventDefault()
+
+const id=document.getElementById("id").value
+
+const obj={
+
+nome:nome.value,
+email:email.value,
+telefone:telefone.value,
+pessoas:pessoas.value,
+mesa:mesa.value,
+
+datahora:datahora.value,
+
+valor_estimado:estimado.value,
+pagamento_antecipado:antecipado.value
+
+}
+
+if(id){
+
+await supabase
+.from("reservas_mercatto")
+.update(obj)
+.eq("id",id)
+
+}else{
+
+await supabase
+.from("reservas_mercatto")
+.insert(obj)
+
+}
+
+e.target.reset()
+
+carregar()
+
+}
+
+function resumo(){
+
+let sinal=0
+let final=0
+let receber=0
+
+reservas.forEach(r=>{
+
+const estimado=Number(r.valor_estimado||0)
+const ant=Number(r.pagamento_antecipado||0)
+const fin=Number(r.valor_final_pago||0)
+
+sinal+=ant
+final+=fin
+
+if(r.status!="Concluída")
+receber+=Math.max(estimado-ant,0)
+
+})
+
+document.getElementById("sinal").innerText=format(sinal)
+document.getElementById("final").innerText=format(final)
+document.getElementById("receber").innerText=format(receber)
+
+}
+
+carregar()
+
+</script>
+
+</body>
+</html>
