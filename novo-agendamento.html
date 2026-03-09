@@ -1961,8 +1961,8 @@ const idReal = r.id ?? r.ID ?? r.Id ?? r.IdReserva ?? r.IdPlanilha ?? r['Id'];
 
 return {
 
-id: idReal ? String(idReal) : crypto.randomUUID(),
-
+id: idReal ? String(idReal) : null,
+  
 _semIdReal: !idReal,
     nome: r.nome||r.Nome||'',
     email:r.email||r.Email||'',
