@@ -1446,25 +1446,26 @@ const items = state.reservas.filter(r=>{
         }).join('');
 
 const pend = items.filter(r=>{
-const s = (r.status || "")
-return s === "Pendente"
+const s = (r.status || "").trim()
+  return s === "Pendente"
 }).length
 
 const conf = items.filter(r=>{
-const s = (r.status || "")
-return s === "Confirmada"
+const s = (r.status || "").trim()
+  return s === "Confirmada"
 }).length
 
 const done = items.filter(r=>{
-const s = (r.status || "")
-return s === "Concluída"
+const s = (r.status || "").trim()
+  return s === "Concluída"
 }).length
         cell.innerHTML = `
           <div class="num">${d.getDate()}</div>
           <div class="tags">
             ${sectorTags}
-            ${pend ? `<span class="tag t-pend">Pend: ${pend}</span>` : ''}
-            ${done ? `<span class="tag t-done">Conc: ${done}</span>` : ''}
+${pend ? `<span class="tag t-pend">Pend: ${pend}</span>` : ''}
+${conf ? `<span class="tag t-vip">Conf: ${conf}</span>` : ''}
+${done ? `<span class="tag t-done">Conc: ${done}</span>` : ''}
           </div>
         `;
         cell.addEventListener('click', ()=> openDayModal(d, items));
@@ -1482,12 +1483,26 @@ return keys.reduce((acc,k)=> acc + parseBRL(r[k]), 0);
     }
     function updateSummary(){
       const {mes, ano} = state;
-      const inMonth = state.reservas.filter(r=>{ const d=new Date(String(r.datahora).replace(" ","T")); return d.getMonth()===mes && d.getFullYear()===ano; });
-      const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
+const inMonth = state.reservas.filter(r=>{
+
+const dt = new Date(String(r.datahora).replace(" ","T"))
+
+if(isNaN(dt)) return false
+
+const local = new Date(dt)
+local.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
+
+return local.getMonth()===mes && local.getFullYear()===ano
+
+})
+  const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
       const adiantado = sum(inMonth, r=> parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r));
       const finalPago = sum(inMonth, r=> parseBRL(r.valorFinalPago||0));
-      const aReceber = sum(inMonth.filter(r=> (r.status||'Pendente')!=='Concluída'), r=> {
-        const estimado = parseBRL(r.valorEstimado||0);
+const aReceber = sum(inMonth.filter(r=>{
+const s = (r.status || "Pendente").trim()
+return s !== "Concluída"
+}), r=> {
+  const estimado = parseBRL(r.valorEstimado||0);
         const ant = parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r);
         const rest = Math.max(estimado - ant, 0);
         return rest;
@@ -1542,8 +1557,14 @@ $$('#dayModal .status-select')
     dayModal.addEventListener('click', (e)=>{ if(e.target===dayModal) dayModal.classList.remove('show'); });
 
     function renderResItem(r){
-const hora = new Date(String(r.datahora).replace(" ","T"))
-.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});      const status = r.status||'Pendente';
+const dt = new Date(String(r.datahora).replace(" ","T"))
+dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
+
+const hora = dt.toLocaleTimeString(
+'pt-BR',
+{hour:'2-digit',minute:'2-digit'}
+)
+  const status = r.status||'Pendente';
 
       const anexoKeys = Object.keys(r).filter(k => k.toLowerCase().includes("anexo") && r[k]);
 const anexos = anexoKeys.map((k,i) => 
@@ -1767,18 +1788,11 @@ extrasCount = 0
         return;
       }
 
-  // Marca edição
-state.editingId = r.id;
+state.editingId = r.id
 
 document.getElementById("editId").value = r.id
 
-$('#reservaId').value = r.id;
-
-state.editingId = r.id;
-
-document.getElementById("editId").value = r.id
-
-$('#reservaId').value = r.id;
+$('#reservaId').value = r.id
       
 document.getElementById("e_nome").value = r.nome || ""
 document.getElementById("e_email").value = r.email || ""
@@ -1957,8 +1971,9 @@ state.reservas = data.map((r,i)=> {
     pagamentoAntecipado: String(r.pagamentoAntecipado ?? r.Adiantamento ?? '0'),
     valorFinalPago: String(r.valorFinalPago ?? r.FinalPago ?? '0'),
     banco: r.banco || r.Banco || '',
-    status: r.status || r.Status || 'Pendente',
-    ...r
+status: (r.status || r.Status || 'Pendente')
+.toString()
+.trim(),    ...r
   };
 });
 
@@ -2219,9 +2234,9 @@ if(reserva){
 reserva.status = novoStatus
 }
 
-/* atualizar status visual */
-
 const item = select.closest(".res-item")
+
+if(!item) return
 
 const chip = item.querySelector(".chip")
 
@@ -2231,9 +2246,10 @@ novoStatus
 .normalize("NFD")
 .replace(/[\u0300-\u036f]/g,'')
 
+if(chip){
 chip.textContent = novoStatus
 chip.className = "chip " + classe
-
+}
 /* atualizar calendário e resumo */
 buildCalendar()
 updateSummary()
