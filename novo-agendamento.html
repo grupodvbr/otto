@@ -1485,6 +1485,8 @@ return keys.reduce((acc,k)=> acc + parseBRL(r[k]), 0);
       const {mes, ano} = state;
 const inMonth = state.reservas.filter(r=>{
 
+if(!r.datahora) return false
+
 const dt = new Date(r.datahora)
 
 if(isNaN(dt)) return false
@@ -1493,8 +1495,7 @@ const offset = dt.getTimezoneOffset() * 60000
 
 const local = new Date(dt - offset)
 
-return local.getMonth()===mes && local.getFullYear()===anoano
-
+return local.getMonth()===mes && local.getFullYear()===ano
 })
   const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
       const adiantado = sum(inMonth, r=> parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r));
@@ -1558,16 +1559,27 @@ $$('#dayModal .status-select')
     dayModal.addEventListener('click', (e)=>{ if(e.target===dayModal) dayModal.classList.remove('show'); });
 
     function renderResItem(r){
+
+      let hora = "--:--"
+
+if(r.datahora){
+
 const dt = new Date(r.datahora)
+
+if(!isNaN(dt)){
 
 const offset = dt.getTimezoneOffset() * 60000
 
 const local = new Date(dt - offset)
 
-const hora = local.toLocaleTimeString(
+hora = local.toLocaleTimeString(
 'pt-BR',
 {hour:'2-digit',minute:'2-digit'}
 )
+
+}
+
+}
   const status = r.status||'Pendente';
 
       const anexoKeys = Object.keys(r).filter(k => k.toLowerCase().includes("anexo") && r[k]);
@@ -1748,17 +1760,7 @@ const obj = Object.fromEntries(fd.entries())
 if(!obj.id){
 delete obj.id
 }
-
-const dtLocal = new Date(obj.datahora)
-
-const offset = dtLocal.getTimezoneOffset() * 60000
-
-const localISO =
-new Date(dtLocal - offset)
-.toISOString()
-.slice(0,16)
-
-obj.datahora = localISO
+obj.datahora = obj.datahora
 
 obj.valorEstimado = parseBRL(obj.valorEstimado || 0)
 
@@ -1885,7 +1887,7 @@ function onClickExcluir(e){
 
   deleteText.innerHTML =
   `Tem certeza que deseja excluir a reserva de <b>${r.nome}</b><br>
-   em <b>${new Date(r.datahora).toLocaleString('pt-BR')}</b>?`;
+   em <b>${r.datahora ? new Date(r.datahora).toLocaleString('pt-BR') : 'Data inválida'}</b>?`;
 
   deleteModal.classList.add('show');
 
@@ -2178,6 +2180,11 @@ extrasCount--
 function baixarArquivo(url,nome){
 
 const a = document.createElement("a")
+
+if(!url){
+toast("Arquivo inválido")
+return
+}
 
 if(url.startsWith("data:")){
 a.href = url
