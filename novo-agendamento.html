@@ -1233,35 +1233,46 @@ font-size:.9rem;
           </div>
         </div>
         <div class="section">
-          <h3>🪑 Reserva</h3>
-          <div class="inline-grid">
-            <div>
-              <label>Local</label>
+<h3>🪑 Reserva</h3>
+
+<div class="inline-grid">
+
+<div>
+<label>Local</label>
 <select id="e_mesa">
-
 <option value="">Selecione</option>
-
-              <option>Sala VIP 1</option>
-              <option>Sala VIP 2</option>
-              <option>Sacada</option>
-              <option>Salão Central</option>
-
+<option>Sala VIP 1</option>
+<option>Sala VIP 2</option>
+<option>Sacada</option>
+<option>Salão Central</option>
 </select>
-            </div>
-            <div>
-              <label>Cardápio</label>
-              <select id="e_cardapio">
-                <option value="">Selecione</option>
-                <option>Buffet Básico</option>
-                <option>Buffet Premium</option>
-                <option>Rodízio</option>
-                <option>À la carte</option>
-                <option>Outro</option>
-              </select>
-            </div>
-          </div>
-          <label>Data e Hora</label>
-          <input id="e_datahora" type="datetime-local" />
+</div>
+
+<div>
+<label>Cardápio</label>
+<select id="e_cardapio">
+<option value="">Selecione</option>
+<option>Buffet Básico</option>
+<option>Buffet Premium</option>
+<option>Rodízio</option>
+<option>À la carte</option>
+<option>Outro</option>
+</select>
+</div>
+
+<div>
+<label>Comanda Individual</label>
+<select id="e_comandaIndividual">
+<option value="">Selecione</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+</select>
+</div>
+
+</div>
+
+<label>Data e Hora</label>
+<input id="e_datahora" type="datetime-local" />
         </div>
         <div class="section">
           <h3>💳 Pagamentos</h3>
@@ -1963,6 +1974,7 @@ document.getElementById("e_pessoas").value = r.pessoas || ""
 
 document.getElementById("e_mesa").value = r.mesa || ""
 document.getElementById("e_cardapio").value = r.cardapio || ""
+document.getElementById("e_comandaIndividual").value = r.comandaIndividual || ""
 
 document.getElementById("e_observacoes").value = r.observacoes || ""
 
@@ -2201,6 +2213,7 @@ pessoas: document.getElementById("e_pessoas").value,
 
 mesa: document.getElementById("e_mesa").value,
 cardapio: document.getElementById("e_cardapio").value,
+comandaIndividual: document.getElementById("e_comandaIndividual").value,
 
 datahora: datahora,
 
