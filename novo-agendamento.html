@@ -1456,10 +1456,20 @@ return {ok:true,message:"Concluída"}
 
 async excluir(id){
 
-const {error} = await supabaseClient
+const {data,error} = await supabaseClient
 .from("reservas_mercatto")
 .delete()
 .eq("id",id)
+.select()
+
+console.log("DELETE RESULT:",data,error)
+
+if(error)
+return {ok:false,message:error.message}
+
+return {ok:true,message:"Excluída"}
+
+}
 
 if(error)
 return {ok:false,message:error.message}
