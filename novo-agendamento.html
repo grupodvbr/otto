@@ -2087,22 +2087,6 @@ datahora = new Date(d - offset)
 
 }
 
-const dh = document.getElementById("e_datahora").value
-
-let datahora = dh
-
-if(dh){
-
-const d = new Date(dh)
-
-const offset = d.getTimezoneOffset() * 60000
-
-datahora = new Date(d - offset)
-.toISOString()
-.slice(0,19)
-
-}
-
 const payload = {
 
 nome: document.getElementById("e_nome").value,
