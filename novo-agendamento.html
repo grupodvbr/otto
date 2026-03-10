@@ -1050,10 +1050,14 @@ font-size:.9rem;
 
       <div class="section">
         <h3>🪑 Detalhes da Reserva</h3>
-        <div class="inline-grid">
-          <div>
-            <label for="mesa">Local da Reserva <span style="color:var(--danger)">*</span></label>
-            <select id="mesa" name="mesa" required>
+<div>
+  <label for="comandaIndividual">Comanda Individual?</label>
+  <select id="comandaIndividual" name="comandaIndividual">
+    <option value="">Selecione</option>
+    <option value="Sim">Sim</option>
+    <option value="Não">Não</option>
+  </select>
+</div>
               <option value="">Selecione o local</option>
               <option>Sala VIP 1</option>
               <option>Sala VIP 2</option>
@@ -1755,7 +1759,9 @@ Cancelada
 </div>
 
 <div class="meta">
-<b>Cardápio:</b> ${r.cardapio||'—'} • <b>Banco:</b> ${r.banco||'—'}
+<b>Cardápio:</b> ${r.cardapio||'—'} 
+• <b>Comanda Individual:</b> ${r.comandaIndividual||'Não'}
+• <b>Banco:</b> ${r.banco||'—'}
 </div>
 
 <div class="meta">
