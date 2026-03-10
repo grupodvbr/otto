@@ -1317,10 +1317,11 @@ const api = {
 
 async listar(ano,mes){
 
-const inicio = new Date(ano, mes, 1).toISOString()
+const inicio =
+`${ano}-${String(mes+1).padStart(2,'0')}-01`
 
-const fim = new Date(ano, mes + 1, 1).toISOString()
-
+const fim =
+`${ano}-${String(mes+2).padStart(2,'0')}-01`
 const {data,error} = await supabaseClient
 .from("reservas_mercatto")
 .select("*")
@@ -1426,13 +1427,9 @@ return {ok:true,message:"Excluída"}
 const items = state.reservas.filter(r=>{
   if(!r.datahora) return false;
 
-const local = new Date(r.datahora)
+  const local = new Date(r.datahora)
 
-local.setMinutes(
-local.getMinutes() + local.getTimezoneOffset()
-)
-
-return ymd(local) === ymd(d)
+  return ymd(local) === ymd(d)
 });
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
@@ -1492,10 +1489,6 @@ const inMonth = state.reservas.filter(r=>{
 if(!r.datahora) return false
 
 const local = new Date(r.datahora)
-
-local.setMinutes(
-local.getMinutes() + local.getTimezoneOffset()
-)
 
 return local.getMonth()===mes && local.getFullYear()===ano
 })
@@ -1574,8 +1567,7 @@ hora = local.toLocaleTimeString(
 'pt-BR',
 {
 hour:'2-digit',
-minute:'2-digit',
-timeZone:'America/Sao_Paulo'
+minute:'2-digit'
 }
 )
 
@@ -2079,6 +2071,22 @@ toast("Reserva inválida")
 return
 }
 
+const dh = document.getElementById("e_datahora").value
+
+let datahora = dh
+
+if(dh){
+
+const d = new Date(dh)
+
+const offset = d.getTimezoneOffset() * 60000
+
+datahora = new Date(d - offset)
+.toISOString()
+.slice(0,19)
+
+}
+
 const payload = {
 
 nome: document.getElementById("e_nome").value,
@@ -2089,8 +2097,8 @@ pessoas: document.getElementById("e_pessoas").value,
 mesa: document.getElementById("e_mesa").value,
 cardapio: document.getElementById("e_cardapio").value,
 
-const dh = document.getElementById("e_datahora").value
-
+datahora: datahora,
+  
 let datahora = dh
 
 if(dh){
