@@ -1994,18 +1994,19 @@ document.getElementById("editModal").classList.add("show");
 
 function onClickExcluir(e){
 
-  const id = e.currentTarget.dataset.id;
+const id = e.currentTarget.dataset.id
 
-  const r = state.reservas.find(x=>String(x.id)===String(id));
-  if(!r) return;
+const r = state.reservas.find(x=>String(x.id)===String(id))
+if(!r) return
 
-  deleteId = id;
+deleteId = id
 
-  deleteText.innerHTML =
-  `Tem certeza que deseja excluir a reserva de <b>${r.nome}</b><br>
-   em <b>${r.datahora ? new Date(r.datahora).toLocaleString('pt-BR') : 'Data inválida'}</b>?`;
+deleteText.innerHTML =
+`Tem certeza que deseja excluir a reserva de <b>${r.nome}</b><br>
+ em <b>${r.datahora ? new Date(r.datahora).toLocaleString('pt-BR') : 'Data inválida'}</b>?`
 
-  deleteModal.classList.add('show');
+dayModal.classList.remove("show")
+deleteModal.classList.add("show")
 
 }
 
