@@ -296,8 +296,8 @@ cursor:pointer;
 
 .btn{
 font-weight:700;
+white-space:nowrap;
 }
-
 .btn-primary{
 
 background:linear-gradient(90deg,var(--brand),var(--brand-2));
@@ -930,6 +930,80 @@ display:flex;
 gap:8px;
 
 justify-content:flex-end;
+
+}
+
+  /* =========================
+   MOBILE FIX RESERVAS
+========================= */
+
+@media (max-width:600px){
+
+.res-item{
+
+padding:10px 8px;
+
+font-size:.82rem;
+
+}
+
+.res-item .top{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:6px;
+
+}
+
+/* linha de botões */
+
+.res-item .row{
+
+width:100%;
+
+flex-wrap:wrap;
+
+gap:6px;
+
+}
+
+/* botões menores */
+
+.res-item .btn{
+
+padding:6px 8px;
+
+font-size:.75rem;
+
+}
+
+/* select menor */
+
+.res-item select{
+
+padding:6px 8px;
+
+font-size:.75rem;
+
+}
+
+/* textos menores */
+
+.res-item .meta{
+
+font-size:.75rem;
+
+line-height:1.35;
+
+}
+
+.res-item .name{
+
+font-size:.9rem;
+
+}
 
 }
   </style>
