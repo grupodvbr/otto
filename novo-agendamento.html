@@ -1560,12 +1560,18 @@ function renderResItem(r){
 let hora = "--:--"
 
 if(r.datahora){
+
 const local = new Date(r.datahora)
 
 hora = local.toLocaleTimeString(
 'pt-BR',
-{hour:'2-digit',minute:'2-digit'}
+{
+hour:'2-digit',
+minute:'2-digit',
+timeZone:'America/Sao_Paulo'
+}
 )
+
 }
 
 const status = r.status || "Pendente"
@@ -1868,13 +1874,16 @@ formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100))
 
 if(r.datahora){
 
-const local = new Date(r.datahora)
+const d = new Date(r.datahora)
+
+const offset = d.getTimezoneOffset() * 60000
+
+const local = new Date(d - offset)
 
 document.getElementById("e_datahora").value =
 local.toISOString().slice(0,16)
 
-}
-      
+} 
 $('#valorEstimado').value = formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100).replace(/\D/g,''));
 $('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100).replace(/\D/g,''));
       $('#banco').value = r.banco || '';
