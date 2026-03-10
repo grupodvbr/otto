@@ -1422,13 +1422,9 @@ return {ok:true,message:"Excluída"}
 const items = state.reservas.filter(r=>{
   if(!r.datahora) return false;
 
-const dt = new Date(r.datahora)
+  const local = new Date(r.datahora);
 
-const offset = dt.getTimezoneOffset() * 60000
-
-const local = new Date(dt - offset)
-
-return ymd(local) === ymd(d)
+  return ymd(local) === ymd(d);
 });
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
@@ -1487,16 +1483,14 @@ const inMonth = state.reservas.filter(r=>{
 
 if(!r.datahora) return false
 
-const dt = new Date(r.datahora)
+const local = new Date(r.datahora)
 
-if(isNaN(dt)) return false
-
-const offset = dt.getTimezoneOffset() * 60000
-
-const local = new Date(dt - offset)
+if(isNaN(local)) return false
 
 return local.getMonth()===mes && local.getFullYear()===ano
 })
+
+      
   const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
       const adiantado = sum(inMonth, r=> parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r));
       const finalPago = sum(inMonth, r=> parseBRL(r.valorFinalPago||0));
@@ -1558,28 +1552,32 @@ $$('#dayModal .status-select')
     }
     dayModal.addEventListener('click', (e)=>{ if(e.target===dayModal) dayModal.classList.remove('show'); });
 
-    function renderResItem(r){
+function renderResItem(r){
 
-      let hora = "--:--"
+  let hora = "--:--"
 
-if(r.datahora){
+  if(r.datahora){
+    const local = new Date(r.datahora)
 
-const dt = new Date(r.datahora)
+    hora = local.toLocaleTimeString(
+      'pt-BR',
+      {hour:'2-digit',minute:'2-digit'}
+    )
+  }
 
-if(!isNaN(dt)){
+  const status = r.status || 'Pendente';
 
-const offset = dt.getTimezoneOffset() * 60000
+  const anexoKeys = Object.keys(r).filter(k => 
+    k.toLowerCase().includes("anexo") && r[k]
+  );
 
-const local = new Date(dt - offset)
-
-hora = local.toLocaleTimeString(
-'pt-BR',
-{hour:'2-digit',minute:'2-digit'}
-)
-
-}
-
-}
+  const anexos = anexoKeys.map((k,i) => 
+  `<button class="btn btn-ghost btn-download" 
+  data-url="${r[k]}" 
+  data-name="anexo_${i+1}">
+  📎 Baixar Anexo ${i+1}
+  </button>`
+  ).join("<br>");
   const status = r.status||'Pendente';
 
       const anexoKeys = Object.keys(r).filter(k => k.toLowerCase().includes("anexo") && r[k]);
@@ -1827,11 +1825,7 @@ formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100))
 
 if(r.datahora){
 
-const dt = new Date(r.datahora)
-
-const offset = dt.getTimezoneOffset() * 60000
-
-const local = new Date(dt - offset)
+const local = new Date(r.datahora)
 
 document.getElementById("e_datahora").value =
 local.toISOString().slice(0,16)
@@ -1840,11 +1834,7 @@ local.toISOString().slice(0,16)
 
 if(r.datahora){
 
-const dt = new Date(r.datahora)
-
-const offset = dt.getTimezoneOffset() * 60000
-
-const local = new Date(dt - offset)
+const local = new Date(r.datahora)
 
 $('#datahora').value =
 local.toISOString().slice(0,16)
