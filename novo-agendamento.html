@@ -1008,8 +1008,9 @@ font-size:.9rem;
 }
   </style>
 </head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <body>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <div class="wrap">
     <header>
       <div class="title">Reservas • Mercatto Delícia</div>
@@ -1322,7 +1323,7 @@ font-size:.9rem;
 
 const SUPABASE_URL = "https://dxkszikemntfusfyrzos.supabase.co"
 const SUPABASE_KEY = "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
-const supabaseClient = supabaseJs.createClient(
+const supabaseClient = supabase.createClient(
 SUPABASE_URL,
 SUPABASE_KEY
 )
