@@ -1996,8 +1996,16 @@ function onClickExcluir(e){
 
 const id = e.currentTarget.dataset.id
 
+if(!id){
+toast("Registro sem ID. Não é possível excluir.")
+return
+}
+
 const r = state.reservas.find(x=>String(x.id)===String(id))
-if(!r) return
+if(!r){
+toast("Reserva não encontrada")
+return
+}
 
 deleteId = id
 
