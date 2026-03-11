@@ -45,12 +45,27 @@ module.exports = async function handler(req, res) {
 
       const change = body.entry?.[0]?.changes?.[0]?.value
 
-      if (!change || !change.messages) {
+      if (!change) {
+        console.log("Evento inválido")
         return res.status(200).end()
       }
 
-      const mensagem = change.messages?.[0]?.text?.body || ""
+      /* =========================
+         IGNORAR STATUS
+      ========================= */
+
+      if (!change.messages) {
+        console.log("Evento recebido sem mensagem (status)")
+        return res.status(200).end()
+      }
+
+      const mensagem = change.messages?.[0]?.text?.body
       const cliente = change.messages?.[0]?.from
+
+      if (!mensagem) {
+        console.log("Mensagem vazia")
+        return res.status(200).end()
+      }
 
       console.log("Cliente:", cliente)
       console.log("Mensagem:", mensagem)
@@ -76,7 +91,7 @@ module.exports = async function handler(req, res) {
       .select("*")
       .eq("telefone", cliente)
       .order("created_at", { ascending: true })
-      .limit(15)
+      .limit(10)
 
       const mensagens = historico.map(m => ({
         role: m.role,
@@ -86,30 +101,30 @@ module.exports = async function handler(req, res) {
       let resposta = ""
 
       /* =========================
-         OPENAI
+         OPENAI COM MEMÓRIA
       ========================= */
 
-      const completion = await openai.chat.completions.create({
+      try {
 
-        model:"gpt-5-nano",
+        const completion = await openai.chat.completions.create({
 
-        messages:[
+          model: "gpt-5-nano",
 
-          {
-            role:"system",
-            content:`
+          messages: [
+
+            {
+              role: "system",
+              content: `
 Você é o assistente oficial do restaurante Mercatto Delícia.
 
-Converse naturalmente com clientes.
-
-Ajude com:
+Ajude clientes com:
 
 • reservas
 • cardápio
 • horários
 • aniversários
 
-Informações do restaurante:
+Informações:
 
 Rodízio italiano
 Rodízio oriental
@@ -123,140 +138,85 @@ Telefone:
 Instagram:
 @mercattodelicia_
 
-Quando o cliente quiser reservar, descubra:
-
-nome
-pessoas
-data
-hora
-area
-
-Quando tiver todas as informações, adicione no final da resposta:
-
-RESERVA_JSON:
-{
-"nome":"",
-"pessoas":"",
-"data":"",
-"hora":"",
-"area":""
-}
-
-Se faltar dados deixe vazio.
-
-Responda normalmente ao cliente.
+Responda curto, educado e natural.
 `
-          },
+            },
 
-          ...mensagens
+            ...mensagens
 
-        ]
+          ]
 
-      })
+        })
 
-      resposta = completion.choices[0].message.content
+        resposta = completion.choices[0].message.content
 
-      console.log("Resposta IA:", resposta)
+        console.log("Resposta OpenAI:", resposta)
 
-      /* =========================
-         EXTRAIR JSON
-      ========================= */
+      }
 
-      let reserva = null
+      catch(e){
 
-      try{
+        console.log("ERRO OPENAI:", e)
+        console.log("OpenAI falhou, ativando menu automático")
 
-        const match = resposta.match(/RESERVA_JSON:\s*(\{[\s\S]*\})/)
+        const texto = mensagem.toLowerCase().trim()
 
-        if(match){
-          reserva = JSON.parse(match[1])
-        }
-
-      }catch(e){}
-
-      /* =========================
-         REGISTRAR RESERVA
-      ========================= */
-
-      if(
-        reserva &&
-        reserva.nome &&
-        reserva.pessoas &&
-        reserva.data &&
-        reserva.hora &&
-        reserva.area
-      ){
-
-        try{
-
-          const api = await fetch(
-            process.env.RESERVA_API_URL,
-            {
-              method:"POST",
-              headers:{
-                "Content-Type":"application/json"
-              },
-              body:JSON.stringify({
-                nome:reserva.nome,
-                telefone:cliente,
-                pessoas:reserva.pessoas,
-                data:reserva.data,
-                hora:reserva.hora,
-                area:reserva.area
-              })
-            }
-          )
-
-          const resultado = await api.json()
-
-          if(resultado.success){
-
-            resposta =
-`✅ Reserva confirmada!
-
-Nome: ${reserva.nome}
-Pessoas: ${reserva.pessoas}
-Data: ${reserva.data}
-Hora: ${reserva.hora}
-Local: ${reserva.area}
-
-Mercatto Delícia
-Avenida Rui Barbosa 1264
-
-Sua mesa será mantida por 20 minutos após o horário.`
-
-          }else{
-
-            resposta =
-`Não conseguimos registrar sua reserva agora.
-
-Faça sua reserva aqui:
-
-https://reservas-mercatto.vercel.app`
-
-          }
-
-        }catch(e){
+        if(texto === "1"){
 
           resposta =
-`Não conseguimos registrar sua reserva agora.
+`📖 *CARDÁPIO MERCATTO*
 
-Faça sua reserva aqui:
+Acesse:
 
-https://reservas-mercatto.vercel.app`
+https://mercattodelicia.com/cardapio`
+
+        }
+
+        else if(texto === "2"){
+
+          resposta =
+`📅 *RESERVAS MERCATTO*
+
+Reserve aqui:
+
+https://reservas-mercatto.vercel.app/novo-agendamento.html`
+
+        }
+
+        else if(texto === "3"){
+
+          resposta =
+`📍 *ENDEREÇO*
+
+Avenida Rui Barbosa 1264
+
+Telefone:
+(77) 3613-5148
+
+Instagram:
+@mercattodelicia_`
+
+        }
+
+        else{
+
+          resposta =
+`👋 *Bem-vindo ao Mercatto Delícia*
+
+Escolha uma opção:
+
+1️⃣ Ver cardápio  
+2️⃣ Fazer reserva  
+3️⃣ Endereço / contato  
+
+Digite o número da opção.`
 
         }
 
       }
 
       /* =========================
-         REMOVER JSON
-      ========================= */
-
-      resposta = resposta.replace(/RESERVA_JSON:[\s\S]*/,"").trim()
-
-      /* =========================
-         SALVAR RESPOSTA
+         SALVAR RESPOSTA IA
       ========================= */
 
       await supabase
@@ -280,20 +240,23 @@ https://reservas-mercatto.vercel.app`
 
       const response = await fetch(url, {
 
-        method:"POST",
+        method: "POST",
 
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
         },
 
-        body:JSON.stringify({
+        body: JSON.stringify({
 
-          messaging_product:"whatsapp",
-          to:cliente,
-          type:"text",
-          text:{
-            body:resposta
+          messaging_product: "whatsapp",
+
+          to: cliente,
+
+          type: "text",
+
+          text: {
+            body: resposta
           }
 
         })
@@ -306,14 +269,13 @@ https://reservas-mercatto.vercel.app`
 
     }
 
-    catch(error){
+    catch (error) {
 
       console.error("ERRO GERAL:", error)
 
     }
 
     return res.status(200).end()
-
   }
 
 }
