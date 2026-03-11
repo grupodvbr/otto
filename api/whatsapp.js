@@ -12,6 +12,7 @@ const supabase = createClient(
 
 module.exports = async function handler(req, res) {
 
+  
   /* =========================
      VERIFICAÇÃO DO WEBHOOK
   ========================= */
