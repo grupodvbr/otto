@@ -6,6 +6,10 @@ const openai = new OpenAI({
 
 module.exports = async function handler(req, res) {
 
+  /* =========================
+     VERIFICAÇÃO DO WEBHOOK
+  ========================= */
+
   if (req.method === "GET") {
 
     const verify_token = process.env.VERIFY_TOKEN
@@ -14,11 +18,16 @@ module.exports = async function handler(req, res) {
     const challenge = req.query["hub.challenge"]
 
     if (mode && token === verify_token) {
+      console.log("Webhook verificado")
       return res.status(200).send(challenge)
     }
 
     return res.status(403).end()
   }
+
+  /* =========================
+     RECEBER MENSAGEM
+  ========================= */
 
   if (req.method === "POST") {
 
@@ -28,31 +37,45 @@ module.exports = async function handler(req, res) {
 
     try {
 
-const change = body.entry?.[0]?.changes?.[0]?.value
+      const change = body.entry?.[0]?.changes?.[0]?.value
 
-// Se não tiver mensagem, ignorar
-if (!change.messages) {
-  console.log("Evento recebido sem mensagem (status ou delivery)")
-  return res.status(200).end()
-}
+      if (!change) {
+        console.log("Evento inválido")
+        return res.status(200).end()
+      }
 
-const mensagem = change.messages[0].text.body
-const cliente = change.messages[0].from
+      /* =========================
+         IGNORAR STATUS
+      ========================= */
+
+      if (!change.messages) {
+        console.log("Evento recebido sem mensagem (status ou delivery)")
+        return res.status(200).end()
+      }
+
+      const mensagem = change.messages?.[0]?.text?.body
+      const cliente = change.messages?.[0]?.from
+
+      if (!mensagem) {
+        console.log("Mensagem vazia")
+        return res.status(200).end()
+      }
 
       console.log("Cliente:", cliente)
       console.log("Mensagem:", mensagem)
 
       let resposta = ""
 
-      try{
+      /* =========================
+         OPENAI
+      ========================= */
 
-        const completion = await openai.chat.completions.create({
+      try {
+
+        const completion = await openai.responses.create({
           model: "gpt-4.1-mini",
-          messages: [
-            {
-              role: "system",
-              content: `
-Você é o assistente de reservas do restaurante Mercatto Delícia.
+          input: `
+Você é o assistente do restaurante Mercatto Delícia.
 
 Ajude clientes com:
 
@@ -61,28 +84,44 @@ Ajude clientes com:
 • horários
 • aniversários
 
-Responda de forma curta e educada.
+Informações importantes:
+
+Rodízio italiano
+Rodízio oriental
+
+Endereço:
+Avenida Rui Barbosa 1264
+
+Telefone:
+(77) 3613-5148
+
+Instagram:
+@mercattodelicia_
+
+Responda de forma curta, educada e natural.
+
+Cliente disse:
+${mensagem}
 `
-            },
-            {
-              role: "user",
-              content: mensagem
-            }
-          ]
         })
 
-        resposta = completion.choices[0].message.content
+        resposta = completion.output_text
 
-      }catch(e){
+        console.log("Resposta OpenAI:", resposta)
 
+      }
+
+      catch(e){
+
+        console.log("ERRO OPENAI:", e)
         console.log("OpenAI falhou, ativando menu automático")
 
-        const texto = mensagem.toLowerCase()
+        const texto = mensagem.toLowerCase().trim()
 
         if(texto === "1"){
 
           resposta =
-`📖 CARDÁPIO MERCATTO
+`📖 *CARDÁPIO MERCATTO*
 
 Acesse nosso cardápio completo:
 
@@ -93,7 +132,7 @@ https://mercattodelicia.com/cardapio`
         else if(texto === "2"){
 
           resposta =
-`📅 RESERVAS MERCATTO
+`📅 *RESERVAS MERCATTO*
 
 Faça sua reserva online:
 
@@ -104,7 +143,7 @@ https://reservas-mercatto.vercel.app/novo-agendamento.html`
         else if(texto === "3"){
 
           resposta =
-`📍 ENDEREÇO
+`📍 *ENDEREÇO*
 
 Avenida Rui Barbosa 1264
 
@@ -119,7 +158,7 @@ Instagram:
         else{
 
           resposta =
-`👋 Bem-vindo ao *Mercatto Delícia*
+`👋 *Bem-vindo ao Mercatto Delícia*
 
 Escolha uma opção:
 
@@ -135,35 +174,49 @@ Digite o número da opção.`
 
       console.log("Resposta enviada:", resposta)
 
-      const phone_number_id =
-        body.entry[0].changes[0].value.metadata.phone_number_id
+      /* =========================
+         ENVIAR WHATSAPP
+      ========================= */
+
+      const phone_number_id = change.metadata.phone_number_id
 
       const url =
         `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
       const response = await fetch(url, {
+
         method: "POST",
+
         headers: {
           Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
           "Content-Type": "application/json"
         },
+
         body: JSON.stringify({
+
           messaging_product: "whatsapp",
+
           to: cliente,
+
           type: "text",
+
           text: {
             body: resposta
           }
+
         })
+
       })
 
       const data = await response.json()
 
       console.log("META RESPONSE:", data)
 
-    } catch (error) {
+    }
 
-      console.error("ERRO:", error)
+    catch (error) {
+
+      console.error("ERRO GERAL:", error)
 
     }
 
