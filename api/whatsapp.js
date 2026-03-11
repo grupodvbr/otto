@@ -2,50 +2,67 @@ export default async function handler(req, res) {
 
   try {
 
-    // =============================
-    // VERIFICAÇÃO DO WEBHOOK META
-    // =============================
     if (req.method === "GET") {
 
       const mode = req.query["hub.mode"];
       const token = req.query["hub.verify_token"];
       const challenge = req.query["hub.challenge"];
 
-      if (mode && token && challenge) {
-
-        if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-          return res.status(200).send(challenge);
-        }
-
-        return res.status(403).send("Token inválido");
-
+      if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+        return res.status(200).send(challenge);
       }
 
-      // acesso direto no navegador
       return res.status(200).send("Webhook Mercatto ativo");
-
     }
 
-    // =============================
-    // RECEBER MENSAGEM WHATSAPP
-    // =============================
     if (req.method === "POST") {
 
-      console.log("Mensagem recebida:", JSON.stringify(req.body, null, 2));
+      const body = req.body;
+
+      console.log("Mensagem recebida:", JSON.stringify(body, null, 2));
+
+      const message =
+        body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+
+      if (message) {
+
+        const from = message.from;
+        const text = message.text?.body;
+
+        console.log("Cliente:", from);
+        console.log("Mensagem:", text);
+
+        await fetch(
+          `https://graph.facebook.com/v19.0/${body.entry[0].changes[0].value.metadata.phone_number_id}/messages`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: from,
+              type: "text",
+              text: {
+                body: "Olá 👋 Bem-vindo ao Mercatto Delícia. Como posso ajudar com sua reserva?"
+              }
+            })
+          }
+        );
+
+      }
 
       return res.status(200).json({ received: true });
 
     }
 
-    return res.status(200).send("OK");
-
   } catch (error) {
 
-    console.error("Erro webhook:", error);
+    console.error(error);
 
     return res.status(500).json({
-      erro: "Erro interno",
-      detalhe: error.message
+      erro: error.message
     });
 
   }
