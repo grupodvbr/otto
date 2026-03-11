@@ -19,41 +19,81 @@ export default async function handler(req, res) {
 
       const body = req.body;
 
-      console.log("Mensagem recebida:", JSON.stringify(body, null, 2));
-
       const message =
         body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-      if (message) {
-
-        const from = message.from;
-        const text = message.text?.body;
-
-        console.log("Cliente:", from);
-        console.log("Mensagem:", text);
-
-        await fetch(
-          `https://graph.facebook.com/v19.0/${body.entry[0].changes[0].value.metadata.phone_number_id}/messages`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              messaging_product: "whatsapp",
-              to: from,
-              type: "text",
-              text: {
-                body: "Olá 👋 Bem-vindo ao Mercatto Delícia. Como posso ajudar com sua reserva?"
-              }
-            })
-          }
-        );
-
+      if (!message) {
+        return res.status(200).json({ ok: true });
       }
 
-      return res.status(200).json({ received: true });
+      const from = message.from;
+      const text = message.text?.body;
+
+      console.log("Cliente:", from);
+      console.log("Mensagem:", text);
+
+      // =============================
+      // OPENAI
+      // =============================
+
+      const ai = await fetch("https://api.openai.com/v1/chat/completions",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          Authorization:`Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body:JSON.stringify({
+          model:"gpt-4.1-mini",
+          messages:[
+            {
+              role:"system",
+              content:`Você é atendente do restaurante Mercatto Delícia.
+
+Ajude clientes com:
+reservas
+aniversários
+horários
+informações do restaurante.
+
+Responda de forma curta e educada.`
+            },
+            {
+              role:"user",
+              content:text
+            }
+          ]
+        })
+      });
+
+      const data = await ai.json();
+
+      const reply = data.choices[0].message.content;
+
+      const phoneId =
+        body.entry[0].changes[0].value.metadata.phone_number_id;
+
+      // =============================
+      // ENVIAR WHATSAPP
+      // =============================
+
+      await fetch(
+        `https://graph.facebook.com/v19.0/${phoneId}/messages`,
+        {
+          method:"POST",
+          headers:{
+            Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            messaging_product:"whatsapp",
+            to:from,
+            type:"text",
+            text:{ body:reply }
+          })
+        }
+      );
+
+      return res.status(200).json({ ok:true });
 
     }
 
@@ -62,7 +102,7 @@ export default async function handler(req, res) {
     console.error(error);
 
     return res.status(500).json({
-      erro: error.message
+      erro:error.message
     });
 
   }
