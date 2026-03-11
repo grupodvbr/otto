@@ -1,24 +1,45 @@
 export default async function handler(req, res) {
 
-if (req.method === "GET") {
+  try {
 
-const mode = req.query["hub.mode"];
-const token = req.query["hub.verify_token"];
-const challenge = req.query["hub.challenge"];
+    // =============================
+    // VERIFICAÇÃO DO WEBHOOK META
+    // =============================
+    if (req.method === "GET") {
 
-if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-return res.status(200).send(challenge);
-}
+      const mode = req.query["hub.mode"];
+      const token = req.query["hub.verify_token"];
+      const challenge = req.query["hub.challenge"];
 
-return res.sendStatus(403);
-}
+      if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+        return res.status(200).send(challenge);
+      }
 
-if (req.method === "POST") {
+      return res.status(403).send("Forbidden");
+    }
 
-console.log("Mensagem recebida:", JSON.stringify(req.body,null,2));
+    // =============================
+    // RECEBER MENSAGEM WHATSAPP
+    // =============================
+    if (req.method === "POST") {
 
-return res.sendStatus(200);
+      console.log("Webhook recebido:", JSON.stringify(req.body, null, 2));
 
-}
+      return res.status(200).json({ status: "ok" });
+
+    }
+
+    return res.status(200).send("Mercatto webhook ativo");
+
+  } catch (err) {
+
+    console.error("Erro webhook:", err);
+
+    return res.status(500).json({
+      erro: "Erro interno webhook",
+      detalhe: err.message
+    });
+
+  }
 
 }
