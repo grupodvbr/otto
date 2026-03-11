@@ -1,133 +1,108 @@
+const OpenAI = require("openai")
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
+
 module.exports = async function handler(req, res) {
 
-  try {
+  if (req.method === "GET") {
 
-    // ====================================
-    // VERIFICAÇÃO DO WEBHOOK
-    // ====================================
-    if (req.method === "GET") {
+    const verify_token = process.env.VERIFY_TOKEN
+    const mode = req.query["hub.mode"]
+    const token = req.query["hub.verify_token"]
+    const challenge = req.query["hub.challenge"]
 
-      const mode = req.query["hub.mode"];
-      const token = req.query["hub.verify_token"];
-      const challenge = req.query["hub.challenge"];
-
-      if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-        console.log("Webhook verificado");
-        return res.status(200).send(challenge);
-      }
-
-      return res.status(403).send("Token inválido");
+    if (mode && token === verify_token) {
+      return res.status(200).send(challenge)
     }
 
-    // ====================================
-    // RECEBER EVENTO WHATSAPP
-    // ====================================
-    if (req.method === "POST") {
+    return res.sendStatus(403)
+  }
 
-      const body = req.body;
+  if (req.method === "POST") {
 
-      console.log("Webhook recebido:", JSON.stringify(body,null,2));
+    const body = req.body
 
-      const change = body?.entry?.[0]?.changes?.[0];
-      const value = change?.value;
+    console.log("Webhook recebido:", JSON.stringify(body,null,2))
 
-      if(!value){
-        return res.status(200).json({ok:true});
-      }
+    try {
 
-      const phoneId = value?.metadata?.phone_number_id;
-      const message = value?.messages?.[0];
+      const mensagem =
+        body.entry[0].changes[0].value.messages[0].text.body
 
-      if(!message){
-        return res.status(200).json({ok:true});
-      }
+      const cliente =
+        body.entry[0].changes[0].value.messages[0].from
 
-      const from = message.from;
-      const text = message?.text?.body || "";
+      console.log("Cliente:", cliente)
+      console.log("Mensagem:", mensagem)
 
-      console.log("Cliente:", from);
-      console.log("Mensagem:", text);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+Você é o assistente de reservas do restaurante Mercatto Delícia.
 
-      // ===============================
-      // OPENAI
-      // ===============================
+Responda clientes de forma educada e curta.
 
-      const aiResponse = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            Authorization:`Bearer ${process.env.OPENAI_API_KEY}`
+Informações do restaurante:
+
+Rodízio italiano
+Rodízio oriental
+Reservas disponíveis
+
+Locais:
+Sala VIP 1
+Sala VIP 2
+Sacada
+Salão Central
+`
           },
-          body:JSON.stringify({
-            model:"gpt-4.1-mini",
-            messages:[
-              {
-                role:"system",
-                content:`Você é atendente do restaurante Mercatto Delícia.
+          {
+            role: "user",
+            content: mensagem
+          }
+        ]
+      })
 
-Ajude clientes com reservas e informações do restaurante.
+      const resposta =
+        completion.choices[0].message.content
 
-Se o cliente disser apenas "oi" ou "olá", responda:
+      console.log("Resposta IA:", resposta)
 
-"Olá 👋 Bem-vindo ao Mercatto Delícia.  
-Como posso ajudar com sua reserva?"`
-              },
-              {
-                role:"user",
-                content:text
-              }
-            ]
-          })
-        }
-      );
+      const phone_number_id =
+        body.entry[0].changes[0].value.metadata.phone_number_id
 
-      const aiData = await aiResponse.json();
+      const url =
+        `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
-      const reply =
-        aiData?.choices?.[0]?.message?.content ||
-        "Olá! Como posso ajudar?";
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: cliente,
+          type: "text",
+          text: {
+            body: resposta
+          }
+        })
+      })
 
-      console.log("Resposta IA:", reply);
+      const data = await response.json()
 
-      // ===============================
-      // ENVIAR WHATSAPP
-      // ===============================
+      console.log("META RESPONSE:", data)
 
-      const send = await fetch(
-        `https://graph.facebook.com/v19.0/${phoneId}/messages`,
-        {
-          method:"POST",
-          headers:{
-            Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-            "Content-Type":"application/json"
-          },
-          body:JSON.stringify({
-            messaging_product:"whatsapp",
-            to:from,
-            type:"text",
-            text:{body:reply}
-          })
-        }
-      );
-
-      const sendData = await send.json();
-
-      console.log("META RESPONSE:", sendData);
-
-      return res.status(200).json({ok:true});
-
+    } catch (error) {
+      console.error("ERRO:", error)
     }
 
-  } catch(error){
-
-    console.error("Erro webhook:", error);
-
-    return res.status(500).json({
-      erro:error.message
-    });
-
+    return res.sendStatus(200)
   }
 
 }
