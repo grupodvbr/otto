@@ -47,13 +47,18 @@ console.log("Evento inválido")
 return res.status(200).end()
 }
 
+/* IGNORA EVENTOS DE STATUS */
+
 if(!change.messages){
-console.log("Evento sem mensagem")
+console.log("Evento sem mensagem (status)")
 return res.status(200).end()
 }
 
-const mensagem = change.messages?.[0]?.text?.body
-const cliente = change.messages?.[0]?.from
+const msg = change.messages[0]
+
+const mensagem = msg.text?.body
+const cliente = msg.from
+const message_id = msg.id
 
 if(!mensagem){
 console.log("Mensagem vazia")
@@ -62,6 +67,23 @@ return res.status(200).end()
 
 console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
+
+/* ================= BLOQUEAR DUPLICIDADE ================= */
+
+const { data: jaProcessada } = await supabase
+.from("mensagens_processadas")
+.select("*")
+.eq("message_id", message_id)
+.single()
+
+if(jaProcessada){
+console.log("Mensagem duplicada ignorada")
+return res.status(200).end()
+}
+
+await supabase
+.from("mensagens_processadas")
+.insert({ message_id })
 
 /* ================= SALVAR MENSAGEM ================= */
 
@@ -105,11 +127,19 @@ content:`
 
 Você é o assistente oficial do restaurante Mercatto Delícia.
 
-Seu trabalho principal é realizar reservas.
+Atenda clientes de forma natural, simpática e objetiva.
 
-Sempre converse normalmente com o cliente.
+Evite repetir perguntas ou frases.
 
-Quando identificar uma reserva, colete:
+Nunca repita a mesma resposta duas vezes.
+
+Evite perguntar constantemente "posso ajudar em algo".
+
+Se o cliente responder "sim", "pode", "ok", continue a conversa.
+
+Seu objetivo principal também é fechar reservas.
+
+Para reservas colete:
 
 nome
 pessoas
@@ -118,9 +148,10 @@ hora
 area (interna ou externa)
 
 Aceite variações como:
+
 "área interna"
-"dentro"
 "salão"
+"dentro"
 "externa"
 "fora"
 
