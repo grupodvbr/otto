@@ -87,27 +87,23 @@ role:"user"
 BUSCAR ESTADO DA RESERVA
 ================================= */
 
-let {data:estado} = await supabase
+let { data: estado } = await supabase
 .from("estado_reserva")
 .select("*")
-.eq("telefone",cliente)
-.single()
+.eq("telefone", cliente)
+.maybeSingle()
 
-if(!estado){
+if (!estado) {
 
-await supabase
+const { data: novoEstado } = await supabase
 .from("estado_reserva")
 .insert({
-telefone:cliente
+telefone: cliente
 })
-
-const r = await supabase
-.from("estado_reserva")
-.select("*")
-.eq("telefone",cliente)
+.select()
 .single()
 
-estado=r.data
+estado = novoEstado
 
 }
 
