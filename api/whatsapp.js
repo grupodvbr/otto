@@ -2,24 +2,24 @@ const OpenAI = require("openai")
 const { createClient } = require("@supabase/supabase-js")
 
 const openai = new OpenAI({
-apiKey:process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY
 })
 
-const supabase=createClient(
-process.env.SUPABASE_URL,
-process.env.SUPABASE_SERVICE_ROLE
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE
 )
 
-module.exports=async function handler(req,res){
+module.exports = async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
 
 if(req.method==="GET"){
 
-const verify_token=process.env.VERIFY_TOKEN
-const mode=req.query["hub.mode"]
-const token=req.query["hub.verify_token"]
-const challenge=req.query["hub.challenge"]
+const verify_token = process.env.VERIFY_TOKEN
+const mode = req.query["hub.mode"]
+const token = req.query["hub.verify_token"]
+const challenge = req.query["hub.challenge"]
 
 if(mode && token===verify_token){
 console.log("Webhook verificado")
@@ -36,63 +36,32 @@ if(req.method==="POST"){
 
 const body=req.body
 
+console.log("Webhook recebido:",JSON.stringify(body,null,2))
+
 try{
 
-const change=body.entry?.[0]?.changes?.[0]?.value
+const change = body.entry?.[0]?.changes?.[0]?.value
 
-if(!change) return res.status(200).end()
-
-if(!change.messages) return res.status(200).end()
-
-const msg=change.messages[0]
-const mensagem=msg.text?.body
-const cliente=msg.from
-const message_id=msg.id
-
-if(!mensagem) return res.status(200).end()
-
-console.log("Cliente:",cliente)
-console.log("Mensagem:",mensagem)
-
-/* ================= BLOQUEAR DUPLICADOS ================= */
-
-const {data:duplicado}=await supabase
-.from("mensagens_recebidas")
-.select("*")
-.eq("message_id",message_id)
-.single()
-
-if(duplicado){
-console.log("Mensagem duplicada ignorada")
+if(!change){
+console.log("Evento inválido")
 return res.status(200).end()
 }
 
-await supabase
-.from("mensagens_recebidas")
-.insert({message_id})
-
-/* ================= DETECTAR NOME ================= */
-
-const nomeDetectado=mensagem.match(/meu nome é (.+)/i)
-
-if(nomeDetectado){
-
-await supabase
-.from("clientes_whatsapp")
-.upsert({
-telefone:cliente,
-nome:nomeDetectado[1]
-})
-
+if(!change.messages){
+console.log("Evento sem mensagem")
+return res.status(200).end()
 }
 
-/* ================= BUSCAR CLIENTE ================= */
+const mensagem = change.messages?.[0]?.text?.body
+const cliente = change.messages?.[0]?.from
 
-const {data:clienteData}=await supabase
-.from("clientes_whatsapp")
-.select("*")
-.eq("telefone",cliente)
-.single()
+if(!mensagem){
+console.log("Mensagem vazia")
+return res.status(200).end()
+}
+
+console.log("Cliente:",cliente)
+console.log("Mensagem:",mensagem)
 
 /* ================= SALVAR MENSAGEM ================= */
 
@@ -106,14 +75,14 @@ role:"user"
 
 /* ================= HISTÓRICO ================= */
 
-const {data:historico}=await supabase
+const {data:historico} = await supabase
 .from("conversas_whatsapp")
 .select("*")
 .eq("telefone",cliente)
 .order("created_at",{ascending:true})
-.limit(20)
+.limit(15)
 
-const mensagens=historico.map(m=>({
+const mensagens = historico.map(m=>({
 role:m.role,
 content:m.mensagem
 }))
@@ -122,7 +91,9 @@ let resposta=""
 
 /* ================= OPENAI ================= */
 
-const completion=await openai.chat.completions.create({
+try{
+
+const completion = await openai.chat.completions.create({
 
 model:"gpt-4.1-mini",
 
@@ -134,36 +105,26 @@ content:`
 
 Você é o assistente oficial do restaurante Mercatto Delícia.
 
-Atenda clientes de forma natural, simpática e direta.
+Seu trabalho principal é realizar reservas.
 
-Evite perguntar repetidamente "posso ajudar em algo".
+Sempre converse normalmente com o cliente.
 
-Se o cliente perguntar algo específico, responda direto.
-
-Use o nome do cliente quando souber.
-
-Cliente atual:
-${clienteData?.nome || "nome desconhecido"}
-
-Seu objetivo principal é também fechar reservas.
-
-Para reservas colete:
+Quando identificar uma reserva, colete:
 
 nome
 pessoas
 data
 hora
-area
+area (interna ou externa)
 
 Aceite variações como:
-
 "área interna"
-"salão"
 "dentro"
+"salão"
 "externa"
 "fora"
 
-Quando tiver todos os dados gere:
+Quando tiver TODOS os dados gere obrigatoriamente:
 
 RESERVA_JSON:
 {
@@ -173,6 +134,14 @@ RESERVA_JSON:
 "hora":"",
 "area":""
 }
+
+Data deve ser convertida para formato:
+
+YYYY-MM-DD
+
+Exemplo:
+
+16/03 → 2026-03-16
 
 Nunca explique o JSON.
 
@@ -185,42 +154,70 @@ Nunca explique o JSON.
 
 })
 
-resposta=completion.choices[0].message.content
+resposta = completion.choices[0].message.content
 
 console.log("Resposta IA:",resposta)
+
+}catch(e){
+
+console.log("ERRO OPENAI",e)
+
+resposta=
+`👋 Bem-vindo ao Mercatto Delícia
+
+Digite:
+
+1️⃣ Cardápio
+2️⃣ Reservas
+3️⃣ Endereço`
+
+}
 
 /* ================= DETECTAR JSON ================= */
 
 try{
 
-const match=resposta.match(/RESERVA_JSON:\s*({[\s\S]*?})/)
+const match = resposta.match(/RESERVA_JSON:\s*({[\s\S]*?})/)
 
 if(match){
 
-const reserva=JSON.parse(match[1])
+const reserva = JSON.parse(match[1])
 
-let dataISO=reserva.data
+console.log("Reserva detectada:",reserva)
+
+/* NORMALIZAR DATA */
+
+let dataISO = reserva.data
 
 if(reserva.data.includes("/")){
 
-const [dia,mes]=reserva.data.split("/")
-const ano=new Date().getFullYear()
+const [dia,mes] = reserva.data.split("/")
+const ano = new Date().getFullYear()
 
-dataISO=`${ano}-${mes}-${dia}`
+dataISO = `${ano}-${mes}-${dia}`
 
 }
+
+/* NORMALIZAR AREA */
 
 let mesa="Salão"
 
-const area=reserva.area.toLowerCase()
+const areaTexto=reserva.area.toLowerCase()
 
-if(area.includes("extern") || area.includes("fora")){
+if(
+areaTexto.includes("extern") ||
+areaTexto.includes("fora")
+){
 mesa="Área Externa"
 }
 
-const datahora=dataISO+"T"+reserva.hora
+/* DATAHORA */
 
-const {error}=await supabase
+const datahora = dataISO+"T"+reserva.hora
+
+/* SALVAR RESERVA */
+
+const {error} = await supabase
 .from("reservas_mercatto")
 .insert({
 
@@ -243,7 +240,7 @@ status:"Pendente"
 if(!error){
 
 resposta=
-`✅ Reserva confirmada!
+`✅ *Reserva confirmada!*
 
 Nome: ${reserva.nome}
 Pessoas: ${reserva.pessoas}
@@ -254,7 +251,8 @@ Hora: ${reserva.hora}
 📍 Mercatto Delícia
 Avenida Rui Barbosa 1264
 
-Aguardamos você! 🍷`
+Sua mesa estará reservada.
+Aguardamos você!`
 
 }
 
@@ -262,7 +260,7 @@ Aguardamos você! 🍷`
 
 }catch(e){
 
-console.log("Erro reserva:",e)
+console.log("Erro ao processar reserva:",e)
 
 }
 
@@ -278,7 +276,7 @@ role:"assistant"
 
 /* ================= ENVIAR WHATSAPP ================= */
 
-const phone_number_id=change.metadata.phone_number_id
+const phone_number_id = change.metadata.phone_number_id
 
 const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
@@ -294,17 +292,22 @@ Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 body:JSON.stringify({
 
 messaging_product:"whatsapp",
+
 to:cliente,
+
 type:"text",
-text:{body:resposta}
+
+text:{
+body:resposta
+}
 
 })
 
 })
 
-}catch(e){
+}catch(error){
 
-console.log("ERRO GERAL:",e)
+console.log("ERRO GERAL:",error)
 
 }
 
