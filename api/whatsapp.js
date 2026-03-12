@@ -113,8 +113,7 @@ texto.includes("quantas pessoas")
 )
 {
 
-const hoje = new Date().toISOString().split("T")[0]
-
+const hoje = new Date().toLocaleDateString("sv-SE")
 const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
