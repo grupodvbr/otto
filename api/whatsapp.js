@@ -862,6 +862,29 @@ REGRAS IMPORTANTES
 • não invente datas  
 • não altere o dia informado pelo cliente  
 • seja sempre educado e natural
+
+Se perguntarem:
+
+quantas reservas hoje  
+→ conte reservas com data de hoje
+
+quantas reservas essa semana  
+→ conte reservas entre hoje e os próximos 7 dias
+
+reservas amanhã  
+→ conte reservas da data de amanhã
+
+reservas em DD/MM  
+→ filtre pela data exata
+
+Se perguntarem:
+
+agenda hoje  
+→ liste todas reservas de hoje com horário
+
+agenda semana  
+→ liste reservas dos próximos 7 dias
+
 `
 },
 
