@@ -3,12 +3,10 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Auditoria de Reservas • Mercatto Delícia</title>
+<title>Auditoria • Reservas Mercatto</title>
 
 <meta name="viewport"
-content="width=device-width,
-initial-scale=1,
-maximum-scale=1">
+content="width=device-width,initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -16,105 +14,55 @@ maximum-scale=1">
 
 <style>
 
-:root{
---bg:#f3f4f6;
---card:#ffffff;
---border:#e5e7eb;
---text:#111827;
---muted:#6b7280;
---green:#16a34a;
---blue:#0284c7;
---red:#dc2626;
---radius:14px;
-}
-
-*{
-box-sizing:border-box;
-font-family:Inter;
-}
-
 body{
 margin:0;
-background:var(--bg);
-color:var(--text);
+font-family:Inter;
+background:#f3f4f6;
 }
 
 .header{
 background:white;
-padding:18px 24px;
-border-bottom:1px solid var(--border);
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-gap:10px;
-}
-
-.title{
+padding:18px;
 font-weight:800;
 font-size:20px;
-}
-
-.filters{
-display:flex;
-gap:10px;
-}
-
-input,select{
-padding:10px 14px;
-border-radius:10px;
-border:1px solid var(--border);
-font-weight:600;
+border-bottom:1px solid #e5e7eb;
 }
 
 .container{
-padding:24px;
+padding:20px;
 display:grid;
 gap:14px;
 }
 
 .card{
-background:var(--card);
-border:1px solid var(--border);
-border-radius:var(--radius);
+background:white;
 padding:18px;
+border-radius:12px;
+border:1px solid #e5e7eb;
 display:grid;
-gap:10px;
-box-shadow:0 10px 24px rgba(0,0,0,0.05);
+gap:8px;
 }
 
 .top{
 display:flex;
 justify-content:space-between;
-align-items:center;
 }
 
 .nome{
-font-weight:800;
+font-weight:700;
 font-size:16px;
 }
 
 .badge{
-padding:4px 10px;
-border-radius:999px;
 font-size:12px;
 font-weight:700;
+padding:4px 10px;
+border-radius:999px;
 }
 
-.insert{
-background:#dcfce7;
-color:#166534;
-}
-
-.update{
-background:#e0f2fe;
-color:#075985;
-}
-
-.excluir{
-background:#fee2e2;
-color:#991b1b;
-}
+.INSERT{background:#dcfce7;color:#166534}
+.UPDATE{background:#e0f2fe;color:#075985}
+.excluir{background:#fee2e2;color:#991b1b}
 
 .row{
 display:flex;
@@ -128,24 +76,17 @@ gap:10px;
 margin-top:8px;
 }
 
-.btn{
+button{
 flex:1;
 padding:10px;
 border:none;
-border-radius:10px;
+border-radius:8px;
 font-weight:700;
 cursor:pointer;
 }
 
-.btn-view{
-background:var(--blue);
-color:white;
-}
-
-.btn-restore{
-background:var(--green);
-color:white;
-}
+.ver{background:#0284c7;color:white}
+.restaurar{background:#16a34a;color:white}
 
 .popup{
 position:fixed;
@@ -162,53 +103,23 @@ padding:20px;
 
 .modal{
 background:white;
-border-radius:14px;
-padding:24px;
-max-width:900px;
+padding:20px;
+border-radius:12px;
+max-width:800px;
 width:100%;
-max-height:85vh;
+max-height:80vh;
 overflow:auto;
 display:grid;
-gap:18px;
-}
-
-.modal-header{
-display:flex;
-justify-content:space-between;
-font-weight:800;
-font-size:18px;
-}
-
-.close{
-cursor:pointer;
-font-size:22px;
-}
-
-.grid{
-display:grid;
 gap:16px;
-}
-
-@media(min-width:900px){
-.grid{
-grid-template-columns:1fr 1fr;
-}
 }
 
 .json{
 background:#111827;
 color:#e5e7eb;
-padding:14px;
+padding:12px;
 border-radius:10px;
 font-size:12px;
 overflow:auto;
-}
-
-.empty{
-text-align:center;
-padding:50px;
-color:var(--muted);
-font-weight:600;
 }
 
 </style>
@@ -218,45 +129,26 @@ font-weight:600;
 <body>
 
 <div class="header">
-
-<div class="title">
 Auditoria de Reservas • Mercatto
-</div>
-
-<div class="filters">
-
-<input id="busca" placeholder="Buscar cliente">
-
-<select id="tipoFiltro">
-<option value="">Todos</option>
-<option value="INSERT">INSERT</option>
-<option value="UPDATE">UPDATE</option>
-<option value="excluir">EXCLUIR</option>
-</select>
-
-</div>
-
 </div>
 
 <div class="container" id="lista"></div>
 
 <div class="popup" id="popup">
-
 <div class="modal">
 
-<div class="modal-header">
-<span>Alteração da Reserva</span>
-<span class="close" onclick="fechar()">✕</span>
+<div style="display:flex;justify-content:space-between">
+<b>Detalhes da alteração</b>
+<span style="cursor:pointer" onclick="fechar()">✕</span>
 </div>
 
-<div class="grid" id="dados"></div>
+<div id="detalhes"></div>
 
-<button class="btn btn-restore" onclick="restaurar()">
-Restaurar Reserva
+<button class="restaurar" onclick="restaurar()">
+Restaurar reserva
 </button>
 
 </div>
-
 </div>
 
 <script>
@@ -287,7 +179,7 @@ render()
 
 }
 
-function interpretarDados(item){
+function extrair(item){
 
 let dados={}
 
@@ -297,7 +189,7 @@ dados=JSON.parse(item.dados || "{}")
 
 if(item.acao==="UPDATE"){
 
-return dados.depois || dados
+return dados.depois || {}
 
 }
 
@@ -307,37 +199,13 @@ return dados
 
 function render(){
 
-const busca=document.getElementById("busca").value.toLowerCase()
-const tipo=document.getElementById("tipoFiltro").value
-
 const container=document.getElementById("lista")
 
 container.innerHTML=""
 
-const lista=historico.filter(i=>{
+historico.forEach(item=>{
 
-const dados=interpretarDados(i)
-
-const texto=(dados.nome || "")
-
-const matchBusca=texto.toLowerCase().includes(busca)
-
-const matchTipo=!tipo || i.acao===tipo
-
-return matchBusca && matchTipo
-
-})
-
-if(lista.length===0){
-
-container.innerHTML='<div class="empty">Nenhum histórico encontrado</div>'
-return
-
-}
-
-lista.forEach(item=>{
-
-const dados=interpretarDados(item)
+const dados=extrair(item)
 
 const card=document.createElement("div")
 
@@ -351,9 +219,9 @@ card.innerHTML=`
 ${dados.nome || "Reserva"}
 </div>
 
-<span class="badge ${item.acao}">
+<div class="badge ${item.acao}">
 ${item.acao}
-</span>
+</div>
 
 </div>
 
@@ -368,7 +236,7 @@ ${item.acao}
 </div>
 
 <div class="row">
-<span>Data da Reserva</span>
+<span>Data reserva</span>
 <span>${dados.datahora ? new Date(dados.datahora).toLocaleString() : "-"}</span>
 </div>
 
@@ -384,11 +252,11 @@ ${item.acao}
 
 <div class="actions">
 
-<button class="btn btn-view">
+<button class="ver">
 Ver alteração
 </button>
 
-<button class="btn btn-restore">
+<button class="restaurar">
 Restaurar
 </button>
 
@@ -396,8 +264,8 @@ Restaurar
 
 `
 
-card.querySelector(".btn-view").onclick=()=>abrir(item)
-card.querySelector(".btn-restore").onclick=()=>restaurarDireto(item)
+card.querySelector(".ver").onclick=()=>abrir(item)
+card.querySelector(".restaurar").onclick=()=>restaurarDireto(item)
 
 container.appendChild(card)
 
@@ -420,7 +288,7 @@ dados=JSON.parse(item.dados || "{}")
 const antes=dados.antes || {}
 const depois=dados.depois || dados
 
-document.getElementById("dados").innerHTML=`
+document.getElementById("detalhes").innerHTML=`
 
 <div>
 <b>ANTES</b>
@@ -441,11 +309,8 @@ document.getElementById("popup").style.display="none"
 }
 
 async function restaurar(){
-
 if(!registroAtual)return
-
 restaurarDireto(registroAtual)
-
 }
 
 async function restaurarDireto(item){
@@ -458,13 +323,6 @@ dados=JSON.parse(item.dados || "{}")
 
 const registro=dados.antes || dados
 
-if(!registro){
-
-alert("Não existe dado para restaurar")
-return
-
-}
-
 const {error}=await client
 .from("reservas_mercatto")
 .upsert(registro)
@@ -476,16 +334,13 @@ return
 
 }
 
-alert("Reserva restaurada com sucesso!")
+alert("Reserva restaurada!")
 
 fechar()
 
 carregar()
 
 }
-
-document.getElementById("busca").oninput=render
-document.getElementById("tipoFiltro").onchange=render
 
 carregar()
 
