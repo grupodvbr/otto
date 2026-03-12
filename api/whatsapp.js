@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-const ADMIN_PHONE = "5577998253249"
+const ADMIN_PHONE = "77998253249"
 module.exports = async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
@@ -77,8 +77,7 @@ const texto = mensagem.toLowerCase()
 
 /* ================= MODO ADMIN ================= */
 
-if(cliente === ADMIN_PHONE){
-
+if(cliente.endsWith(ADMIN_PHONE)){
 if(texto === "acesso administrativo 84"){
 
 const respostaAdmin =
