@@ -78,8 +78,8 @@ const texto = mensagem.toLowerCase()
 /* ================= MODO ADMIN ================= */
 
 if(cliente.endsWith(ADMIN_PHONE)){
-if(texto === "acesso administrativo 84"){
-
+if(texto.includes("acesso administrativo 84"))
+  
 const respostaAdmin =
 `🔐 *Modo administrativo ativado*
 
