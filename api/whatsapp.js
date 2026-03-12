@@ -634,7 +634,7 @@ messaging_product:"whatsapp",
 to:cliente,
 type:"video",
 video:{
-link:"https://SEU_VIDEO.mp4",
+link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
 caption:"Conheça o Mercatto Delícia"
 }
 })
