@@ -106,8 +106,6 @@ Agora você pode perguntar:
 
         return res.status(200).end()
 
-    }
-
 }
 /* CONSULTAS ADMIN */
 if(
