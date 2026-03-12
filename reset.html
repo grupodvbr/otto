@@ -3,10 +3,9 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Auditoria • Reservas Mercatto</title>
+<title>Auditoria de Reservas • Mercatto</title>
 
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -23,8 +22,8 @@ background:#f3f4f6;
 .header{
 background:white;
 padding:18px;
-font-weight:800;
 font-size:20px;
+font-weight:800;
 border-bottom:1px solid #e5e7eb;
 }
 
@@ -50,7 +49,6 @@ justify-content:space-between;
 
 .nome{
 font-weight:700;
-font-size:16px;
 }
 
 .badge{
@@ -73,7 +71,7 @@ font-size:14px;
 .actions{
 display:flex;
 gap:10px;
-margin-top:8px;
+margin-top:10px;
 }
 
 button{
@@ -105,7 +103,7 @@ padding:20px;
 background:white;
 padding:20px;
 border-radius:12px;
-max-width:800px;
+max-width:900px;
 width:100%;
 max-height:80vh;
 overflow:auto;
@@ -135,20 +133,20 @@ Auditoria de Reservas • Mercatto
 <div class="container" id="lista"></div>
 
 <div class="popup" id="popup">
+
 <div class="modal">
 
 <div style="display:flex;justify-content:space-between">
-<b>Detalhes da alteração</b>
+<b>Alteração da Reserva</b>
 <span style="cursor:pointer" onclick="fechar()">✕</span>
 </div>
 
 <div id="detalhes"></div>
 
-<button class="restaurar" onclick="restaurar()">
-Restaurar reserva
-</button>
+<button class="restaurar" onclick="restaurar()">Restaurar Reserva</button>
 
 </div>
+
 </div>
 
 <script>
@@ -159,7 +157,31 @@ const client = supabase.createClient(
 )
 
 let historico=[]
-let registroAtual=null
+let atual=null
+
+function lerDados(item){
+
+let dados=item.dados
+
+if(typeof dados==="string"){
+
+try{
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
+
+if(item.acao==="UPDATE"){
+
+return dados.depois || {}
+
+}
+
+return dados
+
+}
 
 async function carregar(){
 
@@ -179,24 +201,6 @@ render()
 
 }
 
-function extrair(item){
-
-let dados={}
-
-try{
-dados=JSON.parse(item.dados || "{}")
-}catch{}
-
-if(item.acao==="UPDATE"){
-
-return dados.depois || {}
-
-}
-
-return dados
-
-}
-
 function render(){
 
 const container=document.getElementById("lista")
@@ -205,7 +209,7 @@ container.innerHTML=""
 
 historico.forEach(item=>{
 
-const dados=extrair(item)
+const dados=lerDados(item)
 
 const card=document.createElement("div")
 
@@ -226,6 +230,11 @@ ${item.acao}
 </div>
 
 <div class="row">
+<span>Telefone</span>
+<span>${dados.telefone || "-"}</span>
+</div>
+
+<div class="row">
 <span>Mesa</span>
 <span>${dados.mesa || "-"}</span>
 </div>
@@ -236,7 +245,7 @@ ${item.acao}
 </div>
 
 <div class="row">
-<span>Data reserva</span>
+<span>Data Reserva</span>
 <span>${dados.datahora ? new Date(dados.datahora).toLocaleString() : "-"}</span>
 </div>
 
@@ -247,18 +256,14 @@ ${item.acao}
 
 <div class="row">
 <span>Alterado em</span>
-<span>${new Date(item.created_at).toLocaleString()}</span>
+<span>${item.created_at ? new Date(item.created_at).toLocaleString() : "-"}</span>
 </div>
 
 <div class="actions">
 
-<button class="ver">
-Ver alteração
-</button>
+<button class="ver">Ver alteração</button>
 
-<button class="restaurar">
-Restaurar
-</button>
+<button class="restaurar">Restaurar</button>
 
 </div>
 
@@ -275,15 +280,21 @@ container.appendChild(card)
 
 function abrir(item){
 
-registroAtual=item
+atual=item
 
 document.getElementById("popup").style.display="flex"
 
-let dados={}
+let dados=item.dados
+
+if(typeof dados==="string"){
 
 try{
-dados=JSON.parse(item.dados || "{}")
-}catch{}
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
 
 const antes=dados.antes || {}
 const depois=dados.depois || dados
@@ -309,17 +320,26 @@ document.getElementById("popup").style.display="none"
 }
 
 async function restaurar(){
-if(!registroAtual)return
-restaurarDireto(registroAtual)
+
+if(!atual)return
+
+restaurarDireto(atual)
+
 }
 
 async function restaurarDireto(item){
 
-let dados={}
+let dados=item.dados
+
+if(typeof dados==="string"){
 
 try{
-dados=JSON.parse(item.dados || "{}")
-}catch{}
+dados=JSON.parse(dados)
+}catch{
+dados={}
+}
+
+}
 
 const registro=dados.antes || dados
 
