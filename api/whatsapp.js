@@ -68,40 +68,34 @@ return res.status(200).end()
 
 console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
-const msgLower = mensagem.toLowerCase()
 
-/* DETECTAR RESERVA */
+console.log("Cliente:",cliente)
+console.log("Mensagem:",mensagem)
 
-if(
-msgLower.includes("reserv") ||
-msgLower.includes("mesa") ||
-msgLower.includes("16h") ||
-msgLower.includes("17h") ||
-msgLower.includes("18h") ||
-msgLower.includes("19h")
-){
+const texto = mensagem.toLowerCase()
 
-const respostaReserva = `Perfeito! Vamos fazer sua reserva.
+/* ================= INTENÇÕES ================= */
 
-Para quantas pessoas será?`
+const querReserva =
+texto.includes("reserv") ||
+texto.includes("mesa")
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{ body: respostaReserva }
-})
-})
+const querCardapio =
+texto.includes("cardap") ||
+texto.includes("menu")
 
-return res.status(200).end()
+const querVideo =
+texto.includes("video") ||
+texto.includes("vídeo")
 
-}
+const querFotos =
+texto.includes("foto") ||
+texto.includes("imagem")
+
+const querEndereco =
+texto.includes("onde fica") ||
+texto.includes("endereço") ||
+texto.includes("localização")
 /* ================= BLOQUEAR DUPLICIDADE ================= */
 
 const { data: jaProcessada } = await supabase
@@ -118,7 +112,112 @@ return res.status(200).end()
 await supabase
 .from("mensagens_processadas")
 .insert({ message_id })
+if(querEndereco){
 
+const resposta = `📍 Estamos localizados em:
+
+Mercatto Delícia
+Avenida Rui Barbosa 1264
+Barreiras - BA
+
+Mapa:
+https://maps.app.goo.gl/mQcEjj8s21ttRbrQ8`
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+}if(querVideo){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"video",
+video:{
+link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
+caption:"Conheça o Mercatto Delícia"
+}
+})
+})
+
+return res.status(200).end()
+
+}if(querCardapio){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"document",
+document:{
+link:"https://SEU_CARDAPIO.pdf",
+filename:"Cardapio_Mercatto.pdf"
+}
+})
+})
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:"Aqui está nosso cardápio completo 😊"}
+})
+})
+
+return res.status(200).end()
+
+}if(querReserva){
+
+const resposta = `Perfeito! Vou organizar sua reserva.
+
+Para quantas pessoas será?`
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+}
 /* ================= SALVAR MENSAGEM ================= */
 
 await supabase
