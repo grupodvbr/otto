@@ -514,7 +514,6 @@ status:"Pendente"
 
 if(!error){
 
-if(!error){
 
 const dataCliente = new Date(dataISO)
   .toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})
