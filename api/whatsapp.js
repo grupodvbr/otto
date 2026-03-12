@@ -160,7 +160,12 @@ caption:"Conheça o Mercatto Delícia"
 
 return res.status(200).end()
 
-}if(querCardapio){
+}
+  
+
+  
+  
+if(querCardapio){
 
 await fetch(url,{
 method:"POST",
@@ -194,6 +199,10 @@ text:{body:"Aqui está nosso cardápio completo 😊"}
 })
 
 return res.status(200).end()
+
+} // ✅ FECHA O BLOCO DO CARDÁPIO
+
+/* ================= FLUXO DE RESERVA ================= */
 
 const mensagemTemDadosReserva =
 texto.includes("nome") &&
