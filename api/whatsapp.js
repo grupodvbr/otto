@@ -595,8 +595,7 @@ filename:"Cardapio_Mercatto.pdf"
 })
 })
 
-resposta = resposta.replace("ENVIAR_CARDAPIO","")
-
+resposta = resposta.replace(/ENVIAR_CARDAPIO/g,"").trim()
 }
 
 if(resposta.includes("ENVIAR_FOTOS")){
@@ -618,8 +617,7 @@ caption:"Mercatto Delícia"
 })
 })
 
-resposta = resposta.replace("ENVIAR_FOTOS","")
-
+resposta = resposta.replace(/ENVIAR_FOTOS/g,"").trim()
 }
 
 if(resposta.includes("ENVIAR_VIDEO")){
@@ -641,8 +639,7 @@ caption:"Conheça o Mercatto Delícia"
 })
 })
 
-resposta = resposta.replace("ENVIAR_VIDEO","")
-
+resposta = resposta.replace(/ENVIAR_VIDEO/g,"").trim()
 }
 console.log("Resposta IA:",resposta)
 
