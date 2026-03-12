@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-
+const ADMIN_PHONE = "5577998253249"
 module.exports = async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
@@ -73,7 +73,120 @@ console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
+/* ================= MODO ADMIN ================= */
 
+if(cliente === ADMIN_PHONE && texto.includes("acesso administrativo 84")){
+
+const respostaAdmin =
+`🔐 *Modo administrativo ativado*
+
+Agora você pode perguntar:
+
+• quantas reservas hoje
+• listar reservas
+• quantas pessoas hoje
+• reservas área externa
+• reservas por horário`
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:respostaAdmin}
+})
+})
+
+return res.status(200).end()
+
+}/* ================= CONSULTA ADMIN ================= */
+
+if(cliente === ADMIN_PHONE){
+
+if(
+texto.includes("quantas reservas") ||
+texto.includes("listar reservas") ||
+texto.includes("reservas hoje") ||
+texto.includes("quantas pessoas")
+){
+
+const hoje = new Date().toISOString().split("T")[0]
+
+const {data:reservas} = await supabase
+.from("reservas_mercatto")
+.select("*")
+.ilike("datahora", `${hoje}%`)
+
+if(!reservas || reservas.length === 0){
+
+const resposta = "Hoje não há reservas registradas."
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+}
+
+let totalPessoas = 0
+
+let lista = ""
+
+reservas.forEach(r=>{
+
+totalPessoas += r.pessoas || 0
+
+lista +=
+`\n${r.nome}
+${r.pessoas} pessoas
+${r.mesa}
+Tel: ${r.telefone}\n`
+
+})
+
+const resposta =
+`📊 *Reservas de hoje*
+
+${lista}
+
+Reservas: ${reservas.length}
+Pessoas totais: ${totalPessoas}`
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+}
+
+}
 /* ================= INTENÇÕES ================= */
 
 const querReserva =
