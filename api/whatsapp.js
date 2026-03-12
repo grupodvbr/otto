@@ -876,7 +876,39 @@ const datahora = dataISO+"T"+reserva.hora
 
 /* SALVAR RESERVA */
 
-const {error} = await supabase
+/* ================= BUSCAR ÚLTIMA RESERVA DO CLIENTE ================= */
+
+const { data: ultimaReserva } = await supabase
+.from("reservas_mercatto")
+.select("*")
+.eq("telefone", cliente)
+.order("created_at",{ascending:false})
+.limit(1)
+.maybeSingle()
+
+let error
+
+/* ================= ATUALIZAR SE EXISTIR ================= */
+
+if(ultimaReserva){
+
+const { error: updateError } = await supabase
+.from("reservas_mercatto")
+.update({
+nome: reserva.nome || ultimaReserva.nome,
+pessoas: parseInt(reserva.pessoas) || ultimaReserva.pessoas,
+mesa: mesa || ultimaReserva.mesa,
+datahora: datahora || ultimaReserva.datahora
+})
+.eq("id", ultimaReserva.id)
+
+error = updateError
+
+}else{
+
+/* ================= CRIAR SE NÃO EXISTIR ================= */
+
+const { error: insertError } = await supabase
 .from("reservas_mercatto")
 .insert({
 
@@ -896,6 +928,9 @@ status:"Pendente"
 
 })
 
+error = insertError
+
+}
 if(!error){
 
 
