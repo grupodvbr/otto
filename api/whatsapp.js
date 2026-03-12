@@ -117,8 +117,8 @@ const hoje = new Date().toLocaleDateString("sv-SE")
 const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
-.ilike("datahora", `${hoje}%`)
-
+.gte("datahora", `${hoje} 00:00:00`)
+.lte("datahora", `${hoje} 23:59:59`)
 if(!reservas || reservas.length === 0){
 
 await fetch(url,{
