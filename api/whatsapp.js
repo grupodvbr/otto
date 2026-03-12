@@ -200,39 +200,8 @@ text:{body:"Aqui está nosso cardápio completo 😊"}
 
 return res.status(200).end()
 
-} // ✅ FECHA O BLOCO DO CARDÁPIO
+} 
 
-/* ================= FLUXO DE RESERVA ================= */
-
-const mensagemTemDadosReserva =
-texto.includes("nome") &&
-texto.includes("pessoas") &&
-texto.includes("data") &&
-texto.includes("hora")
-
-if(querReserva && !mensagemTemDadosReserva){
-
-const resposta = `Perfeito! Vou organizar sua reserva.
-
-Para quantas pessoas será?`
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:resposta}
-})
-})
-
-return res.status(200).end()
-
-}
 /* ================= SALVAR MENSAGEM ================= */
 
 await supabase
@@ -250,7 +219,7 @@ const {data:historico} = await supabase
 .select("*")
 .eq("telefone",cliente)
 .order("created_at",{ascending:true})
-.limit(25)
+.limit(50)
 
 const mensagens = historico.map(m=>({
 role:m.role,
@@ -271,7 +240,7 @@ const dataISO = agora.toISOString().split("T")[0]
 
 const completion = await openai.chat.completions.create({
 
-model:"gpt-4.1-mini",
+model:"gpt-4.1",
 
 messages:[
 
@@ -876,8 +845,7 @@ dataISO = `${ano}-${mes}-${dia}`
 
 let mesa="Salão"
 
-const areaTexto=reserva.area.toLowerCase()
-
+const areaTexto=(reserva.area || "").toLowerCase()
 if(
 areaTexto.includes("extern") ||
 areaTexto.includes("fora")
