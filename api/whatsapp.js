@@ -195,12 +195,35 @@ text:{body:"Aqui está nosso cardápio completo 😊"}
 
 return res.status(200).end()
 
-}if(querReserva){
+const mensagemTemDadosReserva =
+texto.includes("nome") &&
+texto.includes("pessoas") &&
+texto.includes("data") &&
+texto.includes("hora")
+
+if(querReserva && !mensagemTemDadosReserva){
 
 const resposta = `Perfeito! Vou organizar sua reserva.
 
 Para quantas pessoas será?`
 
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+}
 await fetch(url,{
 method:"POST",
 headers:{
