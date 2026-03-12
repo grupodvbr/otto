@@ -181,7 +181,6 @@ return res.status(200).end()
 
 }
 
-}
 /* ================= INTENÇÕES ================= */
 
 const querReserva =
