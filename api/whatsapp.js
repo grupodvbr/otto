@@ -72,15 +72,11 @@ console.log("Mensagem:",mensagem)
 const texto = mensagem.toLowerCase()
 /* ================= MODO ADMIN ================= */
 
-/* ================= MODO ADMIN ================= */
+if(cliente === ADMIN_PHONE){
 
-/* ================= MODO ADMIN ================= */
+if(texto.includes("acesso administrativo 84")){
 
-if(cliente.endsWith(ADMIN_PHONE)){
-
-    if(texto.includes("acesso administrativo 84")){
-
-        const respostaAdmin = `🔐 *Modo administrativo ativado*
+const respostaAdmin = `🔐 *Modo administrativo ativado*
 
 Agora você pode perguntar:
 
@@ -90,21 +86,23 @@ Agora você pode perguntar:
 • reservas área externa
 • reservas por horário`
 
-        await fetch(url,{
-            method:"POST",
-            headers:{
-                Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                messaging_product:"whatsapp",
-                to:cliente,
-                type:"text",
-                text:{body:respostaAdmin}
-            })
-        })
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:respostaAdmin}
+})
+})
 
-        return res.status(200).end()
+return res.status(200).end()
+
+}
 
 }
 /* CONSULTAS ADMIN */
