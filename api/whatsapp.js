@@ -9,8 +9,8 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-const ADMIN_PHONE = "557798253249"
-  module.exports = async function handler(req,res){
+
+module.exports = async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
 
@@ -69,116 +69,10 @@ return res.status(200).end()
 console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
+console.log("Cliente:",cliente)
+console.log("Mensagem:",mensagem)
+
 const texto = mensagem.toLowerCase()
-/* ================= MODO ADMIN ================= */
-
-if(cliente === ADMIN_PHONE && texto.includes("acesso administrativo 84")){
-
-const respostaAdmin = `🔐 *Modo administrativo ativado*
-
-Agora você pode perguntar:
-
-• quantas reservas hoje
-• listar reservas
-• quantas pessoas hoje
-• reservas área externa
-• reservas por horário`
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:respostaAdmin}
-})
-})
-
-return res.status(200).end()
-
-}
-/* CONSULTAS ADMIN */
-if(
-cliente.endsWith(ADMIN_PHONE) &&
-(
-texto.includes("quantas reservas") ||
-texto.includes("listar reservas") ||
-texto.includes("reservas hoje") ||
-texto.includes("quantas pessoas")
-)
-)
-{
-
-const hoje = new Date().toLocaleDateString("sv-SE")
-const {data:reservas} = await supabase
-.from("reservas_mercatto")
-.select("*")
-.gte("datahora", `${hoje} 00:00:00`)
-.lte("datahora", `${hoje} 23:59:59`)
-if(!reservas || reservas.length === 0){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:"Hoje não há reservas registradas."}
-})
-})
-
-return res.status(200).end()
-
-}
-
-let totalPessoas = 0
-let lista = ""
-
-reservas.forEach(r=>{
-
-totalPessoas += r.pessoas || 0
-
-lista +=
-`\n${r.nome}
-${r.pessoas} pessoas
-${r.mesa}
-Tel: ${r.telefone}\n`
-
-})
-
-const resposta =
-`📊 *Reservas de hoje*
-
-${lista}
-
-Reservas: ${reservas.length}
-Pessoas totais: ${totalPessoas}`
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:resposta}
-})
-})
-
-return res.status(200).end()
-
-}
 
 /* ================= INTENÇÕES ================= */
 
@@ -854,29 +748,6 @@ REGRAS IMPORTANTES
 • não invente datas  
 • não altere o dia informado pelo cliente  
 • seja sempre educado e natural
-
-Se perguntarem:
-
-quantas reservas hoje  
-→ conte reservas com data de hoje
-
-quantas reservas essa semana  
-→ conte reservas entre hoje e os próximos 7 dias
-
-reservas amanhã  
-→ conte reservas da data de amanhã
-
-reservas em DD/MM  
-→ filtre pela data exata
-
-Se perguntarem:
-
-agenda hoje  
-→ liste todas reservas de hoje com horário
-
-agenda semana  
-→ liste reservas dos próximos 7 dias
-
 `
 },
 
@@ -981,33 +852,14 @@ if(match){
 
 let reserva
 
-try {
+try{
   reserva = JSON.parse(match[1])
-  console.log("Reserva detectada:", reserva)
 }
-
-catch (err) {
-
+catch(err){
   console.log("Erro ao interpretar JSON da reserva:", match[1])
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{
-        body:"Desculpe, tive um problema ao processar sua reserva. Pode confirmar novamente?"
-      }
-    })
-  })
-
-  return res.status(200).end()
+  resposta = "Desculpe, tive um problema ao processar sua reserva. Pode confirmar novamente?"
 }
+console.log("Reserva detectada:",reserva)
 
 /* NORMALIZAR DATA */
 
