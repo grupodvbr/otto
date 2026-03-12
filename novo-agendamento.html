@@ -1708,9 +1708,26 @@ k=> /pagamento/i.test(k) &&
 !['pagamentoAntecipado','valorFinalPago','valorEstimado'].includes(k)
 )
 
-const pagamentos = pagamentoKeys.map((k,i)=>
+/* ==============================
+   MOSTRAR PAGAMENTOS SOMENTE VIP
+============================== */
+
+const local = (r.mesa || "").toLowerCase().trim()
+
+const isVIP =
+local === "sala vip" ||
+local === "sala vip 1" ||
+local === "sala vip 2"
+
+let pagamentos = ""
+
+if(isVIP){
+
+pagamentos = pagamentoKeys.map((k,i)=>
 `💵 Pagamento ${i+1}: ${formatBRL(parseBRL(r[k]))}`
 ).join("<br>")
+
+}
 
 return `
 <div class="res-item" data-id="${r.id}">
