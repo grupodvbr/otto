@@ -1175,9 +1175,9 @@ console.log("Reserva VIP salva com sucesso")
 
 /* DATA FORMATADA */
 
-const dataCliente = new Date(reservaVip.data)
-.toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})
+const [anoVip, mesVip, diaVip] = reservaVip.data.split("-")
 
+const dataCliente = `${diaVip}/${mesVip}/${anoVip}`
 /* RESPOSTA PARA CLIENTE */
 
 resposta = `✅ *Pré-reserva da sala confirmada!*
@@ -1280,8 +1280,9 @@ status:"Pendente"
 if(!error){
 
 
-const dataClienteReserva = new Date(dataISO)
-.toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})
+const [anoR, mesR, diaR] = dataISO.split("-")
+
+const dataClienteReserva = `${diaR}/${mesR}/${anoR}`
 
 resposta =
 `✅ *Reserva confirmada!*
