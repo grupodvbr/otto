@@ -1036,12 +1036,23 @@ if(reservaVip){
 let salaBanco = "Sala VIP 1"
 /* ================= VALIDAR DATA ================= */
 
-const dataTest = new Date(reservaVip.data + "T" + reservaVip.hora)
-console.log("VALIDANDO DATA VIP:", reservaVip.data, reservaVip.hora)
-if(isNaN(dataTest)){
-console.log("DATA INVALIDA:", reservaVip.data)
+const [ano, mes, dia] = reservaVip.data.split("-").map(Number)
 
-resposta = "⚠️ A data informada não é válida. Pode confirmar a data novamente?"
+const dataTest = new Date(ano, mes - 1, dia)
+
+console.log("VALIDANDO DATA VIP:", reservaVip.data, reservaVip.hora)
+
+/* VERIFICAR SE DATA EXISTE */
+
+if(
+dataTest.getFullYear() !== ano ||
+dataTest.getMonth() + 1 !== mes ||
+dataTest.getDate() !== dia
+){
+
+console.log("DATA IMPOSSIVEL:", reservaVip.data)
+
+resposta = "⚠️ Essa data não existe no calendário. Pode confirmar a data novamente?"
 
 await fetch(url,{
 method:"POST",
@@ -1058,8 +1069,8 @@ text:{ body:resposta }
 })
 
 return res.status(200).end()
-}
 
+}
 /* BLOQUEAR DATA PASSADA */
 
 const agora = new Date()
