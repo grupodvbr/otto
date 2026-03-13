@@ -1020,8 +1020,7 @@ Digite:
 
 /* ================= RESERVA SALA VIP ================= */
 
-const vipMatch = resposta.match(/RESERVA_SALA_VIP_JSON:\s*({[\s\S]*?})/)
-
+const vipMatch = resposta?.match(/RESERVA_SALA_VIP_JSON:\s*({[\s\S]*?})/)
 if(vipMatch){
 
 let reservaVip
@@ -1113,16 +1112,7 @@ text:{ body:resposta }
 return res.status(200).end()
 }
 
-/* BLOQUEAR HORÁRIO APÓS 19:00 */
 
-const horaReserva = parseInt(reservaVip.hora.split(":")[0])
-
-if(horaReserva > 19){
-console.log("HORARIO INVALIDO")
-
-resposta = "⚠️ As reservas podem ser feitas apenas até às 19:00. Pode escolher outro horário?"
-return
-}
 if(reservaVip.sala?.toLowerCase().includes("2")){
 salaBanco = "Sala VIP 2"
 }
@@ -1351,5 +1341,7 @@ console.log("ERRO GERAL:",error)
 return res.status(200).end()
 
 }
+
+return res.status(200).end()
 
 }
