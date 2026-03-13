@@ -9,7 +9,6 @@ const ADMIN_PHONE = "557798253249"
 const PHONE_NUMBER_ID = "1032824119907659"
 
 module.exports = async function handler(req,res){
-
   
 try{
 
