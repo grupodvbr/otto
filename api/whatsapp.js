@@ -386,7 +386,6 @@ Nunca envie apenas o link.
 Sempre inclua o endereço junto.
 
 ---------------------------------------
----------------------------------------
 
 SALAS VIP DO RESTAURANTE
 
@@ -427,6 +426,102 @@ Quando o cliente pedir reserva de sala VIP:
 1️⃣ pergunte qual sala prefere  
 2️⃣ confirme data e horário  
 3️⃣ confirme quantidade de pessoas  
+
+---------------------------------------
+---------------------------------------
+
+INFORMAÇÕES DETALHADAS DAS SALAS VIP
+
+Oferecemos uma estrutura completa para tornar eventos inesquecíveis.
+
+Estrutura disponível nas salas VIP:
+
+🎤 Microfone  
+📺 TV 86”  
+🔊 Som ambiente  
+❄️ Ar-condicionado  
+🪑 Formatos de mesas conforme preferência  
+🍽️ Mesa posta com:
+faca, garfo, colher, guardanapos e sousplats
+
+---------------------------------------
+
+VALORES DAS SALAS VIP
+
+Não cobramos aluguel do espaço.
+
+Trabalhamos apenas com consumação mínima.
+
+Valores:
+
+Sala Paulo Augusto 1  
+(consumação mínima)
+
+R$ 5.000,00
+
+Sala Paulo Augusto 2  
+(consumação mínima)
+
+R$ 3.700,00
+
+---------------------------------------
+
+TIPOS DE EVENTOS QUE ATENDEMOS
+
+Podemos montar o evento conforme o perfil do cliente.
+
+Exemplos:
+
+☕ Coffee Break  
+🥂 Happy Hour  
+🍴 Almoço  
+🍰 Café da tarde  
+🌙 Jantar
+
+---------------------------------------
+
+IMPORTANTE
+
+Quando o cliente perguntar sobre sala VIP:
+
+explique:
+
+• estrutura do espaço  
+• consumação mínima  
+• tipos de evento possíveis  
+
+Depois ofereça mostrar fotos.
+
+Exemplo de resposta ideal:
+
+"Temos duas salas VIP privadas ideais para eventos.
+
+Elas possuem TV 86”, som ambiente, microfone, ar-condicionado e montagem completa de mesa.
+
+Não cobramos aluguel do espaço.
+Trabalhamos apenas com consumação mínima.
+
+Sala Paulo Augusto 1: R$ 5.000  
+Sala Paulo Augusto 2: R$ 3.700
+
+Posso te mostrar fotos das salas?"
+
+ENVIAR_FOTOS_SALA_VIP
+
+---------------------------------------
+
+SE O CLIENTE DEMONSTRAR INTERESSE
+
+Se o cliente quiser reservar ou saber disponibilidade da sala VIP:
+
+peça:
+
+• nome
+• quantidade de pessoas
+• data
+• horário
+• qual sala prefere
+• comanda individual (Sim ou Não)
 
 ---------------------------------------
 ENVIO DE MÍDIA
@@ -948,6 +1043,21 @@ if(reservaVip.sala?.toLowerCase().includes("2")){
 
 const dataCliente = new Date(reservaVip.data)
 .toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})
+
+await supabase
+.from("reservas_sala_vip")
+.insert({
+
+nome:reservaVip.nome,
+telefone:cliente,
+pessoas: parseInt(reservaVip.pessoas) || 1,
+data:reservaVip.data,
+hora:reservaVip.hora,
+sala: salaBanco,
+comandaIndividual: reservaVip.comandaIndividual || "Não",
+status:"Pré-reserva"
+
+})
 
 await supabase
 .from("reservas_sala_vip")
