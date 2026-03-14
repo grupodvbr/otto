@@ -230,8 +230,6 @@ texto.includes("localização")
 const querMusica =
 texto.includes("musica") ||
 texto.includes("música") ||
-texto.includes("musico") ||
-texto.includes("músico") ||
 texto.includes("cantor") ||
 texto.includes("cantora") ||
 texto.includes("banda") ||
@@ -245,33 +243,15 @@ texto.includes("quem toca") ||
 texto.includes("tem musica") ||
 texto.includes("tem música") ||
 texto.includes("tem banda") ||
-texto.includes("tem banda hoje") ||
 texto.includes("tem show") ||
-texto.includes("tem cantor") ||
-texto.includes("tem música hoje") ||
-texto.includes("tem show hoje") ||
 texto.includes("vai ter musica") ||
 texto.includes("vai ter música") ||
-texto.includes("vai ter banda") ||
-texto.includes("vai ter show") ||
 texto.includes("programação") ||
 texto.includes("programacao") ||
 texto.includes("agenda") ||
-texto.includes("agenda hoje") ||
 texto.includes("quem canta hoje") ||
-texto.includes("qual a musica hoje") ||
-texto.includes("qual a música hoje") ||
 texto.includes("qual o couvert") ||
-texto.includes("couver") ||
-texto.includes("cover") ||
-texto.includes("couvert") ||
-texto.includes("tocou") ||
-texto.includes("quem tocou") ||
-texto.includes("tocando") ||
-texto.includes("teve musica") ||
-texto.includes("teve música") ||
-texto.includes("teve show") ||
-texto.includes("teve banda")
+texto.includes("couvert")
 
 
 
@@ -1385,7 +1365,7 @@ caption:"Ambiente da Sala VIP"
 resposta = resposta.replace(/ENVIAR_FOTOS_SALA_VIP/g,"").trim()
 
 }
-if(resposta.includes("ENVIAR_VIDEO")){
+
 if(resposta.includes("ENVIAR_POSTER")){
 
 if(posterHoje){
@@ -1412,6 +1392,10 @@ caption:"🎶 Música ao vivo no Mercatto"
 resposta = resposta.replace(/ENVIAR_POSTER/g,"").trim()
 
 }
+
+  
+if(resposta.includes("ENVIAR_VIDEO")){
+
 await fetch(url,{
 method:"POST",
 headers:{
