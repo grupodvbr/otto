@@ -534,7 +534,14 @@ const completion = await openai.chat.completions.create({
 model:"gpt-4.1",
 
 messages:[
+{
+role:"system",
+content: assuntoMusica 
+? "A pergunta atual do cliente é sobre música ao vivo. Ignore reservas e responda apenas sobre a agenda de música."
+: "A pergunta atual do cliente não é sobre música."
+},
 
+  
 {
 role:"system",
 content:`
