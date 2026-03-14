@@ -211,6 +211,15 @@ console.log("Mensagem:",mensagem)
 
 
 const texto = mensagem.toLowerCase()
+if(
+texto === "sim" ||
+texto === "ok" ||
+texto === "confirmar" ||
+texto === "pode confirmar"
+){
+console.log("CONFIRMAÇÃO SIMPLES IGNORADA")
+return res.status(200).end()
+}
 /* ================= RELATORIO ADMIN ================= */
 
 if(cliente === ADMIN_NUMERO && texto.includes("relatorio_reservas_dia")){
@@ -232,13 +241,20 @@ resposta += "Nenhuma reserva encontrada."
 
 reservas.forEach((r,i)=>{
 
-const hora = r.datahora.split("T")[1].substring(0,5)
+const hora = r.datahora?.split("T")[1]?.substring(0,5) || "—"
+const data = r.datahora?.split("T")[0] || "—"
 
 resposta += `${i+1}️⃣\n`
-resposta += `Nome: ${r.nome}\n`
-resposta += `Pessoas: ${r.pessoas}\n`
+resposta += `Nome: ${r.nome || "-"}\n`
+resposta += `Telefone: ${r.telefone || "-"}\n`
+resposta += `Pessoas: ${r.pessoas || "-"}\n`
+resposta += `Data: ${data}\n`
 resposta += `Hora: ${hora}\n`
-resposta += `Mesa: ${r.mesa}\n\n`
+resposta += `Mesa: ${r.mesa || "-"}\n`
+resposta += `Status: ${r.status || "-"}\n`
+resposta += `Comanda individual: ${r.comandaIndividual || "-"}\n`
+resposta += `Origem: ${r.origem || "-"}\n`
+resposta += `Observações: ${r.observacoes || "-"}\n\n`
 
 })
 
@@ -2075,6 +2091,20 @@ try{
 reserva = JSON.parse(alterarMatch[1])
 }catch(err){
 console.log("Erro JSON alteração:", err)
+}
+
+/* BLOQUEAR ALTERAÇÃO VAZIA */
+
+if(
+!reserva.nome &&
+!reserva.pessoas &&
+!reserva.data &&
+!reserva.hora &&
+!reserva.area &&
+!reserva.comandaIndividual
+){
+console.log("ALTERAÇÃO IGNORADA - JSON VAZIO")
+return res.status(200).end()
 }
 
 console.log("Alteração detectada:", reserva)
