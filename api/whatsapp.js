@@ -222,7 +222,11 @@ POSTER: ${m.foto || "sem"}
 
 })
 
-let agendaHojeTexto = ""
+let agendaHojeTexto = "SEM SHOW HOJE"
+
+if(agendaDia.length){
+
+agendaHojeTexto = ""
 
 agendaDia.forEach(m => {
 
@@ -234,6 +238,8 @@ COUVERT: ${m.valor}
 `
 
 })
+
+}
 /* ================= INTENÇÕES ================= */
 
 const querReserva =
