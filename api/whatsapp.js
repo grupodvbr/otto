@@ -17,8 +17,11 @@ async function enviarRelatorioAutomatico(){
 
 const ADMIN_NUMERO = "557798253249"
 
-const hoje = new Date().toISOString().split("T")[0]
+const agoraBahia = new Date(
+new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
 
+const hoje = agoraBahia.toISOString().split("T")[0]
 const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
@@ -322,8 +325,11 @@ return res.status(200).end()
 
 if(cliente === ADMIN_NUMERO && texto.includes("relatorio_reservas_dia")){
 
-const hoje = new Date().toISOString().split("T")[0]
+const agoraBahia = new Date(
+new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
 
+const hoje = agoraBahia.toISOString().split("T")[0]
 const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
@@ -401,8 +407,9 @@ const { data: estadoMusica } = await supabase
 
 const jaFalouMusica = !!estadoMusica
 console.log("JA ENVIOU PROGRAMAÇÃO:", jaFalouMusica)
-let dataConsulta = new Date()
-
+let dataConsulta = new Date(
+new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
 if(texto.includes("amanhã")){
 dataConsulta.setDate(dataConsulta.getDate()+1)
 }
