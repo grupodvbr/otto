@@ -155,35 +155,33 @@ texto.includes("musico") ||
 texto.includes("músico") ||
 texto.includes("cantor") ||
 texto.includes("cantora") ||
+texto.includes("banda") ||
 texto.includes("show") ||
 texto.includes("ao vivo") ||
+texto.includes("dj") ||
 texto.includes("quem canta") ||
 texto.includes("quem vai cantar") ||
 texto.includes("quem vai tocar") ||
 texto.includes("quem toca") ||
-texto.includes("quem vai tocar hoje") ||
 texto.includes("tem musica") ||
 texto.includes("tem música") ||
+texto.includes("tem banda") ||
+texto.includes("tem banda hoje") ||
 texto.includes("tem show") ||
 texto.includes("tem cantor") ||
-texto.includes("tem cantor hoje") ||
 texto.includes("tem música hoje") ||
 texto.includes("tem show hoje") ||
 texto.includes("vai ter musica") ||
 texto.includes("vai ter música") ||
+texto.includes("vai ter banda") ||
 texto.includes("vai ter show") ||
 texto.includes("programação") ||
 texto.includes("programacao") ||
 texto.includes("agenda") ||
-texto.includes("agenda de hoje") ||
 texto.includes("agenda hoje") ||
 texto.includes("quem canta hoje") ||
 texto.includes("qual a musica hoje") ||
 texto.includes("qual a música hoje") ||
-texto.includes("dj") ||
-texto.includes("dj hoje") ||
-texto.includes("tem dj") ||
-texto.includes("tem dj hoje") ||
 texto.includes("qual o couvert") ||
 texto.includes("couver") ||
 texto.includes("cover") ||
