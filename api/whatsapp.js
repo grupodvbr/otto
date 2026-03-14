@@ -135,7 +135,12 @@ textoDia = "amanhã"
 const dataISO = dataConsulta.toISOString().split("T")[0]
 
 const agendaDia = await buscarAgendaDoDia(dataISO)
+const agora = new Date()
 
+const horaAtual =
+agora.getHours().toString().padStart(2,"0") +
+":" +
+agora.getMinutes().toString().padStart(2,"0")
 const couvertHoje = calcularCouvert(agendaDia)
 
 const posterHoje = pegarPoster(agendaDia)
@@ -283,18 +288,23 @@ resposta += `🎵 ${m.estilo}\n\n`
 
 })
 
-resposta += `💰 Couvert artístico: R$ ${couvertHoje}`
-
+resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}`
 }else{
 
+if(textoDia==="ontem"){
+resposta = "Ontem não tivemos música ao vivo no Mercatto."
+}
+else if(textoDia==="amanhã"){
+resposta = "Ainda não temos música ao vivo programada para amanhã."
+}
+else{
 resposta = "Hoje não temos música ao vivo programada."
-
+}
 }
 
 /* ENVIA POSTER */
 
-if(posterHoje){
-
+if(posterHoje && posterHoje.startsWith("http")){
 await fetch(url,{
 method:"POST",
 headers:{
@@ -428,7 +438,7 @@ try{
 const agora = new Date()
 
 const dataAtual = agora.toLocaleDateString("pt-BR")
-const horaAtual = agora.toLocaleTimeString("pt-BR")
+const horaAtualSistema = agora.toLocaleTimeString("pt-BR")
 const dataISO = agora.toISOString().split("T")[0]
 
 const completion = await openai.chat.completions.create({
@@ -444,7 +454,7 @@ content:`
 DATA ATUAL DO SISTEMA
 
 Hoje é: ${dataAtual}
-Hora atual: ${horaAtual}
+Hora atual: ${horaAtualSistema}
 Data ISO: ${dataISO}
 Fuso horário: Brasil (UTC-3)
 
