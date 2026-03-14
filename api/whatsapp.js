@@ -40,9 +40,14 @@ const hora = r.datahora.split("T")[1].substring(0,5)
 
 resposta += `${i+1}️⃣\n`
 resposta += `Nome: ${r.nome}\n`
+resposta += `Telefone: ${r.telefone}\n`
 resposta += `Pessoas: ${r.pessoas}\n`
 resposta += `Hora: ${hora}\n`
-resposta += `Mesa: ${r.mesa}\n\n`
+resposta += `Mesa: ${r.mesa}\n`
+resposta += `Comanda individual: ${r.comandaIndividual}\n`
+resposta += `Status: ${r.status}\n`
+resposta += `Origem: ${r.origem}\n`
+resposta += `Observações: ${r.observacoes || "-"}\n\n``
 
 totalPessoas += Number(r.pessoas || 0)
 
@@ -132,6 +137,14 @@ const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
 const resposta = await enviarRelatorioAutomatico()
 
+const GERENTES = [
+"557798253249",
+"557799880000",
+"557799900000"
+]
+
+for(const gerente of GERENTES){
+
 await fetch(url,{
 method:"POST",
 headers:{
@@ -140,12 +153,13 @@ Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 },
 body:JSON.stringify({
 messaging_product:"whatsapp",
-to:"557798253249",
+to:gerente,
 type:"text",
 text:{body:resposta}
 })
 })
 
+}
 return res.status(200).send("Relatório enviado")
 
 }
@@ -299,8 +313,7 @@ let resposta = "🌅 *Reservas área externa hoje*\n\n"
 
 reservas.forEach(r=>{
 
-const hora = r.datahora.split("T")[1].substring(0,5)
-
+const hora = r.datahora?.split("T")[1]?.substring(0,5) || "-"
 resposta += `${r.nome} - ${r.pessoas} pessoas - ${hora}\n`
 
 })
@@ -2170,13 +2183,23 @@ return res.status(200).end()
 
 console.log("Alteração detectada:", reserva)
 
+const updateData = {}
+
+if(reserva.nome){
+updateData.nome = reserva.nome
+}
+
+if(reserva.pessoas){
+updateData.pessoas = parseInt(reserva.pessoas)
+}
+
+if(reserva.comandaIndividual){
+updateData.comandaIndividual = reserva.comandaIndividual
+}
+
 await supabase
 .from("reservas_mercatto")
-.update({
-nome: reserva.nome,
-pessoas: parseInt(reserva.pessoas) || 1,
-comandaIndividual: reserva.comandaIndividual || "Não"
-})
+.update(updateData)
 .eq("telefone", cliente)
 .eq("status","Pendente")
 .order("datahora",{ascending:false})
