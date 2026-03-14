@@ -296,6 +296,10 @@ texto.includes("couvert")
 
   
 console.log("DETECTOU MUSICA:", querMusica)
+
+if(querMusica){
+console.log("FORÇANDO ASSUNTO MUSICA")
+}
 /* ================= BLOQUEAR DUPLICIDADE ================= */
 
 const { data: jaProcessada } = await supabase
@@ -510,10 +514,10 @@ const {data:historico} = await supabase
 .order("created_at",{ascending:true})
 .limit(50)
 
-const mensagens = historico.map(m=>({
-role:m.role,
-content:m.mensagem
-}))
+mensagens.push({
+role:"user",
+content: mensagem
+})
 if(assuntoMusica){
 mensagens.unshift({
 role:"system",
