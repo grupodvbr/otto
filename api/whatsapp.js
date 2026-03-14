@@ -37,6 +37,7 @@ let totalPessoas = 0
 reservas.forEach((r,i)=>{
 
 const hora = r.datahora?.split("T")[1]?.substring(0,5) || "-"
+
 resposta += `${i+1}️⃣\n`
 resposta += `Nome: ${r.nome}\n`
 resposta += `Telefone: ${r.telefone}\n`
@@ -46,7 +47,7 @@ resposta += `Mesa: ${r.mesa}\n`
 resposta += `Comanda individual: ${r.comandaIndividual}\n`
 resposta += `Status: ${r.status}\n`
 resposta += `Origem: ${r.origem}\n`
-resposta += `Observações: ${r.observacoes || "-"}\n\n``
+resposta += `Observações: ${r.observacoes || "-"}\n\n`
 
 totalPessoas += Number(r.pessoas || 0)
 
