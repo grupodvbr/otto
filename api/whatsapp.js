@@ -197,6 +197,15 @@ const msg = change.messages[0]
 
 const mensagem = msg.text?.body
 const cliente = msg.from
+/* ================= MEMORIA CLIENTE ================= */
+
+const { data: memoriaCliente } = await supabase
+.from("memoria_clientes")
+.select("*")
+.eq("telefone",cliente)
+.maybeSingle()
+
+let nomeMemoria = memoriaCliente?.nome || null
 const ADMIN_NUMERO = "557798253249"
 const message_id = msg.id
 const phone_number_id = change.metadata.phone_number_id
@@ -684,10 +693,11 @@ const {data:historico} = await supabase
 
 const mensagens = (historico || [])
 .reverse()
-.map(m=>({
-role:m.role,
-content:m.mensagem
+.map(m => ({
+  role: m.role === "assistant" ? "assistant" : "user",
+  content: m.mensagem
 }))
+.slice(-6)
   
 if(assuntoMusica){
 mensagens.unshift({
@@ -730,19 +740,55 @@ const completion = await openai.chat.completions.create({
 model:"gpt-4.1-mini",
 
 messages:[
+
+{
+role:"system",
+content:`
+REGRAS DE PRIORIDADE DO AGENTE
+
+1. O prompt do sistema sempre tem prioridade máxima.
+2. Se houver conflito entre respostas antigas e o prompt atual, siga sempre o prompt atual.
+3. Respostas anteriores do assistente servem apenas como contexto da conversa.
+4. Nunca use respostas antigas como regra se o prompt atual disser algo diferente.
+`
+},
+
 {
 role:"system",
 content: assuntoMusica 
-? "A pergunta atual do cliente é sobre música ao vivo. Ignore reservas e responda apenas sobre a agenda de música."
+? "A pergunta atual do cliente é sobre música ao vivo. Ignore reservas."
 : "A pergunta atual do cliente não é sobre música."
 },
+
+{
+role:"system",
+content: nomeMemoria
+? `O nome do cliente é ${nomeMemoria}. Use o nome dele se for natural na conversa.`
+: "O nome do cliente ainda não é conhecido."
+},
+
 
 {
 role:"system",
 content: promptSistema
 },
 
+{
+role:"system",
+content:`
+CONTEXTO DO SISTEMA
+
+DATA ATUAL: ${dataAtual}
+HORA ATUAL: ${horaAtualSistema}
+DATA ISO: ${dataAtualISO}
+
+Use essas informações para interpretar datas relativas como:
+hoje, amanhã, ontem, final de semana, etc.
+`
+},
+
 ...mensagens
+
 ]
 
 })
@@ -1020,6 +1066,19 @@ salaBanco = "Sala VIP 2"
 
 console.log("Reserva VIP detectada:", reservaVip)
 
+/* ================= ATUALIZAR MEMORIA CLIENTE ================= */
+
+if(reservaVip?.nome){
+
+await supabase
+.from("memoria_clientes")
+.upsert({
+telefone:cliente,
+nome:reservaVip.nome,
+ultima_interacao:new Date().toISOString()
+})
+
+}
 /* SALVAR NO SUPABASE */
 
 const datahora = reservaVip.data + "T" + reservaVip.hora
@@ -1151,6 +1210,20 @@ catch(err){
 }
 console.log("Reserva detectada:",reserva)
 
+/* ================= ATUALIZAR MEMORIA CLIENTE ================= */
+
+if(reserva?.nome){
+
+await supabase
+.from("memoria_clientes")
+.upsert({
+telefone:cliente,
+nome:reserva.nome,
+ultima_interacao:new Date().toISOString()
+})
+
+
+  
 /* NORMALIZAR DATA */
 
 let dataISO = reserva.data
