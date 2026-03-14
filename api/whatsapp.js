@@ -128,8 +128,6 @@ const agendaDia = await buscarAgendaDoDia(dataISO)
 
 const couvertHoje = calcularCouvert(agendaDia)
 const posterHoje = pegarPoster(agendaDia)
-
-const posterHoje = pegarPoster(agendaHoje)
 /* ================= INTENÇÕES ================= */
 
 const querReserva =
