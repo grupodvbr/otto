@@ -114,10 +114,14 @@ console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
 
-const hojeISO = new Date().toISOString().split("T")[0]
+let dataConsulta = new Date()
 
-const agendaHoje = await buscarAgendaDoDia(hojeISO)
+if(texto.includes("amanhã")){
+dataConsulta.setDate(dataConsulta.getDate()+1)
+}
 
+const dataISO = dataConsulta.toISOString().split("T")[0]
+const agendaHoje = await buscarAgendaDoDia(dataISO)
 const couvertHoje = calcularCouvert(agendaHoje)
 
 const posterHoje = pegarPoster(agendaHoje)
@@ -147,10 +151,43 @@ texto.includes("localização")
 const querMusica =
 texto.includes("musica") ||
 texto.includes("música") ||
+texto.includes("musico") ||
+texto.includes("músico") ||
 texto.includes("cantor") ||
+texto.includes("cantora") ||
 texto.includes("show") ||
 texto.includes("ao vivo") ||
-texto.includes("quem canta")
+texto.includes("quem canta") ||
+texto.includes("quem vai cantar") ||
+texto.includes("quem vai tocar") ||
+texto.includes("quem toca") ||
+texto.includes("quem vai tocar hoje") ||
+texto.includes("tem musica") ||
+texto.includes("tem música") ||
+texto.includes("tem show") ||
+texto.includes("tem cantor") ||
+texto.includes("tem cantor hoje") ||
+texto.includes("tem música hoje") ||
+texto.includes("tem show hoje") ||
+texto.includes("vai ter musica") ||
+texto.includes("vai ter música") ||
+texto.includes("vai ter show") ||
+texto.includes("programação") ||
+texto.includes("programacao") ||
+texto.includes("agenda") ||
+texto.includes("agenda de hoje") ||
+texto.includes("agenda hoje") ||
+texto.includes("quem canta hoje") ||
+texto.includes("qual a musica hoje") ||
+texto.includes("qual a música hoje") ||
+texto.includes("dj") ||
+texto.includes("dj hoje") ||
+texto.includes("tem dj") ||
+texto.includes("tem dj hoje") ||
+texto.includes("qual o couvert") ||
+texto.includes("couver") ||
+texto.includes("cover") ||
+texto.includes("couvert")
   
 /* ================= BLOQUEAR DUPLICIDADE ================= */
 
