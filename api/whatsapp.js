@@ -1091,11 +1091,13 @@ resposta = resposta.replace(/ENVIAR_VIDEO/g,"").trim()
 
 if(resposta.includes("ENVIAR_FOTO_PRATO")){
 
-const prato = cardapio.find(p =>
-resposta.toLowerCase().includes(p.nome.toLowerCase())
+const respostaLower = resposta.toLowerCase()
+
+const prato = cardapio.find(p => 
+respostaLower.includes(p.nome.toLowerCase())
 )
 
-if(prato?.foto_url){
+if(prato && prato.foto_url){
 
 await fetch(url,{
 method:"POST",
@@ -1112,6 +1114,14 @@ link:prato.foto_url,
 caption:prato.nome
 }
 })
+})
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:`[FOTO DO PRATO ENVIADA: ${prato.nome}]`,
+role:"assistant"
 })
 
 }
