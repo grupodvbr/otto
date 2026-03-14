@@ -136,7 +136,16 @@ console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
+/* ================= CONTROLE MUSICA ================= */
 
+const { data: estadoMusica } = await supabase
+.from("estado_conversa")
+.select("*")
+.eq("telefone",cliente)
+.eq("tipo","musica")
+.single()
+
+const jaFalouMusica = !!estadoMusica
 let dataConsulta = new Date()
 
 if(texto.includes("amanhã")){
@@ -316,7 +325,7 @@ return res.status(200).end()
 
 /* ================= MUSICA AO VIVO ================= */
 
-if(querMusica){
+if(querMusica && !jaFalouMusica){
 
 let resposta=""
 
@@ -388,7 +397,12 @@ type:"text",
 text:{body:resposta}
 })
 })
-
+await supabase
+.from("estado_conversa")
+.upsert({
+telefone:cliente,
+tipo:"musica"
+})
 return res.status(200).end()
 
 }
@@ -902,7 +916,23 @@ Exemplo:
 
 ENVIAR_FOTOS
 
+---------------------------------------
 
+ENVIAR POSTER DA MÚSICA
+
+Se o cliente pedir:
+
+poster do show
+foto do cantor
+cartaz do show
+imagem do show
+agenda visual
+poster da música
+cartaz da música ao vivo
+
+Responda normalmente e adicione no final:
+
+ENVIAR_POSTER
 
 ---------------------------------------
 
@@ -1003,6 +1033,64 @@ vai ter música hoje
 quem toca hoje
 
 Use sempre os dados da agenda fornecida.
+
+---------------------------------------
+
+INTERPRETAÇÃO DE HORÁRIOS DOS SHOWS
+
+Use a agenda fornecida para interpretar o horário atual.
+
+Considere a hora atual do sistema.
+
+Com base nisso você deve conseguir responder:
+
+• quem está tocando agora
+• quem toca depois
+• quem foi o último cantor
+• se o show já começou
+• quanto tempo falta para o próximo show
+
+REGRAS:
+
+1️⃣ Quem está tocando agora
+
+Se a hora atual for maior ou igual ao horário de um cantor
+e menor que o próximo cantor da lista,
+então esse cantor está tocando agora.
+
+2️⃣ Quem toca depois
+
+Se existir um cantor com horário maior que o horário atual,
+esse é o próximo show.
+
+3️⃣ Último cantor
+
+Se a hora atual for maior que o horário de um cantor,
+ele foi o último a tocar.
+
+4️⃣ Show já começou
+
+Se a hora atual for maior ou igual ao horário do primeiro cantor do dia,
+então o show já começou.
+
+5️⃣ Tempo para o próximo show
+
+Se existir um cantor com horário maior que a hora atual,
+calcule aproximadamente quanto tempo falta.
+
+Exemplo:
+
+Agora são 19:30
+Próximo cantor 21:00
+
+Resposta:
+
+"O próximo show começa em aproximadamente 1h30."
+
+Sempre responda de forma natural como um atendente.
+
+
+
 INTERPRETAÇÃO DE DIA ISOLADO
 
 Se o cliente enviar apenas um número como:
@@ -1298,7 +1386,32 @@ resposta = resposta.replace(/ENVIAR_FOTOS_SALA_VIP/g,"").trim()
 
 }
 if(resposta.includes("ENVIAR_VIDEO")){
+if(resposta.includes("ENVIAR_POSTER")){
 
+if(posterHoje){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:posterHoje,
+caption:"🎶 Música ao vivo no Mercatto"
+}
+})
+})
+
+}
+
+resposta = resposta.replace(/ENVIAR_POSTER/g,"").trim()
+
+}
 await fetch(url,{
 method:"POST",
 headers:{
