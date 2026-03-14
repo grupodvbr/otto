@@ -9,6 +9,56 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
+
+
+/* ================= RELATORIO AUTOMATICO ================= */
+
+async function enviarRelatorioAutomatico(){
+
+const ADMIN_NUMERO = "557798253249"
+
+const hoje = new Date().toISOString().split("T")[0]
+
+const {data:reservas} = await supabase
+.from("reservas_mercatto")
+.select("*")
+.gte("datahora", hoje+"T00:00")
+.lte("datahora", hoje+"T23:59")
+.order("datahora",{ascending:true})
+
+let resposta = "📊 *Relatório automático de reservas (Hoje)*\n\n"
+
+if(!reservas || !reservas.length){
+
+resposta += "Nenhuma reserva encontrada para hoje."
+
+}else{
+
+let totalPessoas = 0
+
+reservas.forEach((r,i)=>{
+
+const hora = r.datahora.split("T")[1].substring(0,5)
+
+resposta += `${i+1}️⃣\n`
+resposta += `Nome: ${r.nome}\n`
+resposta += `Pessoas: ${r.pessoas}\n`
+resposta += `Hora: ${hora}\n`
+resposta += `Mesa: ${r.mesa}\n\n`
+
+totalPessoas += Number(r.pessoas || 0)
+
+})
+
+resposta += `👥 Total de pessoas reservadas: ${totalPessoas}\n`
+resposta += `📅 Total de reservas: ${reservas.length}`
+
+}
+
+return resposta
+
+}
+
 /* ================= AGENDA MUSICOS ================= */
 
 async function buscarAgendaDoDia(dataISO){
@@ -74,7 +124,33 @@ return data || []
 
 
 module.exports = async function handler(req,res){
+/* ================= CRON RELATORIO ================= */
 
+if(req.query.cron === "relatorio"){
+
+const phone_number_id = process.env.WHATSAPP_PHONE_ID
+
+const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
+
+const resposta = await enviarRelatorioAutomatico()
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:"557798253249",
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).send("Relatório enviado")
+
+}
 /* ================= WEBHOOK VERIFY ================= */
 
 if(req.method==="GET"){
