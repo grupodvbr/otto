@@ -1260,7 +1260,7 @@ nome:reserva.nome,
 ultima_interacao:new Date().toISOString()
 })
 
-
+}
   
 /* NORMALIZAR DATA */
 
