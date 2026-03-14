@@ -10,7 +10,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
+function agoraBahia(){
 
+return new Date(
+new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
+
+}
 /* ================= RELATORIO AUTOMATICO ================= */
 
 async function enviarRelatorioAutomatico(){
@@ -454,8 +460,9 @@ new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 
 const hojeISO = hojeBahia.toISOString().split("T")[0]
 
-const seteDias = new Date()
-seteDias.setDate(hoje.getDate()+7)
+const seteDias = new Date(hojeBahia)
+
+seteDias.setDate(hojeBahia.getDate()+7)
 
 const seteDiasISO = seteDias.toISOString().split("T")[0]
 
@@ -1406,8 +1413,11 @@ let dataISO = reserva.data
 
 if(reserva.data && reserva.data.includes("/")){
 const [dia,mes] = reserva.data.split("/")
-const ano = new Date().toISOString().slice(0,4)
-dataISO = `${ano}-${mes}-${dia}`
+const agoraBahia = new Date(
+new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
+
+const ano = agoraBahia.getFullYear()dataISO = `${ano}-${mes}-${dia}`
 
 }
 
