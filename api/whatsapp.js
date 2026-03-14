@@ -197,7 +197,37 @@ const msg = change.messages[0]
 
 const mensagem = msg.text?.body
 const cliente = msg.from
+
+/* ================= VERIFICAR PAUSA BOT ================= */
+
+const { data: pausaBot } = await supabase
+.from("controle_bot")
+.select("*")
+.eq("telefone", cliente)
+.maybeSingle()
+
+if(pausaBot?.pausado){
+
+// pausa permanente
+if(!pausaBot.pausado_ate){
+console.log("BOT PAUSADO PERMANENTEMENTE PARA:",cliente)
+return res.status(200).end()
+}
+
+// pausa temporária
+const agora = new Date()
+const pausaAte = new Date(pausaBot.pausado_ate)
+
+if(agora < pausaAte){
+console.log("BOT PAUSADO ATÉ:",pausaBot.pausado_ate)
+return res.status(200).end()
+}
+
+}
+
+  
 /* ================= MEMORIA CLIENTE ================= */
+
 
 const { data: memoriaCliente } = await supabase
 .from("memoria_clientes")
