@@ -877,7 +877,7 @@ role:"system",
 content:"ATENÇÃO: A mensagem atual do cliente é sobre música ao vivo. Ignore reservas e responda usando a agenda fornecida."
 })
 }
-let resposta=""
+resposta=""
 /* ================= BUSCAR CARDAPIO ================= */
 
 const cardapio = await buscarCardapio()
