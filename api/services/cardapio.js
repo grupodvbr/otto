@@ -19,6 +19,4 @@ return data || []
 
 }
 
-module.exports = {
-buscarCardapio
-}
+module.exports = { buscarCardapio }
