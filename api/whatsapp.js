@@ -398,7 +398,7 @@ if(estado?.tipo === "confirmacao_pedido"){
 console.log("CONFIRMAÇÃO DE PEDIDO")
 
 const { data: pedidoPendente } = await supabase
-.from("pedidos_pendentes")
+.from("delivery_mercatto")
 .select("*")
 .eq("telefone",cliente)
 .order("created_at",{ascending:false})
@@ -445,7 +445,7 @@ status: "novo"
 /* limpar pedido pendente */
 
 await supabase
-.from("pedidos_pendentes")
+.from("delivery_mercatto")
 .delete()
 .eq("telefone",cliente)
 
@@ -1266,8 +1266,7 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
-
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*(\{[\s\S]*\})/)
 if(pedidoMatch){
 
 let pedido
@@ -1298,7 +1297,7 @@ console.log("Pedido detectado:",pedido)
 /* SALVAR PEDIDO PENDENTE */
 
 await supabase
-.from("pedidos_pendentes")
+.from("delivery_mercatto")
 .insert({
 telefone: cliente,
 pedido: pedido
