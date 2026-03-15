@@ -414,7 +414,6 @@ const retorno = await api.json()
 
 console.log("RETORNO API:",retorno)
 
-
 resposta = `✅ *Pedido enviado com sucesso!*
 
 🧾 Número do pedido: ${retorno.pedido_id}
@@ -435,14 +434,12 @@ text:{body:resposta}
 })
 })
 
-return res.status(200).end()
-
-
 await supabase
 .from("pedidos_pendentes")
 .delete()
 .eq("cliente_telefone",cliente)
 
+  
 await supabase
 .from("pedidos_pendentes")
 .delete()
@@ -1359,19 +1356,17 @@ await supabase
 .eq("cliente_telefone",cliente)
 
 await supabase
-.from("pedidos")
-.insert([{
+.from("pedidos_pendentes")
+.insert({
 cliente_nome: pedido.nome,
 cliente_telefone: cliente,
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
-tipo: pedido.tipo || "entrega",
 itens: pedido.itens || [],
-valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
-observacao: pedido.observacao || "",
-status: "novo"
-}])
+observacao: pedido.observacao || ""
+})
 
 return res.status(200).end()
 
