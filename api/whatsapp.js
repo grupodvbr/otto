@@ -394,31 +394,42 @@ itens: pedidoPendente.itens,
 pagamento: pedidoPendente.forma_pagamento
 }
 
-  
-console.log("ENVIANDO PEDIDO PARA API")
+/* CALCULAR TOTAL */
 
-const api = await fetch(`${process.env.API_URL}/api/pedidos`,{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-pedido:{
-...pedido,
-telefone:cliente
-}
-})
-})
+const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+const preco = Number(i.preco || 0)
+const qtd = Number(i.quantidade || 1)
+return s + (preco * qtd)
+},0)
 
-const retorno = await api.json()
+/* SALVAR PEDIDO DEFINITIVO */
 
-console.log("RETORNO API:",retorno)
+const { data: pedidoSalvo } = await supabase
+.from("pedidos")
+.insert([{
+cliente_nome: pedido.nome,
+cliente_telefone: cliente,
+cliente_endereco: pedido.endereco || "",
+cliente_bairro: pedido.bairro || "",
+tipo: pedido.tipo || "entrega",
+itens: pedido.itens || [],
+valor_total: valorTotal,
+forma_pagamento: pedido.pagamento || "",
+observacao: pedido.observacao || "",
+status: "novo"
+}])
+.select()
+.single()
 
-resposta = `✅ *Pedido enviado com sucesso!*
+console.log("PEDIDO SALVO:",pedidoSalvo)
 
-🧾 Número do pedido: ${retorno.pedido_id}
+/* ENVIAR CONFIRMAÇÃO */
 
-Nossa cozinha já recebeu seu pedido.`
+resposta = `✅ *Pedido confirmado!*
+
+🧾 Número do pedido: ${pedidoSalvo.id}
+
+Nosso time já recebeu seu pedido e iniciará o preparo.`
 
 await fetch(url,{
 method:"POST",
@@ -434,43 +445,24 @@ text:{body:resposta}
 })
 })
 
-await supabase
-.from("pedidos_pendentes")
-.delete()
-.eq("cliente_telefone",cliente)
-
-await supabase
-.from("pedidos")
-.insert([{
-cliente_nome: pedido.nome,
-cliente_telefone: cliente,
-cliente_endereco: pedido.endereco || "",
-cliente_bairro: pedido.bairro || "",
-tipo: pedido.tipo || "entrega",
-itens: pedido.itens || [],
-valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
-forma_pagamento: pedido.pagamento || "",
-observacao: pedido.observacao || "",
-status: "novo"
-}])
-
-return res.status(200).end()
-/* limpar pedido pendente */
+/* LIMPAR PEDIDO PENDENTE */
 
 await supabase
 .from("pedidos_pendentes")
 .delete()
 .eq("cliente_telefone",cliente)
-}
 
-/* limpar estado conversa */
+/* LIMPAR ESTADO DA CONVERSA */
 
 await supabase
 .from("estado_conversa")
 .delete()
 .eq("telefone",cliente)
 
-}
+/* FINALIZAR WEBHOOK */
+
+return res.status(200).end()
+
 }
 /* ================= RELATORIO ADMIN ================= */
 
