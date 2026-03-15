@@ -2,85 +2,117 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Mercatto Delícia • Pedidos Admin</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mercatto • Painel Delivery</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport"
+content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 :root{
---bg:#020617;
---panel:#0f172a;
---line:#1e293b;
---text:#e2e8f0;
---muted:#94a3b8;
---accent:#3b82f6;
---green:#22c55e;
---yellow:#f59e0b;
---red:#ef4444;
---radius:12px;
+--bg:#f3f4f6;
+--card:#ffffff;
+--border:#e5e7eb;
+--text:#0f172a;
+--muted:#64748b;
+
+--novo:#f97316;
+--aceito:#2563eb;
+--preparo:#f59e0b;
+--pronto:#22c55e;
+--entregue:#16a34a;
+--cancelado:#ef4444;
+
+--radius:14px;
 }
 
-*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:Inter;
+}
 
 body{
 background:var(--bg);
+padding:16px;
 color:var(--text);
-padding:20px;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:16px;
 }
 
 h1{
 font-size:22px;
-margin-bottom:20px;
 font-weight:800;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:var(--panel);
-border:1px solid var(--line);
-border-radius:var(--radius);
-overflow:hidden;
+.board{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:14px;
 }
 
-th,td{
+.col{
+background:#fff;
+border-radius:14px;
+padding:10px;
+border:1px solid var(--border);
+min-height:70vh;
+}
+
+.col h3{
+font-size:14px;
+font-weight:800;
+margin-bottom:10px;
+}
+
+.card{
+
+background:#fff;
+border:1px solid var(--border);
+border-radius:12px;
 padding:12px;
-border-bottom:1px solid var(--line);
-font-size:13px;
-}
-
-th{
-background:#020617;
-font-weight:700;
-text-align:left;
-}
-
-tr:hover{
-background:rgba(255,255,255,.03)
-}
-
-button{
-border:none;
-padding:6px 10px;
-border-radius:8px;
+margin-bottom:10px;
 cursor:pointer;
-font-weight:600;
+transition:.2s;
+
 }
 
-.aprovar{background:var(--green);color:white}
-.rejeitar{background:var(--red);color:white}
-.ver{background:var(--accent);color:white}
-.status{font-weight:700}
+.card:hover{
+transform:scale(1.02);
+box-shadow:0 4px 14px rgba(0,0,0,.08);
+}
 
-.status-novo{color:var(--yellow)}
-.status-aprovado{color:var(--green)}
-.status-preparo{color:#60a5fa}
-.status-entregue{color:#22c55e}
-.status-rejeitado{color:var(--red)}
+.nome{
+font-weight:700;
+}
+
+.info{
+font-size:12px;
+color:var(--muted);
+margin-top:3px;
+}
+
+.total{
+font-weight:800;
+margin-top:5px;
+}
+
+.timer{
+font-size:12px;
+font-weight:700;
+color:#ef4444;
+}
 
 .modal{
 position:fixed;
@@ -88,59 +120,63 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,.7);
+background:rgba(0,0,0,.6);
 display:none;
 align-items:center;
 justify-content:center;
-z-index:999;
 }
 
 .modalBox{
-width:600px;
+background:white;
+width:500px;
 max-height:80vh;
 overflow:auto;
-background:var(--panel);
-border:1px solid var(--line);
 border-radius:14px;
 padding:20px;
-}
-
-.close{
-float:right;
-cursor:pointer;
-font-weight:800;
-color:var(--red);
 }
 
 .item{
 display:flex;
 gap:10px;
-margin-top:12px;
-padding:10px;
-background:#020617;
-border:1px solid var(--line);
+border:1px solid var(--border);
 border-radius:10px;
+padding:8px;
+margin-top:10px;
 }
 
 .item img{
-width:70px;
-height:70px;
-object-fit:cover;
+width:80px;
+height:80px;
 border-radius:8px;
+object-fit:cover;
 }
 
-.total{
-margin-top:15px;
-font-size:16px;
+.actions{
+margin-top:14px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+button{
+border:none;
+padding:8px 12px;
+border-radius:8px;
+font-weight:700;
+cursor:pointer;
+}
+
+.novo{background:var(--novo);color:white}
+.aceito{background:var(--aceito);color:white}
+.preparo{background:var(--preparo);color:white}
+.pronto{background:var(--pronto);color:white}
+.entregue{background:var(--entregue);color:white}
+.cancelado{background:var(--cancelado);color:white}
+
+.close{
+float:right;
+cursor:pointer;
 font-weight:800;
-}
-
-select{
-background:#020617;
-border:1px solid var(--line);
-color:white;
-padding:6px;
-border-radius:6px;
 }
 
 </style>
@@ -148,35 +184,37 @@ border-radius:6px;
 
 <body>
 
-<h1>📦 Pedidos • Mercatto Delícia</h1>
+<header>
 
-<table>
+<h1>🍔 Mercatto Delivery</h1>
 
-<thead>
+<div id="hora"></div>
 
-<tr>
-<th>#</th>
-<th>Cliente</th>
-<th>Telefone</th>
-<th>Tipo</th>
-<th>Total</th>
-<th>Status</th>
-<th>Ações</th>
-</tr>
+</header>
 
-</thead>
+<div class="board">
 
-<tbody id="lista">
+<div class="col" data-status="novo">
+<h3>🆕 Novos</h3>
+</div>
 
-<tr>
-<td colspan="7" style="text-align:center;color:var(--muted)">
-Carregando pedidos...
-</td>
-</tr>
+<div class="col" data-status="aprovado">
+<h3>✔ Aceitos</h3>
+</div>
 
-</tbody>
+<div class="col" data-status="preparo">
+<h3>👨‍🍳 Preparo</h3>
+</div>
 
-</table>
+<div class="col" data-status="pronto">
+<h3>📦 Pronto</h3>
+</div>
+
+<div class="col" data-status="entregue">
+<h3>🚚 Entregue</h3>
+</div>
+
+</div>
 
 <div id="modal" class="modal">
 
@@ -184,19 +222,19 @@ Carregando pedidos...
 
 <span class="close" onclick="fechar()">X</span>
 
-<h2 id="tituloPedido"></h2>
+<h2 id="titulo"></h2>
 
-<div id="itensPedido"></div>
+<div id="itens"></div>
 
-<div class="total" id="totalPedido"></div>
+<div class="actions">
 
-<br>
+<button class="aceito" onclick="setStatus('aprovado')">Aceitar</button>
+<button class="preparo" onclick="setStatus('preparo')">Preparo</button>
+<button class="pronto" onclick="setStatus('pronto')">Pronto</button>
+<button class="entregue" onclick="setStatus('entregue')">Entregue</button>
+<button class="cancelado" onclick="setStatus('rejeitado')">Cancelar</button>
 
-<label>Status:</label>
-<select id="statusSelect"></select>
-
-<button class="aprovar" onclick="salvarStatus()">Salvar</button>
-<button class="ver" onclick="imprimir()">Imprimir</button>
+</div>
 
 </div>
 
@@ -204,7 +242,7 @@ Carregando pedidos...
 
 <script>
 
-const db = supabase.createClient(
+const db=supabase.createClient(
 "https://dxkszikemntfusfyrzos.supabase.co",
 "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
@@ -227,48 +265,51 @@ render()
 
 function render(){
 
-const tbody=document.getElementById("lista")
-tbody.innerHTML=""
+document.querySelectorAll(".col").forEach(c=>{
+c.innerHTML="<h3>"+c.querySelector("h3").innerText+"</h3>"
+})
 
-pedidos.forEach((p,i)=>{
+pedidos.forEach(p=>{
 
-const total=(p.itens||[])
-.reduce((s,it)=>s+(it.preco*it.quantidade),0)
+const col=document.querySelector(`[data-status="${p.status}"]`)
+if(!col)return
 
-const tr=document.createElement("tr")
+const card=document.createElement("div")
+card.className="card"
 
-tr.innerHTML=`
-<td>${i+1}</td>
-<td>${p.cliente_nome}</td>
-<td>${p.cliente_telefone}</td>
-<td>${p.tipo}</td>
-<td>R$ ${total}</td>
-<td class="status status-${p.status}">${p.status}</td>
-<td>
-<button class="ver" onclick="abrir(${i})">Ver</button>
-</td>
+const created=new Date(p.created_at)
+
+const minutos=Math.floor((Date.now()-created)/60000)
+
+let total=0
+;(p.itens||[]).forEach(i=>total+=i.preco*i.quantidade)
+
+card.innerHTML=`
+<div class="nome">${p.cliente_nome}</div>
+<div class="info">${p.cliente_telefone}</div>
+<div class="timer">${minutos} min</div>
+<div class="total">R$ ${total}</div>
 `
 
-tbody.appendChild(tr)
+card.onclick=()=>abrir(p)
+
+col.appendChild(card)
 
 })
 
 }
 
-async function abrir(i){
+async function abrir(p){
 
-atual=pedidos[i]
+atual=p
 
-document.getElementById("tituloPedido").innerText=
-"Pedido de "+atual.cliente_nome
+document.getElementById("titulo").innerText=p.cliente_nome
 
-const area=document.getElementById("itensPedido")
+const area=document.getElementById("itens")
 
 area.innerHTML=""
 
-let total=0
-
-for(const it of atual.itens){
+for(const it of p.itens){
 
 let foto=""
 
@@ -278,100 +319,51 @@ const {data}=await db
 .ilike("nome",it.nome)
 .limit(1)
 
-if(data && data.length) foto=data[0].foto_url
-
-total+=it.preco*it.quantidade
+if(data.length) foto=data[0].foto_url
 
 area.innerHTML+=`
 <div class="item">
+
 ${foto?`<img src="${foto}">`:''}
+
 <div>
+
 <b>${it.nome}</b><br>
 ${it.quantidade}x R$ ${it.preco}
+
 </div>
+
 </div>
 `
 
 }
-
-document.getElementById("totalPedido")
-.innerText="Total: R$ "+total
-
-const select=document.getElementById("statusSelect")
-
-select.innerHTML=""
-
-const status=[
-"novo",
-"aprovado",
-"preparo",
-"entregue",
-"rejeitado"
-]
-
-status.forEach(s=>{
-
-select.innerHTML+=`
-<option value="${s}" ${s==atual.status?"selected":""}>
-${s}
-</option>
-`
-
-})
 
 document.getElementById("modal").style.display="flex"
 
 }
 
 function fechar(){
-
 document.getElementById("modal").style.display="none"
-
 }
 
-async function salvarStatus(){
-
-const novo=document.getElementById("statusSelect").value
+async function setStatus(s){
 
 await db
 .from("pedidos")
-.update({status:novo})
+.update({status:s})
 .eq("id",atual.id)
 
+fechar()
 carregar()
 
-fechar()
-
 }
 
-function imprimir(){
-
-let texto="PEDIDO MERCATTO DELÍCIA\n\n"
-
-texto+="Cliente: "+atual.cliente_nome+"\n"
-texto+="Telefone: "+atual.cliente_telefone+"\n"
-texto+="Tipo: "+atual.tipo+"\n\n"
-
-texto+="Itens:\n"
-
-let total=0
-
-atual.itens.forEach(it=>{
-
-texto+=`${it.quantidade}x ${it.nome} - R$ ${it.preco}\n`
-total+=it.preco*it.quantidade
-
-})
-
-texto+="\nTOTAL: R$ "+total
-
-const w=window.open("","","width=400,height=600")
-
-w.document.write("<pre>"+texto+"</pre>")
-
-w.print()
-
+function atualizarHora(){
+document.getElementById("hora").innerText=new Date().toLocaleTimeString()
 }
+
+setInterval(atualizarHora,1000)
+setInterval(carregar,8000)
 
 carregar()
 
