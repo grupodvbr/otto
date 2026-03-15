@@ -1769,12 +1769,16 @@ body:resposta
 
 })
 
+return res.status(200).end()
+
 }catch(error){
 
 console.log("ERRO GERAL:",error)
 
-}
-
 return res.status(200).end()
 
 }
+
+} // fecha if(req.method==="POST")
+
+} // fecha handler
