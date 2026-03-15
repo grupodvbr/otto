@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
 
+<meta charset="UTF-8">
 <title>Mercatto • Painel Delivery</title>
 
 <meta name="viewport"
-content="width=device-width, initial-scale=1, viewport-fit=cover">
+content="width=device-width,
+initial-scale=1,
+viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
@@ -15,40 +17,41 @@ content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 
 :root{
---bg:#f3f4f6;
---card:#ffffff;
---border:#e5e7eb;
---text:#0f172a;
---muted:#64748b;
+--bg:#020617;
+--panel:#0f172a;
+--card:#020617;
+--line:#1e293b;
+--text:#e2e8f0;
+--muted:#94a3b8;
 
 --novo:#f97316;
---aceito:#2563eb;
+--aceito:#3b82f6;
 --preparo:#f59e0b;
 --pronto:#22c55e;
 --entregue:#16a34a;
 --cancelado:#ef4444;
 
---radius:14px;
+--radius:12px;
 }
 
 *{
 box-sizing:border-box;
+font-family:Inter;
 margin:0;
 padding:0;
-font-family:Inter;
 }
 
 body{
 background:var(--bg);
-padding:16px;
 color:var(--text);
+padding:20px;
 }
 
 header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:16px;
+margin-bottom:18px;
 }
 
 h1{
@@ -63,10 +66,10 @@ gap:14px;
 }
 
 .col{
-background:#fff;
-border-radius:14px;
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:12px;
 padding:10px;
-border:1px solid var(--border);
 min-height:70vh;
 }
 
@@ -74,23 +77,30 @@ min-height:70vh;
 font-size:14px;
 font-weight:800;
 margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+}
+
+.count{
+background:#020617;
+padding:2px 6px;
+border-radius:6px;
+font-size:11px;
 }
 
 .card{
-
-background:#fff;
-border:1px solid var(--border);
+background:var(--card);
+border:1px solid var(--line);
 border-radius:12px;
 padding:12px;
 margin-bottom:10px;
 cursor:pointer;
 transition:.2s;
-
 }
 
 .card:hover{
+border-color:#3b82f6;
 transform:scale(1.02);
-box-shadow:0 4px 14px rgba(0,0,0,.08);
 }
 
 .nome{
@@ -105,13 +115,23 @@ margin-top:3px;
 
 .total{
 font-weight:800;
-margin-top:5px;
+margin-top:6px;
 }
 
 .timer{
 font-size:12px;
 font-weight:700;
 color:#ef4444;
+margin-top:4px;
+}
+
+.badge{
+font-size:11px;
+padding:2px 6px;
+border-radius:6px;
+display:inline-block;
+margin-top:4px;
+background:#1e293b;
 }
 
 .modal{
@@ -120,39 +140,41 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,.6);
+background:rgba(0,0,0,.7);
 display:none;
 align-items:center;
 justify-content:center;
 }
 
 .modalBox{
-background:white;
-width:500px;
+background:var(--panel);
+width:600px;
 max-height:80vh;
 overflow:auto;
-border-radius:14px;
+border-radius:12px;
 padding:20px;
+border:1px solid var(--line);
 }
 
 .item{
 display:flex;
 gap:10px;
-border:1px solid var(--border);
+padding:10px;
+border:1px solid var(--line);
 border-radius:10px;
-padding:8px;
 margin-top:10px;
+background:#020617;
 }
 
 .item img{
 width:80px;
 height:80px;
-border-radius:8px;
 object-fit:cover;
+border-radius:8px;
 }
 
 .actions{
-margin-top:14px;
+margin-top:16px;
 display:flex;
 gap:10px;
 flex-wrap:wrap;
@@ -166,7 +188,6 @@ font-weight:700;
 cursor:pointer;
 }
 
-.novo{background:var(--novo);color:white}
 .aceito{background:var(--aceito);color:white}
 .preparo{background:var(--preparo);color:white}
 .pronto{background:var(--pronto);color:white}
@@ -177,6 +198,20 @@ cursor:pointer;
 float:right;
 cursor:pointer;
 font-weight:800;
+color:#ef4444;
+}
+
+@media print{
+
+body{
+width:80mm;
+font-size:12px;
+}
+
+.noPrint{
+display:none;
+}
+
 }
 
 </style>
@@ -195,23 +230,23 @@ font-weight:800;
 <div class="board">
 
 <div class="col" data-status="novo">
-<h3>🆕 Novos</h3>
+<h3>🆕 Novos <span class="count" id="c-novo">0</span></h3>
 </div>
 
 <div class="col" data-status="aprovado">
-<h3>✔ Aceitos</h3>
+<h3>✔ Aceitos <span class="count" id="c-aprovado">0</span></h3>
 </div>
 
 <div class="col" data-status="preparo">
-<h3>👨‍🍳 Preparo</h3>
+<h3>👨‍🍳 Preparo <span class="count" id="c-preparo">0</span></h3>
 </div>
 
 <div class="col" data-status="pronto">
-<h3>📦 Pronto</h3>
+<h3>📦 Pronto <span class="count" id="c-pronto">0</span></h3>
 </div>
 
 <div class="col" data-status="entregue">
-<h3>🚚 Entregue</h3>
+<h3>🚚 Entregue <span class="count" id="c-entregue">0</span></h3>
 </div>
 
 </div>
@@ -226,13 +261,15 @@ font-weight:800;
 
 <div id="itens"></div>
 
-<div class="actions">
+<div class="actions noPrint">
 
 <button class="aceito" onclick="setStatus('aprovado')">Aceitar</button>
 <button class="preparo" onclick="setStatus('preparo')">Preparo</button>
 <button class="pronto" onclick="setStatus('pronto')">Pronto</button>
 <button class="entregue" onclick="setStatus('entregue')">Entregue</button>
 <button class="cancelado" onclick="setStatus('rejeitado')">Cancelar</button>
+
+<button onclick="imprimir()">🖨 Imprimir</button>
 
 </div>
 
@@ -265,6 +302,14 @@ render()
 
 function render(){
 
+let cont={
+novo:0,
+aprovado:0,
+preparo:0,
+pronto:0,
+entregue:0
+}
+
 document.querySelectorAll(".col").forEach(c=>{
 c.innerHTML="<h3>"+c.querySelector("h3").innerText+"</h3>"
 })
@@ -274,11 +319,12 @@ pedidos.forEach(p=>{
 const col=document.querySelector(`[data-status="${p.status}"]`)
 if(!col)return
 
+cont[p.status]++
+
 const card=document.createElement("div")
 card.className="card"
 
 const created=new Date(p.created_at)
-
 const minutos=Math.floor((Date.now()-created)/60000)
 
 let total=0
@@ -287,6 +333,7 @@ let total=0
 card.innerHTML=`
 <div class="nome">${p.cliente_nome}</div>
 <div class="info">${p.cliente_telefone}</div>
+<div class="badge">${p.tipo}</div>
 <div class="timer">${minutos} min</div>
 <div class="total">R$ ${total}</div>
 `
@@ -295,6 +342,11 @@ card.onclick=()=>abrir(p)
 
 col.appendChild(card)
 
+})
+
+Object.keys(cont).forEach(s=>{
+const el=document.getElementById("c-"+s)
+if(el)el.innerText=cont[s]
 })
 
 }
@@ -319,7 +371,7 @@ const {data}=await db
 .ilike("nome",it.nome)
 .limit(1)
 
-if(data.length) foto=data[0].foto_url
+if(data && data.length) foto=data[0].foto_url
 
 area.innerHTML+=`
 <div class="item">
@@ -327,10 +379,8 @@ area.innerHTML+=`
 ${foto?`<img src="${foto}">`:''}
 
 <div>
-
 <b>${it.nome}</b><br>
 ${it.quantidade}x R$ ${it.preco}
-
 </div>
 
 </div>
@@ -358,12 +408,39 @@ carregar()
 
 }
 
+function imprimir(){
+
+let texto="PEDIDO MERCATTO\n\n"
+
+texto+="Cliente: "+atual.cliente_nome+"\n"
+texto+="Telefone: "+atual.cliente_telefone+"\n"
+texto+="Tipo: "+atual.tipo+"\n\n"
+
+texto+="ITENS\n"
+
+let total=0
+
+atual.itens.forEach(i=>{
+texto+=`${i.quantidade}x ${i.nome}\n`
+total+=i.preco*i.quantidade
+})
+
+texto+="\nTOTAL: R$ "+total
+
+const w=window.open("","","width=300,height=600")
+
+w.document.write("<pre>"+texto+"\n\n\n\n</pre>")
+
+w.print()
+
+}
+
 function atualizarHora(){
 document.getElementById("hora").innerText=new Date().toLocaleTimeString()
 }
 
 setInterval(atualizarHora,1000)
-setInterval(carregar,8000)
+setInterval(carregar,5000)
 
 carregar()
 
