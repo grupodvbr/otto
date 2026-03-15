@@ -401,6 +401,7 @@ const { data: pedidoPendente } = await supabase
 .from("delivery_mercatto")
 .select("*")
 .eq("telefone",cliente)
+.eq("status","pendente")
 .order("created_at",{ascending:false})
 .limit(1)
 .single()
@@ -420,28 +421,17 @@ return s + (preco * qtd)
 
 await supabase
 .from("delivery_mercatto")
-.insert({
-
-cliente_nome: pedido.nome,
-cliente_telefone: cliente,
-
-cliente_endereco: pedido.endereco || "",
-cliente_bairro: pedido.bairro || "",
-
-tipo: pedido.tipo || "entrega",
-
-itens: pedido.itens || [],
-
-valor_total: valorTotal,
-
-forma_pagamento: pedido.pagamento || "",
-
-observacao: pedido.observacao || "",
-
-status: "novo"
-
+.update({
+status: "confirmado",
+valor_total: valorTotal
 })
+.eq("id", pedidoPendente.id)
 
+}resposta = `✅ Pedido confirmado!
+
+Seu pedido foi enviado para a cozinha.
+
+Obrigado por escolher o Mercatto Delícia 🍽️`
 /* limpar pedido pendente */
 
 await supabase
