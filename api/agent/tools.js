@@ -1,19 +1,17 @@
 const agenda = require("../services/agenda")
 const pedidos = require("../services/pedidos")
+const reservas = require("../services/reservas")
 const cardapio = require("../services/cardapio")
+const memoria = require("../services/memoria")
+const relatorios = require("../services/relatorios")
 
-const tools = {
+module.exports = {
 
-buscarAgendaDoDia: agenda.buscarAgendaDoDia,
-
-calcularCouvert: agenda.calcularCouvert,
-
-buscarCardapio: cardapio.buscarCardapio,
-
-salvarPedidoPendente: pedidos.salvarPedidoPendente,
-
-confirmarPedido: pedidos.confirmarPedido
+agenda,
+pedidos,
+reservas,
+cardapio,
+memoria,
+relatorios
 
 }
-
-module.exports = tools
