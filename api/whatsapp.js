@@ -1272,8 +1272,6 @@ if(pedidoMatch){
 
 let pedido
 
-try{
-
 let jsonTexto = pedidoMatch[1]
 
 jsonTexto = jsonTexto
@@ -1284,13 +1282,13 @@ jsonTexto = jsonTexto
 .trim()
 
 try{
+
 pedido = JSON.parse(jsonTexto)
-}catch(err){
-console.log("Erro JSON pedido", jsonTexto)
-}
 
 }catch(err){
-console.log("Erro JSON pedido",err)
+
+console.log("Erro JSON pedido:", jsonTexto)
+
 }
 
 if(pedido){
