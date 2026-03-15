@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 function agoraBahia(){
 
 return new Date(
@@ -199,6 +199,61 @@ return res.status(403).end()
 
 }
 
+/* ================= CHAT ADMIN ================= */
+
+if(req.method === "POST" && req.body?.admin_chat){
+
+if(req.headers.authorization !== `Bearer ${ADMIN_TOKEN}`){
+return res.status(403).json({erro:"Acesso negado"})
+}
+
+const pergunta = req.body.pergunta || ""
+
+console.log("PERGUNTA ADMIN:",pergunta)
+
+const completion = await openai.chat.completions.create({
+
+model:"gpt-4.1-mini",
+
+messages:[
+
+{
+role:"system",
+content:`
+Você é o agente administrador do Mercatto Delícia.
+
+A pessoa que está conversando agora é o ADMINISTRADOR do sistema.
+
+Você pode responder perguntas sobre:
+
+• reservas
+• agenda de músicos
+• cardápio
+• clientes
+• histórico de conversas
+• funcionamento do restaurante
+• relatórios
+
+Responda sempre de forma clara e direta.
+`
+},
+
+{
+role:"user",
+content:pergunta
+}
+
+]
+
+})
+
+return res.json({
+resposta: completion.choices[0].message.content
+})
+
+}
+
+  
 /* ================= RECEBER MENSAGEM ================= */
 
 if(req.method==="POST"){
