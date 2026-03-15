@@ -395,7 +395,7 @@ pagamento: pedidoPendente.forma_pagamento
   
 console.log("ENVIANDO PEDIDO PARA API")
 
-const api = await fetch("https://SEU_DOMINIO/api/pedidos",{
+const api = await fetch(`${process.env.API_URL}/api/pedidos`,{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
@@ -421,7 +421,8 @@ Nossa cozinha já recebeu seu pedido.`
 
 await supabase
 .from("pedidos_pendentes")
-.insert({
+.delete()
+.eq("cliente_telefone",cliente)
 
 cliente_nome: pedido.nome,
 cliente_telefone: cliente,
@@ -1334,6 +1335,11 @@ return s + (preco * qtd)
 
 await supabase
 .from("pedidos_pendentes")
+.delete()
+.eq("cliente_telefone",cliente)
+
+await supabase
+.from("pedidos_pendentes")
 .insert({
 
 cliente_nome: pedido.nome || "",
@@ -1353,6 +1359,7 @@ forma_pagamento: pedido.pagamento || "",
 observacao: pedido.observacao || "",
 
 status: "pendente"
+
 
 })
 
