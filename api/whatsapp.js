@@ -139,11 +139,15 @@ return data || []
 module.exports = async function handler(req,res){
 let resposta = ""
 
-/* ================= CARDAPIO ================= */
+/* ================= CARDÁPIO ================= */
 
 if(querCardapio){
 
-console.log("ENVIANDO CARDAPIO AUTOMATICO")
+console.log("ENVIANDO CARDÁPIO AUTOMÁTICO")
+
+try{
+
+/* envia PDF do cardápio */
 
 await fetch(url,{
 method:"POST",
@@ -162,10 +166,12 @@ filename:"Cardapio_Mercatto.pdf"
 })
 })
 
+/* mensagem de acompanhamento */
+
 const respostaCardapio =
 `📖 *Aqui está nosso cardápio completo.*
 
-Se quiser ver fotos ou saber mais sobre algum prato é só me falar 😊`
+Se quiser ver a foto de algum prato ou saber mais detalhes é só me falar 😊`
 
 await fetch(url,{
 method:"POST",
@@ -181,6 +187,8 @@ text:{body:respostaCardapio}
 })
 })
 
+/* salva no histórico */
+
 await supabase
 .from("conversas_whatsapp")
 .insert({
@@ -188,6 +196,12 @@ telefone:cliente,
 mensagem:"[CARDAPIO ENVIADO]",
 role:"assistant"
 })
+
+}catch(err){
+
+console.log("ERRO AO ENVIAR CARDÁPIO:",err)
+
+}
 
 return res.status(200).end()
 
@@ -1301,48 +1315,44 @@ if(pedido){
 
 console.log("Pedido detectado:",pedido)
 
-/* SALVAR PEDIDO PENDENTE */
+/* ================= ENVIAR PARA API ================= */
 
-await supabase
-.from("pedidos_pendentes")
-.insert({
-telefone: cliente,
-pedido: pedido
+const api = await fetch("https://SEU_DOMINIO/api/pedidos",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+pedido:{
+...pedido,
+telefone:cliente
+}
+})
 })
 
-/* SALVAR ESTADO DA CONVERSA */
+const retorno = await api.json()
 
-await supabase
-.from("estado_conversa")
-.upsert({
-telefone: cliente,
-tipo: "confirmacao_pedido"
-})
+if(retorno.sucesso){
 
-/* CALCULAR TOTAL */
+resposta = `✅ *Pedido enviado com sucesso!*
 
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+🧾 Número do pedido: ${retorno.pedido_id}
 
-const preco = Number(i.preco || 0)
-const qtd = Number(i.quantidade || 1)
+Nossa cozinha já recebeu seu pedido.
 
-return s + (preco * qtd)
+Em breve enviaremos a confirmação do preparo.`
 
-},0)
+}else{
+
+resposta = `⚠️ Não consegui registrar seu pedido agora.
+
+Pode tentar novamente?`
+
+}
+
+}
 
 
-
-resposta = `🧾 *Seu pedido ficou assim:*
-
-${pedido.itens.map(i => `• ${i.nome} x${i.quantidade}`).join("\n")}
-
-Deseja confirmar o pedido?
-
-Responda *SIM* para confirmar ou *ALTERAR* se quiser mudar algo.`
-
-} // fecha if(pedido)
-
-} // fecha if(pedidoMatch)// fecha if(pedidoMatch)
 
 }catch(e){
 
