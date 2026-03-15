@@ -444,18 +444,23 @@ await supabase
 .eq("cliente_telefone",cliente)
 
 await supabase
+.from("pedidos_pendentes")
+.delete()
+.eq("cliente_telefone",cliente)
+
+await supabase
 .from("pedidos")
 .insert([{
-  cliente_nome: pedido.nome || "",
-  cliente_telefone: cliente,
-  cliente_endereco: pedido.endereco || "",
-  cliente_bairro: pedido.bairro || "",
-  tipo: pedido.tipo || "entrega",
-  itens: pedido.itens || [],
-  valor_total: valorTotal || 0,
-  forma_pagamento: pedido.pagamento || "",
-  observacao: pedido.observacao || "",
-  status: "novo"
+cliente_nome: pedido.nome,
+cliente_telefone: cliente,
+cliente_endereco: pedido.endereco || "",
+cliente_bairro: pedido.bairro || "",
+tipo: pedido.tipo || "entrega",
+itens: pedido.itens || [],
+valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+forma_pagamento: pedido.pagamento || "",
+observacao: pedido.observacao || "",
+status: "novo"
 }])
 
 return res.status(200).end()
@@ -1354,29 +1359,21 @@ await supabase
 .eq("cliente_telefone",cliente)
 
 await supabase
-.from("pedidos_pendentes")
-.insert({
-
-cliente_nome: pedido.nome || "",
+.from("pedidos")
+.insert([{
+cliente_nome: pedido.nome,
 cliente_telefone: cliente,
-
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
-
 tipo: pedido.tipo || "entrega",
-
 itens: pedido.itens || [],
-
-valor_total: valorTotal,
-
+valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
 forma_pagamento: pedido.pagamento || "",
-
 observacao: pedido.observacao || "",
+status: "novo"
+}])
 
-status: "pendente"
-
-
-})
+return res.status(200).end()
 
 /* MARCAR ESTADO DE CONFIRMAÇÃO */
 
