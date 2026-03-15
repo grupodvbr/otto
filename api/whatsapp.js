@@ -419,7 +419,7 @@ return s + (preco * qtd)
 },0)
 
 await supabase
-.from("pedidos_pendente")
+.from("pedidos_pendentes")
 .insert({
 
 cliente_nome: pedido.nome,
