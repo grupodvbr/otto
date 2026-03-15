@@ -613,7 +613,6 @@ const querReserva =
 texto.includes("reserv") ||
 texto.includes("mesa")
 
-
 const querCardapio =
 texto.includes("cardap") ||
 texto.includes("menu") ||
@@ -622,7 +621,6 @@ texto.includes("comida") ||
 texto.includes("o que tem")
 
 
-  
 /* ================= CARDÁPIO ================= */
 
 if(querCardapio){
