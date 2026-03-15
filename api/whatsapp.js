@@ -1773,6 +1773,8 @@ body:resposta
 
 console.log("ERRO GERAL:",error)
 
+}
+
 return res.status(200).end()
 
 }
