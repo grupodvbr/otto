@@ -1464,6 +1464,23 @@ console.log("Reserva detectada:",reserva)
 
 
 
+
+  
+/* ================= ATUALIZAR MEMORIA CLIENTE ================= */
+
+if(reserva?.nome){
+
+await supabase
+.from("memoria_clientes")
+.upsert({
+telefone:cliente,
+nome:reserva.nome,
+ultima_interacao:new Date().toISOString()
+})
+
+}
+  
+
 /* ================= PEDIDO DELIVERY ================= */
 
 const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
@@ -1537,24 +1554,6 @@ Em breve confirmaremos 😊`
 
 }
 }
-
-
-  
-/* ================= ATUALIZAR MEMORIA CLIENTE ================= */
-
-if(reserva?.nome){
-
-await supabase
-.from("memoria_clientes")
-.upsert({
-telefone:cliente,
-nome:reserva.nome,
-ultima_interacao:new Date().toISOString()
-})
-
-}
-  
-/* NORMALIZAR DATA */
 
 /* NORMALIZAR DATA */
 
