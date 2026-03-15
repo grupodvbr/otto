@@ -379,18 +379,45 @@ const { data: pedidoPendente } = await supabase
 .order("created_at",{ascending:false})
 .limit(1)
 .single()
+
+
+  
 if(pedidoPendente){
 
-const pedido = pedidoPendente.pedido
+const pedido = {
+nome: pedidoPendente.cliente_nome,
+endereco: pedidoPendente.cliente_endereco,
+bairro: pedidoPendente.cliente_bairro,
+itens: pedidoPendente.itens,
+pagamento: pedidoPendente.forma_pagamento
+}
 
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+  
+console.log("ENVIANDO PEDIDO PARA API")
 
-const preco = Number(i.preco || 0)
-const qtd = Number(i.quantidade || 1)
+const api = await fetch("https://SEU_DOMINIO/api/pedidos",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+pedido:{
+...pedido,
+telefone:cliente
+}
+})
+})
 
-return s + (preco * qtd)
+const retorno = await api.json()
 
-},0)
+console.log("RETORNO API:",retorno)
+
+
+  resposta = `✅ *Pedido enviado com sucesso!*
+
+🧾 Número do pedido: ${retorno.pedido_id}
+
+Nossa cozinha já recebeu seu pedido.`
 
 await supabase
 .from("pedidos_pendentes")
