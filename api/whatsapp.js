@@ -1334,8 +1334,6 @@ Deseja confirmar o pedido?
 
 Responda *SIM* para confirmar ou *ALTERAR* se quiser mudar algo.`
 
-} // fecha if(pedido)
-
 } // fecha if(pedidoMatch)
 
 } catch(e){
@@ -1352,7 +1350,6 @@ Digite:
 3️⃣ Endereço`
 
 }
-
 /* ================= RESERVA SALA VIP ================= */
 
 const vipMatch = resposta?.match(/RESERVA_SALA_VIP_JSON:\s*({[\s\S]*?})/)
