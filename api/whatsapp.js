@@ -1304,8 +1304,6 @@ telefone: cliente,
 pedido: pedido
 })
 
-/* SALVAR ESTADO DA CONVERSA */
-
 await supabase
 .from("estado_conversa")
 .upsert({
@@ -1313,18 +1311,11 @@ telefone: cliente,
 tipo: "confirmacao_pedido"
 })
 
-/* CALCULAR TOTAL */
-
 const valorTotal = (pedido.itens || []).reduce((s,i)=>{
-
 const preco = Number(i.preco || 0)
 const qtd = Number(i.quantidade || 1)
-
 return s + (preco * qtd)
-
 },0)
-
-
 
 resposta = `🧾 *Seu pedido ficou assim:*
 
@@ -1333,6 +1324,8 @@ ${pedido.itens.map(i => `• ${i.nome} x${i.quantidade}`).join("\n")}
 Deseja confirmar o pedido?
 
 Responda *SIM* para confirmar ou *ALTERAR* se quiser mudar algo.`
+
+} // fecha if(pedido && pedido.itens)
 
 } // fecha if(pedidoMatch)
 
