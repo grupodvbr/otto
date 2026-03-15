@@ -108,9 +108,13 @@ return maior
 
 function pegarPoster(musicos){
 
-const comFoto = musicos.find(m=>m.foto)
+if(!musicos || !musicos.length) return null
 
-return comFoto ? comFoto.foto : null
+const comPoster = musicos.find(m => 
+m.foto && m.foto.startsWith("http")
+)
+
+return comPoster ? comPoster.foto : null
 
 }
 
