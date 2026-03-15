@@ -1,88 +1,63 @@
-const { createClient } = require("@supabase/supabase-js")
+import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
 process.env.SUPABASE_URL,
 process.env.SUPABASE_SERVICE_ROLE
 )
 
-module.exports = async function handler(req,res){
+export default async function handler(req,res){
 
-try{
+if(req.method==="GET"){
 
-if(req.method !== "POST"){
-return res.status(405).json({erro:"Método inválido"})
+const { data } = await supabase
+.from("pedidos_pendentes")
+.select("*")
+.order("created_at",{ascending:true})
+
+return res.json(data || [])
+
 }
 
-const body =
-typeof req.body === "string"
-? JSON.parse(req.body)
-: req.body
+if(req.method==="POST"){
 
-const pedido = body.pedido
+const { acao,id } = req.body
 
-if(!pedido){
-return res.status(400).json({erro:"Pedido vazio"})
-}
+if(acao==="aprovar"){
 
-/* ================= CALCULAR TOTAL ================= */
-
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
-
-const preco = Number(i.preco || 0)
-const qtd = Number(i.quantidade || 1)
-
-return s + (preco * qtd)
-
-},0)
-
-/* ================= SALVAR PEDIDO ================= */
-
-const { data, error } = await supabase
-.from("pedidos")
-.insert({
-
-cliente_nome: pedido.nome,
-cliente_telefone: pedido.telefone,
-
-cliente_endereco: pedido.endereco || "",
-cliente_bairro: pedido.bairro || "",
-
-tipo: pedido.tipo || "entrega",
-
-itens: pedido.itens || [],
-
-valor_total: valorTotal,
-
-forma_pagamento: pedido.pagamento || "",
-observacao: pedido.observacao || "",
-
-status: "novo"
-
-})
-.select()
+const { data } = await supabase
+.from("pedidos_pendentes")
+.select("*")
+.eq("id",id)
 .single()
 
-if(error){
-console.log("Erro pedido:",error)
-return res.status(500).json({
-sucesso:false,
-erro:"Erro ao salvar pedido"
-})
+const total=(data.itens||[])
+.reduce((s,it)=>s+(it.preco*it.quantidade),0)
+
+await supabase.from("pedidos").insert([{
+cliente_nome:data.cliente_nome,
+cliente_telefone:data.cliente_telefone,
+cliente_endereco:data.cliente_endereco,
+cliente_bairro:data.cliente_bairro,
+tipo:data.tipo,
+itens:data.itens,
+valor_total:total,
+status:"novo"
+}])
+
+await supabase.from("pedidos_pendentes").delete().eq("id",id)
+
 }
 
-return res.json({
-sucesso:true,
-pedido_id:data.id
-})
+if(acao==="rejeitar"){
 
-}catch(err){
+await supabase
+.from("pedidos_pendentes")
+.update({status:"rejeitado"})
+.eq("id",id)
 
-console.log("ERRO API PEDIDOS:",err)
+}
 
-return res.status(500).json({
-sucesso:false,
-erro:"Erro interno"
-})
+return res.json({ok:true})
 
 }
 
