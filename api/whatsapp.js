@@ -1254,9 +1254,25 @@ status: "novo"
 })
 
 if(error){
+
 console.log("Erro Supabase delivery:", JSON.stringify(error,null,2))
+
+resposta = `⚠️ Tivemos um problema ao registrar seu pedido.
+
+Por favor tente novamente ou aguarde que um atendente irá ajudar.`
+
 }else{
+
 console.log("Pedido salvo no Supabase")
+
+resposta = `🧾 *Pedido recebido com sucesso!*
+
+Seu pedido foi registrado em nosso sistema.
+
+📦 Em breve nossa equipe irá confirmar o preparo e envio.
+
+Obrigado por escolher o *Mercatto Delícia*!`
+
 }
 
 } // fecha if(pedido)
