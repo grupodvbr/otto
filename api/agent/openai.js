@@ -1,8 +1,7 @@
 const OpenAI = require("openai")
-const tools = require("./tools")
 
 const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY
+apiKey:process.env.OPENAI_API_KEY
 })
 
 async function perguntarIA(messages){
