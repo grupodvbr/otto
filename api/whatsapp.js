@@ -47,8 +47,7 @@ let totalPessoas = 0
 
 reservas.forEach((r,i)=>{
 
-const hora = r.datahora.split("T")[1].substring(0,5)
-
+const hora = r.datahora?.split("T")[1]?.substring(0,5) || "--:--"
 resposta += `${i+1}️⃣\n`
 resposta += `Nome: ${r.nome}\n`
 resposta += `Pessoas: ${r.pessoas}\n`
@@ -379,13 +378,87 @@ ultima_interacao:new Date().toISOString()
 })
 
 }
-if(
+const confirmou =
 texto === "sim" ||
 texto === "ok" ||
 texto === "confirmar"
-){
-console.log("CONFIRMAÇÃO SIMPLES DETECTADA")
-// não interrompe fluxo
+
+if(confirmou){
+
+const { data: estado } = await supabase
+.from("estado_conversa")
+.select("*")
+.eq("telefone",cliente)
+.maybeSingle()
+
+/* ================= CONFIRMAR PEDIDO ================= */
+
+if(estado?.tipo === "confirmacao_pedido"){
+
+console.log("CONFIRMAÇÃO DE PEDIDO")
+
+const { data: pedidoPendente } = await supabase
+.from("pedidos_pendentes")
+.select("*")
+.eq("telefone",cliente)
+.order("created_at",{ascending:false})
+.limit(1)
+.single()
+
+if(pedidoPendente){
+
+const pedido = pedidoPendente.pedido
+
+const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+
+const preco = Number(i.preco || 0)
+const qtd = Number(i.quantidade || 1)
+
+return s + (preco * qtd)
+
+},0)
+
+await supabase
+.from("delivery_mercatto")
+.insert({
+
+cliente_nome: pedido.nome,
+cliente_telefone: cliente,
+
+cliente_endereco: pedido.endereco || "",
+cliente_bairro: pedido.bairro || "",
+
+tipo: pedido.tipo || "entrega",
+
+itens: pedido.itens || [],
+
+valor_total: valorTotal,
+
+forma_pagamento: pedido.pagamento || "",
+
+observacao: pedido.observacao || "",
+
+status: "novo"
+
+})
+
+/* limpar pedido pendente */
+
+await supabase
+.from("pedidos_pendentes")
+.delete()
+.eq("telefone",cliente)
+
+}
+
+/* limpar estado conversa */
+
+await supabase
+.from("estado_conversa")
+.delete()
+.eq("telefone",cliente)
+
+}
 }
 /* ================= RELATORIO ADMIN ================= */
 
@@ -1204,6 +1277,9 @@ let jsonTexto = pedidoMatch[1]
 jsonTexto = jsonTexto
 .replace(/,\s*}/g,"}")
 .replace(/,\s*]/g,"]")
+.replace(/\n/g,"")
+.replace(/\t/g,"")
+.trim()
 
 try{
 pedido = JSON.parse(jsonTexto)
@@ -1219,7 +1295,19 @@ console.log("Erro JSON pedido",err)
 if(pedido){
 
 console.log("Pedido detectado:",pedido)
+await supabase
+.from("pedidos_pendentes")
+.insert({
+telefone: cliente,
+pedido: pedido
+})
 
+await supabase
+.from("estado_conversa")
+.upsert({
+telefone: cliente,
+tipo: "confirmacao_pedido"
+})
 const valorTotal = (pedido.itens || []).reduce((s,i)=>{
 
 const preco = Number(i.preco || 0)
