@@ -1193,7 +1193,7 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})\s*\n/)
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
   if(pedidoMatch){
 
 let pedido
