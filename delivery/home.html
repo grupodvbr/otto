@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mercatto • Home Operacional</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root{
+
+--bg:#0b0b0b;
+--panel:#141414;
+--card:#1a1a1a;
+
+--gold:#d4af37;
+--wood:#3b2a1c;
+
+--line:#262626;
+
+--text:#ffffff;
+--muted:#9ca3af;
+
+--red:#c1121f;
+--yellow:#c7a600;
+--green:#16a34a;
+
+--radius:14px;
+
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:Inter;
+}
+
+body{
+
+background:
+linear-gradient(180deg,#0b0b0b,#151515);
+
+color:var(--text);
+
+padding:20px;
+
+}
+
+/* KPI */
+
+.kpis{
+
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:16px;
+margin-bottom:20px;
+
+}
+
+.kpi{
+
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:14px;
+
+padding:16px;
+
+}
+
+.kpi span{
+
+font-size:13px;
+color:var(--muted);
+
+}
+
+.kpi h2{
+
+margin-top:6px;
+font-size:26px;
+
+color:var(--gold);
+
+}
+
+/* BOARD */
+
+.board{
+
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+
+gap:16px;
+
+}
+
+/* COLUNA */
+
+.col{
+
+background:var(--panel);
+border-radius:14px;
+padding:12px;
+
+border:1px solid var(--line);
+
+}
+
+.col h3{
+
+font-size:15px;
+margin-bottom:10px;
+
+display:flex;
+justify-content:space-between;
+
+}
+
+/* CARD */
+
+.card{
+
+background:var(--card);
+border:1px solid #333;
+
+border-radius:14px;
+
+padding:14px;
+
+margin-bottom:12px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.card:hover{
+
+border-color:var(--gold);
+
+transform:scale(1.01);
+
+}
+
+.nome{
+
+font-weight:700;
+font-size:16px;
+
+}
+
+.telefone{
+
+font-size:12px;
+color:var(--muted);
+
+margin-top:3px;
+
+}
+
+.tipo{
+
+font-size:11px;
+background:#222;
+padding:3px 6px;
+border-radius:6px;
+
+display:inline-block;
+margin-top:6px;
+
+}
+
+.endereco{
+
+font-size:12px;
+color:#ccc;
+
+margin-top:4px;
+
+}
+
+.itens{
+
+margin-top:8px;
+font-size:12px;
+line-height:1.4;
+
+}
+
+.total{
+
+margin-top:8px;
+font-weight:700;
+
+color:var(--gold);
+
+}
+
+.timer{
+
+font-size:12px;
+color:#facc15;
+font-weight:700;
+
+margin-top:6px;
+
+}
+
+.actions{
+
+margin-top:10px;
+display:flex;
+gap:6px;
+
+}
+
+button{
+
+border:none;
+border-radius:8px;
+
+padding:6px 10px;
+
+font-weight:700;
+
+cursor:pointer;
+
+}
+
+.aprovar{
+
+background:var(--green);
+color:white;
+
+}
+
+.preparo{
+
+background:var(--yellow);
+color:black;
+
+}
+
+.pronto{
+
+background:var(--green);
+color:white;
+
+}
+
+/* MODAL */
+
+.modal{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,.7);
+
+display:none;
+
+align-items:center;
+justify-content:center;
+
+}
+
+.modalBox{
+
+background:#111;
+
+width:520px;
+
+max-height:80vh;
+overflow:auto;
+
+border-radius:14px;
+
+padding:20px;
+
+}
+
+.item{
+
+display:flex;
+gap:10px;
+
+border:1px solid #333;
+
+padding:10px;
+
+border-radius:10px;
+
+margin-top:10px;
+
+}
+
+.item img{
+
+width:70px;
+height:70px;
+
+object-fit:cover;
+
+border-radius:8px;
+
+}
+
+.close{
+
+float:right;
+
+cursor:pointer;
+
+color:red;
+
+font-weight:800;
+
+}
+
+@media print{
+
+body{
+width:80mm;
+font-size:12px;
+}
+
+.noPrint{
+display:none;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="kpis">
+
+<div class="kpi">
+<span>Pedidos hoje</span>
+<h2 id="kPedidos">0</h2>
+</div>
+
+<div class="kpi">
+<span>Faturamento</span>
+<h2 id="kFaturamento">R$0</h2>
+</div>
+
+<div class="kpi">
+<span>Ticket médio</span>
+<h2 id="kTicket">R$0</h2>
+</div>
+
+</div>
+
+<div class="board">
+
+<div class="col" data-status="novo">
+<h3>🔴 Pendentes</h3>
+</div>
+
+<div class="col" data-status="aprovado">
+<h3>🟡 Em preparo</h3>
+</div>
+
+<div class="col" data-status="pronto">
+<h3>🟢 Prontos</h3>
+</div>
+
+</div>
+
+<div class="modal" id="modal">
+
+<div class="modalBox">
+
+<span class="close" onclick="fechar()">X</span>
+
+<h2 id="titulo"></h2>
+
+<div id="detalhes"></div>
+
+<button onclick="imprimir()" class="noPrint" style="margin-top:10px">🖨 Imprimir</button>
+
+</div>
+
+</div>
+
+<script>
+
+const db=supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+let pedidos=[]
+let atual=null
+
+async function carregar(){
+
+const {data}=await db
+.from("pedidos")
+.select("*")
+.order("created_at",{ascending:false})
+
+pedidos=data||[]
+
+render()
+kpis()
+
+}
+
+function kpis(){
+
+let total=0
+
+pedidos.forEach(p=>{
+p.itens.forEach(i=>{
+total+=i.preco*i.quantidade
+})
+})
+
+document.getElementById("kPedidos").innerText=pedidos.length
+document.getElementById("kFaturamento").innerText="R$ "+total
+
+const ticket=(total/(pedidos.length||1)).toFixed(2)
+
+document.getElementById("kTicket").innerText="R$ "+ticket
+
+}
+
+function render(){
+
+document.querySelectorAll(".col").forEach(c=>{
+
+const titulo=c.querySelector("h3").outerHTML
+c.innerHTML=titulo
+
+})
+
+pedidos.forEach(p=>{
+
+const col=document.querySelector(`[data-status="${p.status}"]`)
+if(!col)return
+
+let total=0
+let itensResumo=""
+
+p.itens.forEach(i=>{
+total+=i.preco*i.quantidade
+itensResumo+=`${i.quantidade}x ${i.nome}<br>`
+})
+
+const created=new Date(p.created_at)
+const minutos=Math.floor((Date.now()-created)/60000)
+
+const card=document.createElement("div")
+card.className="card"
+
+card.innerHTML=`
+
+<div class="nome">${p.cliente_nome}</div>
+
+<div class="telefone">${p.cliente_telefone}</div>
+
+<div class="tipo">${p.tipo}</div>
+
+<div class="endereco">${p.cliente_endereco||""}</div>
+
+<div class="itens">${itensResumo}</div>
+
+<div class="total">R$ ${total}</div>
+
+<div class="timer">${minutos} min</div>
+
+<div class="actions">
+
+${p.status==="novo"?`<button class="aprovar" onclick="aprovar('${p.id}')">Aprovar</button>`:''}
+
+${p.status==="aprovado"?`<button class="preparo" onclick="preparo('${p.id}')">Preparo</button>`:''}
+
+${p.status==="preparo"?`<button class="pronto" onclick="pronto('${p.id}')">Pronto</button>`:''}
+
+</div>
+
+`
+
+card.onclick=()=>abrir(p)
+
+col.appendChild(card)
+
+})
+
+}
+
+async function aprovar(id){
+
+await db.from("pedidos").update({status:"aprovado"}).eq("id",id)
+carregar()
+
+}
+
+async function preparo(id){
+
+await db.from("pedidos").update({status:"preparo"}).eq("id",id)
+carregar()
+
+}
+
+async function pronto(id){
+
+await db.from("pedidos").update({status:"pronto"}).eq("id",id)
+carregar()
+
+}
+
+async function abrir(p){
+
+atual=p
+
+document.getElementById("titulo").innerText=p.cliente_nome
+
+const area=document.getElementById("detalhes")
+
+area.innerHTML=""
+
+for(const it of p.itens){
+
+let foto=""
+
+const {data}=await db
+.from("buffet")
+.select("foto_url")
+.ilike("nome",it.nome)
+.limit(1)
+
+if(data.length) foto=data[0].foto_url
+
+area.innerHTML+=`
+
+<div class="item">
+
+${foto?`<img src="${foto}">`:''}
+
+<div>
+
+<b>${it.nome}</b><br>
+${it.quantidade}x R$ ${it.preco}
+
+</div>
+
+</div>
+
+`
+
+}
+
+document.getElementById("modal").style.display="flex"
+
+}
+
+function fechar(){
+document.getElementById("modal").style.display="none"
+}
+
+function imprimir(){
+
+let texto="MERCATTO DELICIA\n\n"
+
+texto+="Cliente: "+atual.cliente_nome+"\n"
+texto+="Telefone: "+atual.cliente_telefone+"\n"
+texto+="Tipo: "+atual.tipo+"\n\n"
+
+texto+="ITENS\n"
+
+let total=0
+
+atual.itens.forEach(i=>{
+texto+=`${i.quantidade}x ${i.nome}\n`
+total+=i.preco*i.quantidade
+})
+
+texto+="\nTOTAL: R$ "+total
+
+texto+="\n\n\n\n\n"
+
+const w=window.open("","","width=300,height=600")
+
+w.document.write("<pre>"+texto+"</pre>")
+
+w.print()
+
+}
+
+setInterval(carregar,5000)
+
+carregar()
+
+</script>
+
+</body>
+</html>
