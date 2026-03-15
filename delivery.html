@@ -22,7 +22,6 @@
   --radius:14px;
   --shadow:0 4px 12px rgba(0,0,0,.5);
 }
-
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
 body{background:var(--bg);color:var(--text);padding:12px;}
 h1{font-weight:800;margin-bottom:12px;}
@@ -86,7 +85,6 @@ pre{background:#111827;padding:12px;border-radius:8px;overflow-x:auto;}
 </tbody>
 </table>
 
-<!-- Modal para detalhes -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <button class="close-btn" onclick="fecharModal()">X</button>
@@ -97,7 +95,6 @@ pre{background:#111827;padding:12px;border-radius:8px;overflow-x:auto;}
 </div>
 
 <script>
-// ================= SUPABASE =================
 const supabase = supabase.createClient(
   "YOUR_SUPABASE_URL",
   "YOUR_SUPABASE_SERVICE_ROLE"
@@ -106,23 +103,18 @@ const supabase = supabase.createClient(
 let pedidos = [];
 let pedidoSelecionado = null;
 
-// ================= CARREGAR PEDIDOS =================
 async function carregarPedidos(){
   const { data, error } = await supabase
     .from("pedidos_pendentes")
     .select("*")
     .order("created_at",{ascending:true});
 
-  if(error){
-    console.log("Erro ao buscar pedidos:",error);
-    return;
-  }
+  if(error){console.log("Erro ao buscar pedidos:",error);return;}
 
   pedidos = data || [];
   renderizarTabela();
 }
 
-// ================= RENDER TABELA =================
 function renderizarTabela(){
   const tbody = document.querySelector("#pedidos-table tbody");
   tbody.innerHTML = "";
@@ -157,28 +149,39 @@ function renderizarTabela(){
   });
 }
 
-// ================= AÇÕES =================
 async function aprovarPedido(idx){
   const p = pedidos[idx];
-  await supabase
-    .from("pedidos_pendentes")
-    .update({ status:"aprovado" })
-    .eq("id", p.id);
+  if(!p) return;
+  
+  // Salvar na tabela final de pedidos
+  const valorTotal = (p.itens || []).reduce((s,it)=>s+(it.preco*it.quantidade),0).toFixed(2);
+  await supabase.from("pedidos").insert([{
+    cliente_nome: p.cliente_nome,
+    cliente_telefone: p.cliente_telefone,
+    cliente_endereco: p.cliente_endereco || "",
+    cliente_bairro: p.cliente_bairro || "",
+    tipo: p.tipo || "entrega",
+    itens: p.itens || [],
+    valor_total: valorTotal,
+    forma_pagamento: p.forma_pagamento || "",
+    observacao: p.observacao || "",
+    status: "novo"
+  }]);
+
+  await supabase.from("pedidos_pendentes").delete().eq("id", p.id);
   carregarPedidos();
 }
 
 async function rejeitarPedido(idx){
   const p = pedidos[idx];
-  await supabase
-    .from("pedidos_pendentes")
-    .update({ status:"rejeitado" })
-    .eq("id", p.id);
+  if(!p) return;
+  await supabase.from("pedidos_pendentes").update({ status:"rejeitado" }).eq("id", p.id);
   carregarPedidos();
 }
 
-// ================= MODAL =================
 function abrirModal(idx){
   pedidoSelecionado = pedidos[idx];
+  if(!pedidoSelecionado) return;
   const modal = document.getElementById("modal-bg");
   const conteudo = document.getElementById("modal-conteudo");
   const total = (pedidoSelecionado.itens || []).reduce((s,it)=>s+(it.preco*it.quantidade),0).toFixed(2);
@@ -197,12 +200,8 @@ function abrirModal(idx){
   modal.style.display="flex";
 }
 
-function fecharModal(){
-  document.getElementById("modal-bg").style.display="none";
-  pedidoSelecionado = null;
-}
+function fecharModal(){ document.getElementById("modal-bg").style.display="none"; pedidoSelecionado=null; }
 
-// ================= IMPRESSÃO TÉRMICA =================
 function imprimirPedido(){
   if(!pedidoSelecionado) return;
   let conteudo = `\n===== PEDIDO MERCATTO DELÍCIA =====\n\n`;
@@ -214,14 +213,11 @@ function imprimirPedido(){
     conteudo += `Bairro: ${pedidoSelecionado.cliente_bairro || "-"}\n`;
   }
   conteudo += `\nItens:\n`;
-  (pedidoSelecionado.itens || []).forEach(it=>{
-    conteudo += `${it.quantidade}x ${it.nome} - R$ ${it.preco}\n`;
-  });
+  (pedidoSelecionado.itens || []).forEach(it=>{ conteudo += `${it.quantidade}x ${it.nome} - R$ ${it.preco}\n`; });
   const total = (pedidoSelecionado.itens || []).reduce((s,it)=>s+(it.preco*it.quantidade),0).toFixed(2);
   conteudo += `\nTOTAL: R$ ${total}\n`;
   conteudo += `\n===============================\n\n`;
 
-  // envia para a impressora térmica usando window.print ou API local de impressora
   const win = window.open("","PRINT","width=400,height=600");
   win.document.write(`<pre>${conteudo}</pre>`);
   win.document.close();
@@ -230,7 +226,7 @@ function imprimirPedido(){
   win.close();
 }
 
-// ================= INICIAL =================
+// Inicializar
 carregarPedidos();
 </script>
 
