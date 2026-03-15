@@ -361,12 +361,13 @@ texto === "ok" ||
 texto === "confirmar"
 
 if(confirmou){
-
-const { data: estado } = await supabase
-.from("estado_conversa")
+const { data: pedidoPendente } = await supabase
+.from("pedidos_pendentes")
 .select("*")
-.eq("telefone",cliente)
-.maybeSingle()
+.eq("cliente_telefone",cliente)
+.order("created_at",{ascending:false})
+.limit(1)
+.single()
 
 /* ================= CONFIRMAR PEDIDO ================= */
 
