@@ -413,11 +413,30 @@ const retorno = await api.json()
 console.log("RETORNO API:",retorno)
 
 
-  resposta = `✅ *Pedido enviado com sucesso!*
+resposta = `✅ *Pedido enviado com sucesso!*
 
 🧾 Número do pedido: ${retorno.pedido_id}
 
 Nossa cozinha já recebeu seu pedido.`
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+
+
+  
 
 await supabase
 .from("pedidos_pendentes")
