@@ -1090,7 +1090,6 @@ content: promptSistema
 },
 
 {
-{
 role:"system",
 content:`
 CONTEXTO DO SISTEMA
