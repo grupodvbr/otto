@@ -507,8 +507,7 @@ agoraBahia.getHours().toString().padStart(2,"0") +
 agoraBahia.getMinutes().toString().padStart(2,"0")
 
   
-const couvertHoje = calcularCouvert(agendaDia)
-
+resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}`
 const posterHoje = pegarPoster(agendaDia)
 
 /* ================= AGENDA PARA IA ================= */
