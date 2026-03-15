@@ -1462,6 +1462,88 @@ catch(err){
 }
 console.log("Reserva detectada:",reserva)
 
+
+
+/* ================= PEDIDO DELIVERY ================= */
+
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
+
+if(pedidoMatch){
+
+let pedido
+
+try{
+pedido = JSON.parse(pedidoMatch[1])
+}catch(err){
+console.log("Erro JSON pedido",err)
+}
+
+if(pedido){
+
+console.log("Pedido detectado:",pedido)
+
+const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+
+const preco = Number(i.preco || 0)
+const qtd = Number(i.quantidade || 1)
+
+return s + (preco * qtd)
+
+},0)
+
+const {error} = await supabase
+.from("delivery_mercatto")
+.insert({
+
+cliente_nome: pedido.nome,
+cliente_telefone: cliente,
+
+cliente_endereco: pedido.endereco || "",
+cliente_bairro: pedido.bairro || "",
+
+tipo: pedido.tipo || "entrega",
+
+itens: pedido.itens || [],
+
+valor_total: valorTotal,
+
+forma_pagamento: pedido.pagamento || "",
+
+observacao: pedido.observacao || "",
+
+status: "novo"
+
+})
+
+if(error){
+console.log("Erro ao salvar pedido:",error)
+}
+
+let itensTexto = ""
+
+(pedido.itens || []).forEach(i=>{
+
+itensTexto += `• ${i.nome} x${i.quantidade}\n`
+
+})
+
+resposta =
+`🧾 *Pedido recebido!*
+
+${itensTexto}
+
+💰 Total estimado: R$ ${valorTotal.toFixed(2)}
+
+Seu pedido foi enviado para nossa cozinha.
+Em breve confirmaremos 😊`
+
+}
+
+}
+
+
+
+  
 /* ================= ATUALIZAR MEMORIA CLIENTE ================= */
 
 if(reserva?.nome){
