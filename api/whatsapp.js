@@ -137,8 +137,7 @@ return data || []
 
 
 module.exports = async function handler(req,res){
-let resposta = ""
-
+let resposta = "Desculpe, tive um problema ao processar sua mensagem."
 /* ================= CARDAPIO ================= */
 
 async function buscarCardapio(){
@@ -403,8 +402,10 @@ const { data: pedidoPendente } = await supabase
 .eq("telefone",cliente)
 .order("created_at",{ascending:false})
 .limit(1)
-.single()
+.maybeSingle()
 
+
+  
 if(pedidoPendente){
 
 const pedido = pedidoPendente.pedido
@@ -419,7 +420,7 @@ return s + (preco * qtd)
 },0)
 
 await supabase
-.from("pedidos_pendentes")
+.from("pedidos")
 .insert({
 
 cliente_nome: pedido.nome,
@@ -427,7 +428,7 @@ cliente_telefone: cliente,
 
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
-
+  
 tipo: pedido.tipo || "entrega",
 
 itens: pedido.itens || [],
@@ -442,14 +443,12 @@ status: "novo"
 
 })
 
-/* limpar pedido pendente */
+/* limpar apenas o pedido confirmado */
 
 await supabase
 .from("pedidos_pendentes")
 .delete()
-.eq("telefone",cliente)
-
-}
+.eq("id", pedidoPendente.id)
 
 /* limpar estado conversa */
 
@@ -701,7 +700,7 @@ const { data: jaProcessada } = await supabase
 .from("mensagens_processadas")
 .select("*")
 .eq("message_id", message_id)
-.single()
+.maybeSingle()
 
 if(jaProcessada){
 console.log("Mensagem duplicada ignorada")
@@ -711,7 +710,6 @@ return res.status(200).end()
 await supabase
 .from("mensagens_processadas")
 .insert({ message_id })
-
 /* ================= SALVAR MENSAGEM CLIENTE ================= */
 
 await supabase
@@ -1281,6 +1279,8 @@ jsonTexto = jsonTexto
 .replace(/\t/g,"")
 .trim()
 
+let pedido = null
+
 try{
 
 pedido = JSON.parse(jsonTexto)
@@ -1289,9 +1289,11 @@ pedido = JSON.parse(jsonTexto)
 
 console.log("Erro JSON pedido:", jsonTexto)
 
+pedido = null
+
 }
 
-if(pedido){
+if(pedido && pedido.itens){
 
 console.log("Pedido detectado:",pedido)
 
