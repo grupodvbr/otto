@@ -1745,28 +1745,17 @@ role:"assistant"
 
 
 await fetch(url,{
-
 method:"POST",
-
 headers:{
 Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify({
-
 messaging_product:"whatsapp",
-
 to:cliente,
-
 type:"text",
-
-text:{
-body:resposta
-}
-
+text:{ body:resposta }
 })
-
 })
 
 return res.status(200).end()
