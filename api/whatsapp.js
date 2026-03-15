@@ -1267,11 +1267,13 @@ console.log("Resposta IA:",resposta)
 /* ================= PEDIDO DELIVERY ================= */
 
 const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
-  if(pedidoMatch){
+
+if(pedidoMatch){
 
 let pedido
 
 try{
+
 let jsonTexto = pedidoMatch[1]
 
 jsonTexto = jsonTexto
@@ -1287,7 +1289,6 @@ pedido = JSON.parse(jsonTexto)
 console.log("Erro JSON pedido", jsonTexto)
 }
 
-
 }catch(err){
 console.log("Erro JSON pedido",err)
 }
@@ -1295,6 +1296,9 @@ console.log("Erro JSON pedido",err)
 if(pedido){
 
 console.log("Pedido detectado:",pedido)
+
+/* SALVAR PEDIDO PENDENTE */
+
 await supabase
 .from("pedidos_pendentes")
 .insert({
@@ -1302,12 +1306,15 @@ telefone: cliente,
 pedido: pedido
 })
 
+/* SALVAR ESTADO DA CONVERSA */
+
 await supabase
 .from("estado_conversa")
 .upsert({
 telefone: cliente,
 tipo: "confirmacao_pedido"
 })
+
 const valorTotal = (pedido.itens || []).reduce((s,i)=>{
 
 const preco = Number(i.preco || 0)
@@ -1317,7 +1324,7 @@ return s + (preco * qtd)
 
 },0)
 
-const {error} = await supabase
+await supabase
 .from("delivery_mercatto")
 .insert({
 
@@ -1340,6 +1347,10 @@ observacao: pedido.observacao || "",
 status: "novo"
 
 })
+
+}
+
+}
 
 if(error){
 
