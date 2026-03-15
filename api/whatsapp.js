@@ -91,9 +91,19 @@ function calcularCouvert(musicos){
 
 if(!musicos.length) return 0
 
-return musicos.reduce((total,m)=>{
-return total + (Number(m.valor) || 0)
-},0)
+let maior = 0
+
+musicos.forEach(m => {
+
+const valor = Number(m.valor) || 0
+
+if(valor > maior){
+maior = valor
+}
+
+})
+
+return maior
 
 }
 
