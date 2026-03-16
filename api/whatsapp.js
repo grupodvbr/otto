@@ -1334,7 +1334,7 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*})/)
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
 
 if(pedidoMatch){
 
@@ -1352,8 +1352,6 @@ jsonTexto = jsonTexto
 .replace(/\n/g,"")
 .replace(/\t/g,"")
 .trim()
-
-/* PARSE SEGURO */
 
 try{
 
@@ -1384,6 +1382,8 @@ return s + (preco * qtd)
 
 },0)
 
+console.log("TOTAL PEDIDO:",valorTotal)
+
 /* SALVAR PEDIDO PENDENTE */
 
 console.log("SALVANDO EM pedidos_pendentes")
@@ -1393,7 +1393,7 @@ await supabase
 .delete()
 .eq("cliente_telefone",cliente)
 
-await supabase
+const {data,error} = await supabase
 .from("pedidos_pendentes")
 .insert({
 cliente_nome: pedido.nome,
@@ -1405,8 +1405,15 @@ valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
 observacao: pedido.observacao || ""
 })
+.select()
 
-/* MARCAR ESTADO DE CONFIRMAÇÃO */
+if(error){
+console.log("ERRO AO SALVAR PEDIDO:",error)
+}else{
+console.log("PEDIDO SALVO COM SUCESSO:",data)
+}
+
+/* MARCAR ESTADO */
 
 await supabase
 .from("estado_conversa")
