@@ -1376,10 +1376,17 @@ resposta = resposta.replace(/ENVIAR_VIDEO/g,"").trim()
 
 if(resposta.includes("ENVIAR_FOTO_PRATO")){
 
-const respostaLower = resposta.toLowerCase()
+function normalizar(txt){
+return txt
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"")
+}
 
-const prato = cardapio.find(p => 
-respostaLower.includes(p.nome.toLowerCase())
+const respostaNorm = normalizar(resposta)
+
+const prato = cardapio.find(p =>
+respostaNorm.includes(normalizar(p.nome))
 )
 
 if(prato && prato.foto_url){
