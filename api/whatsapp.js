@@ -477,7 +477,7 @@ await supabase
 }
 /* ================= RELATORIO ADMIN ================= */
 
-if(cliente === ADMIN_NUMERO && texto.includes("relatorio_reservas_dia")){
+if(cliente === ADMIN_NUMERO && texto.includes("Reservas do dia")){
 
 const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
