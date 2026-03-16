@@ -1231,8 +1231,13 @@ resposta = completion.choices[0].message.content
 console.log("RESPOSTA IA COMPLETA:", resposta)
 
 /* ================= DETECTAR MIDIA ================= */
+const templateMatch = resposta.match(/ENVIAR_TEMPLATE:([a-zA-Z0-9_\-]+)/)
 
-if(resposta.includes("ENVIAR_CARDAPIO")){
+if(templateMatch){
+
+const templateNome = templateMatch[1]
+
+console.log("ENVIANDO TEMPLATE:",templateNome)
 
 await fetch(url,{
 method:"POST",
@@ -1243,17 +1248,19 @@ Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 body: JSON.stringify({
 messaging_product:"whatsapp",
 to:cliente,
-type:"document",
-document:{
-link:"https://SEU_CARDAPIO.pdf",
-filename:"Cardapio_Mercatto.pdf"
+type:"template",
+template:{
+name:templateNome,
+language:{
+code:"pt_BR"
+}
 }
 })
 })
 
-resposta = resposta.replace(/ENVIAR_CARDAPIO/g,"").trim()
-}
+resposta = resposta.replace(templateMatch[0],"").trim()
 
+}
 if(resposta.includes("ENVIAR_FOTOS")){
 
 await fetch(url,{
