@@ -1800,33 +1800,46 @@ telefone:cliente,
 mensagem:resposta,
 role:"assistant"
 })
-
-/* ================= ENVIAR WHATSAPP ================= */
-
+/* ================= DIGITANDO ================= */
 
 await fetch(url,{
-
 method:"POST",
-
 headers:{
 Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify({
-
 messaging_product:"whatsapp",
-
 to:cliente,
+type:"typing_on"
+})
+})
 
+/* ================= TEMPO NATURAL ================= */
+
+const tempoDigitando = Math.min(
+Math.max(resposta.length * 35, 1500), // mínimo 1.5s
+6000 // máximo 6s
+)
+
+await new Promise(resolve => setTimeout(resolve, tempoDigitando))
+
+/* ================= ENVIAR WHATSAPP ================= */
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
 type:"text",
-
 text:{
 body:resposta
 }
-
 })
-
 })
 
 }catch(error){
