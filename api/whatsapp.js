@@ -758,66 +758,6 @@ texto.includes("comida") ||
 texto.includes("o que tem")
 
 
-/* ================= CARDÁPIO ================= */
-
-if(querCardapio){
-
-console.log("ENVIANDO CARDÁPIO AUTOMÁTICO")
-
-try{
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"document",
-document:{
-link:"https://SEU_CARDAPIO.pdf",
-filename:"Cardapio_Mercatto.pdf"
-}
-})
-})
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{
-body:`📖 Aqui está nosso cardápio completo.
-
-Se quiser ver a foto de algum prato é só me falar o nome 😊`
-}
-})
-})
-
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:"[CARDÁPIO ENVIADO]",
-role:"assistant"
-})
-
-}catch(err){
-
-console.log("ERRO AO ENVIAR CARDÁPIO:",err)
-
-}
-
-return res.status(200).end()
-
-}
 
 
   
