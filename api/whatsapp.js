@@ -239,6 +239,9 @@ unicos.push(item)
 console.log("✅ ITENS DO BUFFET:", unicos)
 
 return unicos
+}
+
+
 /* ================= VERIFICAR SE TEM PRODUTO (INTELIGENTE) ================= */
 
 function normalizar(txt){
@@ -269,9 +272,7 @@ return item.produto_nome
 }
 
 return null
-
 }
-
 /* ================= CLASSIFICAR MENSAGEM ================= */
 
 async function classificarMensagem(texto){
@@ -472,7 +473,7 @@ return res.status(200).end()
 
 console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
-
+const texto = mensagem.toLowerCase()
 const textoNormalizado = normalizar(texto)
 /* ================= DETECTAR RECLAMAÇÃO ================= */
 
