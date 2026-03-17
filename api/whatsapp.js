@@ -973,12 +973,7 @@ texto.includes("o que tem")
 
 const querBuffet =
 texto.includes("buffet") ||
-texto.includes("tem hoje") ||
-texto.includes("o que tem no buffet") ||
-texto.includes("tem no buffet") ||
-texto.includes("tem salm") ||
-texto.includes("tem peixe") ||
-texto.includes("tem comida hoje")
+texto.includes("almoço")
 
 
 const querVideo =
