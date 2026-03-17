@@ -912,10 +912,16 @@ texto.includes("pratos") ||
 texto.includes("comida") ||
 texto.includes("o que tem")
 
+const querBuffet =
+texto.includes("buffet") ||
+texto.includes("tem hoje") ||
+texto.includes("o que tem no buffet") ||
+texto.includes("tem no buffet") ||
+texto.includes("tem salm") ||
+texto.includes("tem peixe") ||
+texto.includes("tem comida hoje")
 
 
-
-  
 const querVideo =
 texto.includes("video") ||
 texto.includes("vídeo")
@@ -1152,7 +1158,90 @@ return res.status(200).end()
 
 }
   
+/* ================= BUFFET ================= */
 
+if(querBuffet){
+
+console.log("🔥 RESPOSTA BUFFET")
+
+const dados = await buscarBuffetHoje()
+const buffet = calcularBuffet(dados)
+
+const disponiveis = buffet.filter(p => p.estoque > 0)
+
+if(!disponiveis.length){
+
+resposta = "Hoje ainda não temos itens disponíveis no buffet 😕"
+
+}else{
+
+/* VERIFICAR SE É PRODUTO ESPECÍFICO */
+const produtoPergunta = buffet.find(p =>
+texto.includes(p.produto.toLowerCase())
+)
+
+if(produtoPergunta){
+
+if(produtoPergunta.estoque > 0){
+
+resposta = `Sim! Temos *${produtoPergunta.produto}* no buffet hoje 😋
+
+Quantidade disponível: ${produtoPergunta.estoque.toFixed(3)} KG`
+
+}else{
+
+resposta = `Hoje o *${produtoPergunta.produto}* já acabou 😕`
+
+}
+
+}else{
+
+resposta = "🍽️ *Buffet de hoje no Mercatto:*\n\n"
+
+disponiveis
+.sort((a,b)=>b.estoque - a.estoque)
+.slice(0,20)
+.forEach(p => {
+
+resposta += `• ${p.produto}\n`
+
+})
+
+resposta += "\n😋 Tudo fresquinho esperando por você!"
+
+}
+
+}
+
+/* ENVIA RESPOSTA */
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+/* SALVA */
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:resposta,
+role:"assistant"
+})
+
+return res.status(200).end()
+
+}
   
 
 
