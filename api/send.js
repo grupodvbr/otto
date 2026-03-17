@@ -2,52 +2,87 @@ export default async function handler(req, res) {
 
   try {
 
-    const { telefone, mensagem } = req.body
-
-    if (!telefone || !mensagem) {
-      return res.status(400).json({ error: "Faltando dados" })
+    /* ===== VALIDAR MÉTODO ===== */
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Método não permitido" })
     }
 
-    const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID
+    /* ===== BODY ===== */
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body
+
+    const { telefone, mensagem } = body
+
+    if (!telefone || !mensagem) {
+      return res.status(400).json({ error: "Faltando telefone ou mensagem" })
+    }
+
+    /* ===== ENV ===== */
+    const PHONE_ID = process.env.WHATSAPP_PHONE_ID
     const TOKEN = process.env.WHATSAPP_TOKEN
 
-    if (!WHATSAPP_PHONE_ID) {
-      return res.status(500).json({ error: "WHATSAPP_PHONE_ID não definido" })
+    if (!PHONE_ID) {
+      console.error("❌ PHONE_ID não definido")
+      return res.status(500).json({ error: "PHONE_ID não definido" })
     }
 
     if (!TOKEN) {
+      console.error("❌ TOKEN não definido")
       return res.status(500).json({ error: "TOKEN não definido" })
     }
 
-    const url = `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_ID}/messages`
+    /* ===== NORMALIZAR TELEFONE ===== */
+    const numero = telefone.replace(/\D/g, "")
 
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: telefone,
-        type: "text",
-        text: { body: mensagem }
-      })
-    })
+    /* ===== REQUEST ===== */
+    const response = await fetch(
+      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: numero,
+          type: "text",
+          text: { body: mensagem }
+        })
+      }
+    )
 
-    const data = await resp.json()
+    const data = await response.json()
 
-    console.log("ENVIO MANUAL:", data)
+    console.log("📤 ENVIO:", data)
 
+    /* ===== TRATAR ERRO DO WHATSAPP ===== */
     if (data.error) {
-      return res.status(500).json(data)
+
+      return res.status(200).json({
+        ok: false,
+        erro: data.error.message,
+        detalhe: data.error.error_data?.details || null
+      })
+
     }
 
-    return res.status(200).json({ ok: true, data })
+    /* ===== SUCESSO ===== */
+    return res.status(200).json({
+      ok: true,
+      id: data.messages?.[0]?.id || null
+    })
 
   } catch (err) {
-    console.error("ERRO GERAL:", err)
-    return res.status(500).json({ error: "Erro interno" })
+
+    console.error("🔥 ERRO SERVIDOR:", err)
+
+    return res.status(500).json({
+      ok: false,
+      error: "Erro interno no servidor"
+    })
+
   }
 
 }
