@@ -1342,24 +1342,9 @@ resposta += "\n⚠️ *Últimos minutos do buffet!*"
 }
 
 }
-
-/* ENVIA */
-
-/* NÃO ENVIA AQUI */
-
-// só salva no histórico
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
-})
-
-// 🔥 retorna resposta para fluxo principal
 /* ================= RESPOSTA FINAL BUFFET ================= */
 
-// salva no histórico
+// salva UMA VEZ
 await supabase
 .from("conversas_whatsapp")
 .insert({
@@ -1383,30 +1368,10 @@ text:{body:resposta}
 })
 })
 
-// 🔥 ENCERRA AQUI (IMPORTANTÍSSIMO)
+// 🚨 MUITO IMPORTANTE
 return res.status(200).end()
 
-/* ================= BLOQUEAR OPENAI SE JÁ RESPONDEU ================= */
 
-if(resposta){
-console.log("⛔ RESPOSTA JÁ DEFINIDA - NÃO CHAMAR OPENAI")
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:resposta}
-})
-})
-
-return res.status(200).end()
-}
 /* ================= HISTÓRICO ================= */
 
 const {data:historico} = await supabase
