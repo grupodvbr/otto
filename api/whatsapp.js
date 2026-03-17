@@ -450,6 +450,8 @@ console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
+const texto = mensagem.toLowerCase()
+const textoNormalizado = normalizar(texto)
 /* ================= DETECTAR RECLAMAÇÃO ================= */
 
 const tipoMensagem = await classificarMensagem(mensagem)
@@ -974,9 +976,8 @@ textoNormalizado.includes("pratos")
 /* 🔥 BUFFET INTELIGENTE */
 const querBuffet =
 textoNormalizado.includes("buffet") ||
-textoNormalizado.includes("buffer") || // erro comum
+textoNormalizado.includes("buffer") ||
 textoNormalizado.includes("almoco") ||
-textoNormalizado.includes("almoço") ||
 textoNormalizado.includes("comida") ||
 textoNormalizado.includes("tem o que") ||
 textoNormalizado.includes("tem hoje") ||
