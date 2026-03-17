@@ -11,7 +11,7 @@ const supabase = createClient(
 )
 const ADMINS = [
   "557798253249",
-  "5577998315510"
+  "557798315510"
 ]
 
 
