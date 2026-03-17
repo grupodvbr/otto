@@ -198,22 +198,34 @@ const agoraBahia = new Date(
   new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const hojeISO = agoraBahia.toISOString().split("T")[0]
+function getHojeBahia(){
+const agora = new Date().toLocaleString("sv-SE",{
+timeZone:"America/Bahia"
+})
+return agora.split(" ")[0]
+}
+
+async function buscarBuffetHoje(){
+
+const hojeISO = getHojeBahia()
+
+console.log("DATA CONSULTADA:", hojeISO)
 
 const { data, error } = await supabase
-.from("buffet_lançamentos")
-.select("produto_nome,tipo")
+.from("buffet_lancamentos")
+.select("produto_nome,tipo,data")
 .eq("empresa","MERCATTO DELÍCIA")
+.eq("tipo","MONTAGEM")
 .eq("data", hojeISO)
-.eq("tipo","MONTAGEM") // 🔥 SÓ O QUE ENTROU
 
 if(error){
-console.log("Erro buffet:",error)
+console.log("Erro buffet:", error)
 return []
 }
 
-return data || []
+console.log("RESULTADO BUFFET:", data)
 
+return data || []
 }
 /* ================= VERIFICAR SE TEM PRODUTO (INTELIGENTE) ================= */
 
