@@ -1279,23 +1279,18 @@ const produto = temProduto(buffet, texto)
 
 if(produto){
 
-resposta = `Sim! Temos *${produto}* no buffet hoje 😋`
 
-}else{
 
-/* LISTA SIMPLES */
 
-const lista = [...new Set(buffet.map(p => p.produto_nome))]
+/* Formato da resposta */
 
-if(!lista.length){
 
-resposta = "Hoje ainda não temos itens no buffet 😕"
+  
+resposta = "🍽️ *Buffet de hoje no Mercatto Delícia*\n"
+resposta += "━━━━━━━━━━━━━━━━━━\n\n"
 
-}else{
-
-resposta = "🍽️ *Buffet de hoje no Mercatto Delícia:*\n\n"
-
-lista.slice(0,20).forEach(p=>{
+/* ORGANIZAR */
+const itensFormatados = lista.slice(0,20).map(p => {
 
   let nome = p
     .toLowerCase()
@@ -1303,11 +1298,35 @@ lista.slice(0,20).forEach(p=>{
     .replace(/[\u0300-\u036f]/g,"")
     .replace(/\b\w/g, l => l.toUpperCase())
 
-  resposta += `• ${nome}\n`
+  /* CORREÇÕES MANUAIS */
+  nome = nome.replace("Alcega", "Acelga")
+
+  return nome
 })
 
-resposta += "\nTe esperamos por aqui 😋"
+/* LISTA EM GRID (2 COLUNAS ESTILO WHATSAPP) */
+for(let i = 0; i < itensFormatados.length; i += 2){
 
+  const left = itensFormatados[i] || ""
+  const right = itensFormatados[i+1] || ""
+
+  if(right){
+    resposta += `• ${left.padEnd(18," ")} ${right}\n`
+  }else{
+    resposta += `• ${left}\n`
+  }
+}
+
+/* RODAPÉ */
+resposta += "\n━━━━━━━━━━━━━━━━━━\n"
+resposta += "😋 *Te esperamos para o almoço!*"
+
+
+
+
+
+
+  
 /* ALERTA FINAL DO HORÁRIO */
 
 if(hora === 14 && minuto >= 30){
