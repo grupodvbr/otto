@@ -450,7 +450,6 @@ console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
-const texto = mensagem.toLowerCase()
 const textoNormalizado = normalizar(texto)
 /* ================= DETECTAR RECLAMAÇÃO ================= */
 
@@ -961,8 +960,6 @@ COUVERT: ${m.valor}
 
 }
 /* ================= INTENÇÕES ================= */
-
-const textoNormalizado = normalizar(texto)
 
 const querReserva =
 textoNormalizado.includes("reserv") ||
