@@ -52,8 +52,8 @@ const agora = agoraBahia();
 
 async function enviarRelatorioAutomatico(){
 
-const ADMIN_NUMERO = "557798253249"
-
+const numerosAdmins = ADMINS
+  
 const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -416,7 +416,9 @@ if(
  /* ENVIAR PARA ADMINS */
 for(const admin of ADMINS){
 
-  await fetch(url,{
+  console.log("ENVIANDO PARA ADMIN:", admin)
+
+  const resp = await fetch(url,{
     method:"POST",
     headers:{
       Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
@@ -429,6 +431,9 @@ for(const admin of ADMINS){
       text:{ body: alertaAdmin }
     })
   })
+
+  const data = await resp.json()
+  console.log("RESPOSTA WHATSAPP:", data)
 
 }
 
