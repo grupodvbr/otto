@@ -192,18 +192,7 @@ return data || []
 
 /* ================= BUSCAR BUFFET (SIMPLES) ================= */
 
-async function buscarBuffetHoje(){
 
-const agoraBahia = new Date(
-  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-)
-
-function getHojeBahia(){
-const agora = new Date().toLocaleString("sv-SE",{
-timeZone:"America/Bahia"
-})
-return agora.split(" ")[0]
-}
 
 async function buscarBuffetHoje(){
 
