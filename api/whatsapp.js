@@ -189,6 +189,48 @@ return []
 return data || []
 
 }
+
+/* ================= BUSCAR BUFFET (SIMPLES) ================= */
+
+async function buscarBuffetHoje(){
+
+const agoraBahia = new Date(
+  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
+
+const hojeISO = agoraBahia.toISOString().split("T")[0]
+
+const { data, error } = await supabase
+.from("buffet_lançamentos")
+.select("produto_nome,tipo")
+.eq("empresa","MERCATTO DELÍCIA")
+.eq("data", hojeISO)
+.eq("tipo","MONTAGEM") // 🔥 SÓ O QUE ENTROU
+
+if(error){
+console.log("Erro buffet:",error)
+return []
+}
+
+return data || []
+
+}
+/* ================= VERIFICAR SE TEM PRODUTO ================= */
+
+function temProduto(buffet, texto){
+
+const nomeEncontrado = buffet.find(item =>
+texto.includes(item.produto_nome.toLowerCase())
+)
+
+if(nomeEncontrado){
+return nomeEncontrado.produto_nome
+}
+
+return null
+
+}
+
 /* ================= CLASSIFICAR MENSAGEM ================= */
 
 async function classificarMensagem(texto){
@@ -1158,62 +1200,74 @@ return res.status(200).end()
 
 }
   
-/* ================= BUFFET ================= */
+/* ================= BUFFET SIMPLES ================= */
 
 if(querBuffet){
 
-console.log("🔥 RESPOSTA BUFFET")
+console.log("🔥 BUFFET SIMPLES")
 
-const dados = await buscarBuffetHoje()
-const buffet = calcularBuffet(dados)
-
-const disponiveis = buffet.filter(p => p.estoque > 0)
-
-if(!disponiveis.length){
-
-resposta = "Hoje ainda não temos itens disponíveis no buffet 😕"
-
-}else{
-
-/* VERIFICAR SE É PRODUTO ESPECÍFICO */
-const produtoPergunta = buffet.find(p =>
-texto.includes(p.produto.toLowerCase())
+const agora = new Date(
+  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-if(produtoPergunta){
+const hora = agora.getHours()
+const minuto = agora.getMinutes()
 
-if(produtoPergunta.estoque > 0){
+/* ⏰ FORA DO HORÁRIO */
 
-resposta = `Sim! Temos *${produtoPergunta.produto}* no buffet hoje 😋
+if(hora < 11){
 
-Quantidade disponível: ${produtoPergunta.estoque.toFixed(3)} KG`
-
-}else{
-
-resposta = `Hoje o *${produtoPergunta.produto}* já acabou 😕`
+resposta = "Nosso buffet começa às 11:00 😋"
 
 }
+else if(hora >= 15){
+
+resposta = "O buffet de hoje já foi encerrado 😕\nFuncionamos das 11:00 às 15:00."
+
+}
+else{
+
+const buffet = await buscarBuffetHoje()
+
+/* PERGUNTA ESPECÍFICA */
+
+const produto = temProduto(buffet, texto)
+
+if(produto){
+
+resposta = `Sim! Temos *${produto}* no buffet hoje 😋`
 
 }else{
 
-resposta = "🍽️ *Buffet de hoje no Mercatto:*\n\n"
+/* LISTA SIMPLES */
 
-disponiveis
-.sort((a,b)=>b.estoque - a.estoque)
-.slice(0,20)
-.forEach(p => {
+const lista = [...new Set(buffet.map(p => p.produto_nome))]
 
-resposta += `• ${p.produto}\n`
+if(!lista.length){
 
+resposta = "Hoje ainda não temos itens no buffet 😕"
+
+}else{
+
+resposta = "🍽️ Hoje temos no buffet:\n\n"
+
+lista.slice(0,20).forEach(p=>{
+resposta += `• ${p}\n`
 })
 
-resposta += "\n😋 Tudo fresquinho esperando por você!"
+/* ALERTA FINAL DO HORÁRIO */
+
+if(hora === 14 && minuto >= 30){
+resposta += "\n⚠️ Estamos nos últimos minutos do buffet."
+}
+
+}
 
 }
 
 }
 
-/* ENVIA RESPOSTA */
+/* ENVIA */
 
 await fetch(url,{
 method:"POST",
@@ -1229,8 +1283,6 @@ text:{body:resposta}
 })
 })
 
-/* SALVA */
-
 await supabase
 .from("conversas_whatsapp")
 .insert({
@@ -1242,7 +1294,6 @@ role:"assistant"
 return res.status(200).end()
 
 }
-  
 
 
 
