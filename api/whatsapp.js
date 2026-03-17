@@ -325,14 +325,22 @@ console.log("Evento sem mensagem (status)")
 return res.status(200).end()
 }
 
-const msg = change.messages[0]
-if(msg.from === change.metadata.phone_number_id){
+const mensagensRecebidas = change.messages || []
+
+// ignora mensagens do próprio bot
+if(mensagensRecebidas[0]?.from === change.metadata.phone_number_id){
 console.log("Mensagem do próprio bot ignorada")
 return res.status(200).end()
 }
-const mensagem = msg.text?.body
-const cliente = msg.from
 
+const mensagensTexto = mensagensRecebidas
+  .map(m => m.text?.body)
+  .filter(Boolean)
+
+const mensagem = mensagensTexto.join(" ")
+
+const cliente = mensagensRecebidas[0]?.from
+const message_id = mensagensRecebidas[0]?.id
 /* ================= VERIFICAR PAUSA BOT ================= */
 
 const { data: pausaBot } = await supabase
@@ -372,7 +380,7 @@ const { data: memoriaCliente } = await supabase
 
 let nomeMemoria = memoriaCliente?.nome || null
 const ADMIN_NUMERO = "557798253249"
-const message_id = msg.id
+const message_id = mensagensRecebidas[0]?.id
 const phone_number_id = change.metadata.phone_number_id
 const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 if(!mensagem){
