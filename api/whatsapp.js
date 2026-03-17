@@ -1345,20 +1345,9 @@ resposta += "\n⚠️ *Últimos minutos do buffet!*"
 
 /* ENVIA */
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:resposta}
-})
-})
+/* NÃO ENVIA AQUI */
 
+// só salva no histórico
 await supabase
 .from("conversas_whatsapp")
 .insert({
@@ -1367,9 +1356,8 @@ mensagem:resposta,
 role:"assistant"
 })
 
-return res.status(200).end()
-
-}
+// 🔥 retorna resposta para fluxo principal
+return res.json({ resposta })
 
 
 
