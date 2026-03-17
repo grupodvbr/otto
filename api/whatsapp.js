@@ -187,6 +187,40 @@ return []
 return data || []
 
 }
+/* ================= CLASSIFICAR MENSAGEM ================= */
+
+async function classificarMensagem(texto){
+
+  const resp = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [
+      {
+        role: "system",
+        content: `
+Classifique a mensagem do cliente em UMA dessas categorias:
+
+- reclamacao
+- feedback
+- elogio
+- neutro
+
+Responda apenas com UMA palavra.
+`
+      },
+      {
+        role: "user",
+        content: texto
+      }
+    ]
+  })
+
+  return resp.choices[0].message.content
+    .toLowerCase()
+    .trim()
+}
+
+
+
 
 module.exports = async function handler(req,res){
 let resposta = ""
@@ -348,7 +382,84 @@ console.log("Cliente:",cliente)
 console.log("Mensagem:",mensagem)
 
 const texto = mensagem.toLowerCase()
+/* ================= DETECTAR RECLAMAÇÃO ================= */
 
+const tipoMensagem = await classificarMensagem(mensagem)
+
+console.log("CLASSIFICAÇÃO:", tipoMensagem)
+
+if(
+  tipoMensagem === "reclamacao" ||
+  tipoMensagem === "feedback"
+){
+
+  console.log("🚨 RECLAMAÇÃO OU FEEDBACK DETECTADO")
+
+  /* BUSCAR NOME */
+  const nomeCliente = nomeMemoria || "Não identificado"
+
+  /* MENSAGEM PARA ADMIN */
+  const alertaAdmin = `
+🚨 *ALERTA DE CLIENTE*
+
+📱 Telefone: ${cliente}
+👤 Nome: ${nomeCliente}
+
+📝 Tipo: ${tipoMensagem.toUpperCase()}
+
+💬 Mensagem:
+"${mensagem}"
+`
+
+  /* ENVIAR PARA ADMIN */
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: ADMIN_NUMERO,
+      type:"text",
+      text:{ body: alertaAdmin }
+    })
+  })
+
+  /* SALVAR NO BANCO (OPCIONAL MAS RECOMENDO) */
+  await supabase
+  .from("feedback_clientes")
+  .insert({
+    telefone: cliente,
+    nome: nomeCliente,
+    mensagem: mensagem,
+    tipo: tipoMensagem
+  })
+
+  /* RESPOSTA AUTOMÁTICA PARA CLIENTE */
+  resposta = `🙏 Sentimos muito por isso, ${nomeCliente}.
+
+Seu feedback é muito importante para nós e já foi encaminhado para nossa equipe.
+
+Vamos resolver o mais rápido possível. 💛`
+
+  /* ENVIA RESPOSTA */
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"text",
+      text:{ body: resposta }
+    })
+  })
+
+  return res.status(200).end()
+}
 /* ================= PEDIDO DIRETO DO CLIENTE ================= */
 
 const pedidoClienteMatch = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
