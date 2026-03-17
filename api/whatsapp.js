@@ -1289,21 +1289,13 @@ const lista = [...new Set(buffet.map(p => p.produto_nome))]
 
 if(!lista.length){
 
-resposta = `😕 *Buffet ainda em atualização*
-
-Nossa equipe ainda está finalizando os itens de hoje.
-
-⏰ Funcionamento: 11:00 às 15:00
-🍽️ Volte em instantes ou fale com nossa equipe.`
+resposta = "Hoje ainda não temos itens no buffet 😕"
 
 }else{
 
-resposta = `🍽️ *Buffet de hoje no Mercatto Delícia*
-━━━━━━━━━━━━━━━━━━
+resposta = "🍽️ *Buffet de hoje no Mercatto Delícia:*\n\n"
 
-`
-
-const itensFormatados = lista.slice(0,20).map(p => {
+lista.slice(0,20).forEach(p=>{
 
   let nome = p
     .toLowerCase()
@@ -1311,30 +1303,15 @@ const itensFormatados = lista.slice(0,20).map(p => {
     .replace(/[\u0300-\u036f]/g,"")
     .replace(/\b\w/g, l => l.toUpperCase())
 
-  nome = nome.replace("Alcega", "Acelga")
-
-  return nome
+  resposta += `• ${nome}\n`
 })
 
-for(let i = 0; i < itensFormatados.length; i += 2){
+resposta += "\nTe esperamos por aqui 😋"
 
-  const left = itensFormatados[i] || ""
-  const right = itensFormatados[i+1] || ""
-
-  if(right){
-    resposta += `• ${left.padEnd(18," ")} ${right}\n`
-  }else{
-    resposta += `• ${left}\n`
-  }
-}
-
-resposta += `
-━━━━━━━━━━━━━━━━━━
-😋 *Almoço completo esperando por você!*
-`
+/* ALERTA FINAL DO HORÁRIO */
 
 if(hora === 14 && minuto >= 30){
-resposta += "\n⚠️ *Últimos minutos do buffet!*"
+resposta += "\n⚠️ Estamos nos últimos minutos do buffet."
 }
 
 }
@@ -1342,18 +1319,9 @@ resposta += "\n⚠️ *Últimos minutos do buffet!*"
 }
 
 }
-/* ================= RESPOSTA FINAL BUFFET ================= */
 
-// salva UMA VEZ
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
-})
+/* ENVIA */
 
-// envia mensagem
 await fetch(url,{
 method:"POST",
 headers:{
@@ -1368,8 +1336,18 @@ text:{body:resposta}
 })
 })
 
-// 🚨 MUITO IMPORTANTE
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:resposta,
+role:"assistant"
+})
+
 return res.status(200).end()
+
+}
+
 
 
 /* ================= HISTÓRICO ================= */
