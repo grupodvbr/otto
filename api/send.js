@@ -1,52 +1,37 @@
 export default async function handler(req,res){
 
-  if(req.method!=="POST"){
-    return res.status(405).end();
-  }
+try{
 
-  try{
+const { telefone, mensagem } = req.body
 
-    const { numero, mensagem } = req.body;
+const url = `https://graph.facebook.com/v19.0/${process.env.PHONE_ID}/messages`
 
-    const PHONE_ID = process.env.PHONE_NUMBER_ID;
-    const TOKEN = process.env.WHATSAPP_TOKEN;
+const resp = await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:telefone,
+type:"text",
+text:{ body:mensagem }
+})
+})
 
-    if(!PHONE_ID){
-      return res.status(500).json({ error:"PHONE_NUMBER_ID não definido" });
-    }
+const data = await resp.json()
 
-    if(!TOKEN){
-      return res.status(500).json({ error:"WHATSAPP_TOKEN não definido" });
-    }
+console.log("ENVIO MANUAL:",data)
 
-    const response = await fetch(
-      `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-      {
-        method:"POST",
-        headers:{
-          "Authorization":`Bearer ${TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          messaging_product:"whatsapp",
-          to: numero,
-          type:"text",
-          text:{ body: mensagem }
-        })
-      }
-    );
+return res.json({ok:true})
 
-    const data = await response.json();
+}catch(e){
 
-    if(!response.ok){
-      console.log("ERRO WHATSAPP:", data);
-      return res.status(500).json(data);
-    }
+console.log("ERRO ENVIO MANUAL:",e)
 
-    return res.json({ success:true });
+return res.status(500).json({erro:true})
 
-  } catch(e){
-    console.log(e);
-    return res.status(500).json({ error:e.message });
-  }
+}
+
 }
