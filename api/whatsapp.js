@@ -1661,13 +1661,6 @@ if(fotoMatch){
 
 const nomePratoIA = fotoMatch[1].trim()
 
-function normalizar(txt){
-return txt
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"")
-}
-
 const prato = cardapio.find(p =>
 normalizar(p.nome).includes(normalizar(nomePratoIA))
 )
