@@ -215,16 +215,33 @@ return []
 return data || []
 
 }
-/* ================= VERIFICAR SE TEM PRODUTO ================= */
+/* ================= VERIFICAR SE TEM PRODUTO (INTELIGENTE) ================= */
+
+function normalizar(txt){
+return txt
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"")
+}
 
 function temProduto(buffet, texto){
 
-const nomeEncontrado = buffet.find(item =>
-texto.includes(item.produto_nome.toLowerCase())
-)
+const textoLimpo = normalizar(texto)
 
-if(nomeEncontrado){
-return nomeEncontrado.produto_nome
+/* QUEBRA TEXTO EM PALAVRAS */
+const palavras = textoLimpo.split(" ")
+
+for(const item of buffet){
+
+const nome = normalizar(item.produto_nome)
+
+/* SE QUALQUER PALAVRA BATER */
+const encontrou = palavras.some(p => nome.includes(p))
+
+if(encontrou){
+return item.produto_nome
+}
+
 }
 
 return null
