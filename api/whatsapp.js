@@ -1246,82 +1246,77 @@ return res.status(200).end()
   
 /* ================= BUFFET SIMPLES ================= */
 
-/* ================= BUFFET SIMPLES ================= */
-
 if(querBuffet){
 
-  console.log("🔥 BUFFET SIMPLES")
+console.log("🔥 BUFFET SIMPLES")
 
-  const agora = new Date(
-    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-  )
+const agora = new Date(
+  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
 
-  const hora = agora.getHours()
-  const minuto = agora.getMinutes()
+const hora = agora.getHours()
+const minuto = agora.getMinutes()
 
-  if(hora < 11){
+/* ⏰ FORA DO HORÁRIO */
 
-    resposta = "⏰ Nosso buffet começa às 11:00 😋"
+if(hora < 11){
 
-  }
-  else if(hora >= 15){
+resposta = "Nosso buffet começa às 11:00 😋"
 
-    resposta = "😕 O buffet de hoje já foi encerrado.\n⏰ Funcionamos das 11:00 às 15:00."
+}
+else if(hora >= 15){
 
-  }
-  else{
+resposta = "O buffet de hoje já foi encerrado 😕\nFuncionamos das 11:00 às 15:00."
 
-    const buffet = await buscarBuffetHoje()
+}
+else{
 
-    if(!buffet || buffet.length === 0){
+const buffet = await buscarBuffetHoje()
 
-      resposta = `😕 Hoje ainda não temos itens cadastrados no buffet.
+/* PERGUNTA ESPECÍFICA */
 
-⏰ Funcionamos das 11:00 às 15:00
-Volte daqui a pouco ou fale com nossa equipe.`
+const produto = temProduto(buffet, texto)
 
-    }else{
+if(produto){
 
-      const lista = buffet.map(i => i.produto_nome)
+resposta = `Sim! Temos *${produto}* no buffet hoje 😋`
 
-      resposta = "🍽️ *Buffet de hoje no Mercatto Delícia*\n"
-      resposta += "━━━━━━━━━━━━━━━━━━\n\n"
+}else{
 
-      const itensFormatados = lista.slice(0,20).map(p => {
+/* LISTA SIMPLES */
 
-        let nome = p
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g,"")
-          .replace(/\b\w/g, l => l.toUpperCase())
+const lista = [...new Set(buffet.map(p => p.produto_nome))]
 
-        nome = nome.replace("Alcega", "Acelga")
+if(!lista.length){
 
-        return nome
-      })
+resposta = "Hoje ainda não temos itens no buffet 😕"
 
-      for(let i = 0; i < itensFormatados.length; i += 2){
+}else{
 
-        const left = itensFormatados[i] || ""
-        const right = itensFormatados[i+1] || ""
+resposta = "🍽️ *Buffet de hoje no Mercatto Delícia:*\n\n"
 
-        if(right){
-          resposta += `• ${left.padEnd(18," ")} ${right}\n`
-        }else{
-          resposta += `• ${left}\n`
-        }
-      }
+lista.slice(0,20).forEach(p=>{
 
-      resposta += "\n━━━━━━━━━━━━━━━━━━\n"
-      resposta += "😋 *Te esperamos para o almoço!*"
+  let nome = p
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/\b\w/g, l => l.toUpperCase())
 
-      if(hora === 14 && minuto >= 30){
-        resposta += "\n⚠️ Estamos nos últimos minutos do buffet."
-      }
+  resposta += `• ${nome}\n`
+})
 
-    }
+resposta += "\nTe esperamos por aqui 😋"
 
-  }
+/* ALERTA FINAL DO HORÁRIO */
+
+if(hora === 14 && minuto >= 30){
+resposta += "\n⚠️ Estamos nos últimos minutos do buffet."
+}
+
+}
+
+}
 
 }
 
