@@ -1469,22 +1469,26 @@ if(templateMatch){
     console.log("Template não permitido:",templateNome)
   }else{
 
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        messaging_product:"whatsapp",
-        to:cliente,
-        type:"template",
-        template:{
-          name:templateNome,
-          language:{ code:"pt_BR" }
-        }
-      })
-    })
+  const resp = await fetch(url,{
+  method:"POST",
+  headers:{
+    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type":"application/json"
+  },
+  body: JSON.stringify({
+    messaging_product:"whatsapp",
+    to:cliente,
+    type:"template",
+    template:{
+      name:templateNome,
+      language:{ code:"pt_BR" }
+    }
+  })
+})
+
+const data = await resp.json()
+
+console.log("📩 RESPOSTA META TEMPLATE:", data)
 
     console.log("✅ TEMPLATE ENVIADO")
 
