@@ -8,18 +8,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Faltando dados" })
     }
 
-    const PHONE_ID = process.env.PHONE_ID
+    const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID
     const TOKEN = process.env.WHATSAPP_TOKEN
 
-    if (!PHONE_ID) {
-      return res.status(500).json({ error: "PHONE_ID não definido" })
+    if (!WHATSAPP_PHONE_ID) {
+      return res.status(500).json({ error: "WHATSAPP_PHONE_ID não definido" })
     }
 
     if (!TOKEN) {
       return res.status(500).json({ error: "TOKEN não definido" })
     }
 
-    const url = `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`
+    const url = `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_ID}/messages`
 
     const resp = await fetch(url, {
       method: "POST",
