@@ -7,32 +7,39 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
+  // 🚫 DESABILITA CACHE
+  res.setHeader("Cache-Control", "no-store");
+
   const { numero } = req.query;
 
   try {
 
     if (!numero) {
-      // lista de clientes
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from("conversas_whatsapp")
-        .select("telefone")
+        .select("telefone, created_at")
         .order("created_at", { ascending: false });
+
+      if(error) throw error;
 
       const unicos = [...new Set(data.map(d => d.telefone))];
 
-      return res.json(unicos);
+      return res.status(200).json(unicos);
     }
 
-    // mensagens de um cliente
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("conversas_whatsapp")
       .select("*")
       .eq("telefone", numero)
       .order("created_at", { ascending: true });
 
-    return res.json(data);
+    if(error) throw error;
+
+    return res.status(200).json(data);
 
   } catch (e) {
+    console.log("ERRO API CONVERSAS:", e);
     return res.status(500).json({ error: e.message });
   }
 }
