@@ -9,8 +9,10 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN
-
+const ADMINS = [
+  "557798253249",
+  "5577998315510"
+]
 
 
 
@@ -411,7 +413,9 @@ if(
 "${mensagem}"
 `
 
-  /* ENVIAR PARA ADMIN */
+ /* ENVIAR PARA ADMINS */
+for(const admin of ADMINS){
+
   await fetch(url,{
     method:"POST",
     headers:{
@@ -420,11 +424,13 @@ if(
     },
     body: JSON.stringify({
       messaging_product:"whatsapp",
-      to: ADMIN_NUMERO,
+      to: admin,
       type:"text",
       text:{ body: alertaAdmin }
     })
   })
+
+}
 
   /* SALVAR NO BANCO (OPCIONAL MAS RECOMENDO) */
   await supabase
@@ -710,8 +716,7 @@ await supabase
 }
 /* ================= RELATORIO ADMIN ================= */
 
-if(cliente === ADMIN_NUMERO && texto.includes("Reservas do dia")){
-
+if(ADMINS.includes(cliente) && texto.includes("Reservas do dia")){
 const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
