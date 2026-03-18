@@ -419,6 +419,34 @@ const mensagensTexto = mensagensRecebidas
 
 const mensagem = mensagensTexto.join(" ")
 
+/* ================= TESTE TEMPLATE DIRETO ================= */
+
+if(mensagem.toLowerCase().includes("template")){
+
+  console.log("🚀 DISPARO MANUAL DE TEMPLATE")
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"template",
+      template:{
+        name:"confirmao_reserva", // 👈 MUDE AQUI SE QUISER
+        language:{ code:"pt_BR" }
+      }
+    })
+  })
+
+  return res.status(200).end()
+}
+
+
+  
 const cliente = mensagensRecebidas[0]?.from
 const message_id = mensagensRecebidas[0]?.id
 /* ================= VERIFICAR PAUSA BOT ================= */
