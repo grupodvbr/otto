@@ -641,8 +641,7 @@ async function salvarUsuario(){
  try{
 
   // 🔥 SE ESTIVER EDITANDO → UPDATE
-  if(userEditando){
-
+if(userEditando !== null){
     const { error } = await sb
       .from("usuarios")
       .update({
