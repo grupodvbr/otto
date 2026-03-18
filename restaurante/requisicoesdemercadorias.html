@@ -155,11 +155,7 @@ display:none;
 <input id="solicitante" readonly>
 
 <label>Setor</label>
-<select id="setor">
-<option>Cozinha</option>
-<option>Bar</option>
-<option>Limpeza</option>
-</select>
+<select id="setor" disabled></select>
 
 <label>Produto</label>
 <input id="produto" placeholder="Digite o produto">
@@ -170,13 +166,11 @@ display:none;
 
 <label>Unidade</label>
 <div class="unidades">
-
 <button onclick="setUnidade('UN')" id="uUN">UN</button>
 <button onclick="setUnidade('KG')" id="uKG">KG</button>
 <button onclick="setUnidade('L')" id="uL">L</button>
 <button onclick="setUnidade('CX')" id="uCX">CX</button>
 <button onclick="setUnidade('PC')" id="uPC">PC</button>
-
 </div>
 
 <label>Observações</label>
@@ -197,6 +191,8 @@ display:none;
 <tbody id="tabela"></tbody>
 </table>
 
+<button class="btn btn-danger" onclick="logout()">Sair</button>
+
 </div>
 
 </div>
@@ -209,14 +205,17 @@ const sb = supabase.createClient(
 
 let unidade="UN";
 let usuarioAtual=null;
+let dadosUsuario=null;
 
 /* ===== LOGIN ===== */
 async function login(){
 
+const user = usuario.value.toUpperCase();
+
 const { data } = await sb
 .from("usuarios")
 .select("*")
-.eq("usuario", usuario.value.toUpperCase())
+.eq("usuario", user)
 .eq("senha", senha.value)
 .eq("ativo", true)
 .single();
@@ -226,11 +225,38 @@ alert("Login inválido");
 return;
 }
 
-usuarioAtual = data.nome;
-
-localStorage.setItem("user", usuarioAtual);
-
+salvarSessao(data);
 init();
+}
+
+/* ===== SALVAR SESSÃO ===== */
+function salvarSessao(user){
+localStorage.setItem("user_data", JSON.stringify(user));
+}
+
+/* ===== VALIDAR SESSÃO ===== */
+async function validarSessao(){
+
+const saved = localStorage.getItem("user_data");
+
+if(!saved) return false;
+
+const user = JSON.parse(saved);
+
+const { data } = await sb
+.from("usuarios")
+.select("*")
+.eq("id", user.id)
+.eq("ativo", true)
+.single();
+
+if(!data || data.senha !== user.senha){
+logout();
+return false;
+}
+
+dadosUsuario = data;
+return true;
 }
 
 /* ===== INIT ===== */
@@ -239,14 +265,30 @@ async function init(){
 loginArea.classList.add("hidden");
 appArea.classList.remove("hidden");
 
-usuarioAtual = localStorage.getItem("user");
+const saved = JSON.parse(localStorage.getItem("user_data"));
 
-solicitante.value = usuarioAtual;
+usuarioAtual = saved.nome;
+dadosUsuario = saved;
+
+solicitante.value = saved.nome;
+
+/* trava setor automático */
+setor.innerHTML = `<option>${saved.setor}</option>`;
 
 carregarHistorico();
 }
 
-if(localStorage.getItem("user")) init();
+/* ===== AUTO LOGIN ===== */
+window.addEventListener("DOMContentLoaded", async ()=>{
+const ok = await validarSessao();
+if(ok) init();
+});
+
+/* ===== LOGOUT ===== */
+function logout(){
+localStorage.removeItem("user_data");
+location.reload();
+}
 
 /* ===== UNIDADE ===== */
 function setUnidade(u){
@@ -323,7 +365,7 @@ produto:nome,
 produto_id,
 quantidade: parseInt(quantidade.value),
 unidade,
-setor:setor.value,
+setor:dadosUsuario.setor,
 usuario:usuarioAtual,
 observacoes:obs.value,
 status:"PENDENTE"
