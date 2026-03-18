@@ -301,7 +301,46 @@ Responda apenas com UMA palavra.
     .trim()
 }
 
+/* ================= FUNÇÃO ENVIO WHATSAPP (PADRÃO) ================= */
 
+async function enviarMensagemWhatsApp(cliente, resposta, url){
+
+  const send = await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"text",
+      text:{ body:resposta }
+    })
+  }).then(r => r.json())
+
+  console.log("📤 META:", send)
+
+  const messageId = send?.messages?.[0]?.id
+
+  if(!messageId){
+    console.log("❌ ERRO: sem message_id")
+    return
+  }
+
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:resposta,
+    role:"assistant",
+    message_id: messageId,
+    status:"sent"
+  })
+
+}
+
+/* ================= HANDLER ================= */
 
 
 module.exports = async function handler(req,res){
@@ -399,11 +438,33 @@ return res.status(200).end()
 }
 
 /* IGNORA EVENTOS DE STATUS */
+/* ================= STATUS (✓✓) ================= */
 
-if(!change.messages){
-console.log("Evento sem mensagem (status)")
+const statusObj = change?.statuses?.[0]
+
+if(statusObj){
+
+const messageId = statusObj.id
+const status = statusObj.status
+const timestamp = statusObj.timestamp
+
+const dataHora = new Date(timestamp * 1000).toISOString()
+
+console.log("STATUS RECEBIDO:", status, messageId)
+
+await supabase
+.from("conversas_whatsapp")
+.update({
+status: status,
+status_data: dataHora
+})
+.eq("message_id", messageId)
+
 return res.status(200).end()
 }
+
+
+  
 
 const mensagensRecebidas = change.messages || []
 
@@ -419,34 +480,6 @@ const mensagensTexto = mensagensRecebidas
 
 const mensagem = mensagensTexto.join(" ")
 
-/* ================= TESTE TEMPLATE DIRETO ================= */
-
-if(mensagem.toLowerCase().includes("template")){
-
-  console.log("🚀 DISPARO MANUAL DE TEMPLATE")
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to: cliente,
-      type:"template",
-      template:{
-        name:"confirmao_reserva", // 👈 MUDE AQUI SE QUISER
-        language:{ code:"en_US" } ✅
-      }
-    })
-  })
-
-  return res.status(200).end()
-}
-
-
-  
 const cliente = mensagensRecebidas[0]?.from
 const message_id = mensagensRecebidas[0]?.id
 /* ================= VERIFICAR PAUSA BOT ================= */
@@ -1494,13 +1527,13 @@ if(templateMatch){
 
   /* ✅ COLE AQUI */
   const TEMPLATE_IDIOMAS = {
-  confirmao_de_reserva: "en_US",
-  reserva_especial: "en_US",
-  confirmacao_reserva: "pt_BR",
-  lembrete_reserva: "pt_BR",
-  confirmacao_pedido: "pt_BR",
-  video_mercatto: "pt_BR"
-}
+    reserva_especial: "en",
+    confirmacao_reserva: "pt_BR",
+    lembrete_reserva: "pt_BR",
+    confirmacao_pedido: "pt_BR",
+    video_mercatto: "pt_BR"
+  }
+
   const idiomaTemplate = TEMPLATE_IDIOMAS[templateNome] || "pt_BR"
 
 
@@ -2211,52 +2244,62 @@ console.log("Erro ao processar reserva:",e)
 
 }
 
-/* ================= SALVAR RESPOSTA ================= */
 
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
-})
+
+
+  
 /* ================= TEMPO NATURAL ================= */
 
 const tempoDigitando = Math.min(
-Math.max(resposta.length * 35, 1500), // mínimo 1.5s
-6000 // máximo 6s
+Math.max(resposta.length * 35, 1500),
+6000
 )
 
 await new Promise(resolve => setTimeout(resolve, tempoDigitando))
 
 /* ================= ENVIAR WHATSAPP ================= */
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{
-body:resposta
-}
+const send = await fetch(url,{
+  method:"POST",
+  headers:{
+    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    messaging_product:"whatsapp",
+    to:cliente,
+    type:"text",
+    text:{ body:resposta }
+  })
+}).then(r => r.json())
+
+  
+console.log("📤 ENVIO META:", send)
+
+/* ================= PEGAR MESSAGE ID ================= */
+
+const messageId = send?.messages?.[0]?.id
+await supabase
+.from("conversas_whatsapp")
+.insert({
+  telefone:cliente,
+  mensagem:resposta,
+  role:"assistant",
+  message_id: messageId,
+  status: "sent"
 })
+if(!messageId){
+console.log("❌ ERRO: message_id não retornado")
+}
+
+/* ================= SALVAR NO BANCO ================= */
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:resposta,
+role:"assistant",
+message_id: messageId,
+status: "sent"
 })
-
-}catch(error){
-
-console.log("ERRO GERAL:",error)
-
-return res.status(200).end()
-
-}
-
-return res.status(200).end()
-
-}
-
-}
