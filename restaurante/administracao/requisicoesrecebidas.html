@@ -363,7 +363,7 @@ function renderizarTabela(lista,modo='setor'){
     <tr>
      <td>${i.dataHora}</td><td>${i.item}</td><td>${i.qtd}</td><td>${i.unidade}</td>
      <td>${i.setor}</td><td>${i.solicitante}</td><td>${i.observacoes}</td>
-     <td><select class="status" onchange="atualizarStatus(${i.index},this.value)">
+     <td><select class="status" onchange="atualizarStatus('${i.index}',this.value)">
        <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
        <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
        <option value="NO CARRINHO" ${st==='NO CARRINHO'?'selected':''}>NO CARRINHO</option>
