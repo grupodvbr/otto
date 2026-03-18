@@ -1375,6 +1375,22 @@ CATEGORIA: ${item.tipo || "geral"}
 `
   })
 }
+
+
+// 🔥 CORREÇÃO CRÍTICA — DEFINIR DATA ANTES
+
+const agoraSistema = new Date()
+
+const agoraBahiaFix = new Date(
+  agoraSistema.toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
+
+const dataAtualISO = agoraBahiaFix.toISOString().split("T")[0]
+
+console.log("📅 DATA RESERVAS:", dataAtualISO)
+
+
+  
 /* ================= BUSCAR RESERVAS DO DIA ================= */
 
 let reservasHojeTexto = "SEM RESERVAS"
@@ -1386,6 +1402,8 @@ try {
     .select("*")
     .gte("datahora", dataAtualISO + "T00:00")
     .lte("datahora", dataAtualISO + "T23:59")
+
+  console.log("📊 RESERVAS DO DIA:", reservasHoje)
 
   if (reservasHoje && reservasHoje.length) {
 
@@ -1408,9 +1426,8 @@ STATUS: ${r.status}
   }
 
 } catch (err) {
-  console.log("ERRO AO BUSCAR RESERVAS:", err)
+  console.log("❌ ERRO AO BUSCAR RESERVAS:", err)
 }
-
   
 /* ================= OPENAI ================= */
 
@@ -1554,12 +1571,18 @@ RESERVAS REAIS DO DIA:
 
 ${reservasHojeTexto}
 
-Regras:
+REGRAS CRÍTICAS:
 
-- Essas são as reservas reais do sistema
-- Nunca inventar disponibilidade
-- Sempre verificar conflito antes de responder
+- Sala VIP 1 = Sala Paulo Augusto 1
+- Sala VIP 2 = Sala Paulo Augusto 2
+
+- São a MESMA sala com nomes diferentes
+- Nunca tratar como salas diferentes
+
+- Sempre verificar conflito de horário
 - Considerar duração de 4h30 + 1h bloqueio
+
+- Nunca dizer que tem vaga sem verificar aqui
 `
 },
 
