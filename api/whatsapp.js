@@ -569,29 +569,40 @@ console.log("NOME IGNORADO (já existe e não pediu alteração)")
 
 /* ================= PRIORIDADE: ATUALIZAR NOME ================= */
 
-if(querAtualizarNome && nomeMemoria){
+if(querAtualizarNome || nomeDetectado){
+  const nomeFinal = nomeDetectado || nomeMemoria
 
-console.log("INTENÇÃO: ATUALIZAR NOME DO CLIENTE")
+  if(nomeFinal){
 
-const respostaNome = `Perfeito! Atualizei seu nome para ${nomeMemoria} 😊`
+    console.log("INTENÇÃO: ATUALIZAR NOME DO CLIENTE")
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{ body: respostaNome }
-})
-})
+    await supabase
+    .from("memoria_clientes")
+    .upsert({
+      telefone:cliente,
+      nome:nomeFinal,
+      ultima_interacao:new Date().toISOString()
+    })
 
-return res.status(200).end()
+    const respostaNome = `Perfeito! Atualizei seu nome para ${nomeFinal} 😊`
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to:cliente,
+        type:"text",
+        text:{ body: respostaNome }
+      })
+    })
+
+    return res.status(200).end()
+  }
 }
-
 
 
 
