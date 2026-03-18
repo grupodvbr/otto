@@ -7,7 +7,7 @@ const openai = new OpenAI({
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
-    return res.status(405).json({ erro: "Método não permitido" })
+    return res.status(405).json({ error: "Método não permitido" })
   }
 
   try {
@@ -15,107 +15,114 @@ export default async function handler(req, res) {
     const { mensagem, telefone, origem } = req.body
 
     if (!mensagem) {
-      return res.status(400).json({ erro: "Mensagem não enviada" })
+      return res.status(400).json({ error: "Mensagem obrigatória" })
     }
 
-    /* ================= PROMPT SISTEMA ================= */
+    const msgLower = mensagem.toLowerCase()
+
+    /* =========================================================
+       🔒 BLOQUEIO CRÍTICO — SALA VIP (NUNCA INVENTA)
+    ========================================================= */
+
+    const assuntoVIP =
+      msgLower.includes("vip") ||
+      msgLower.includes("sala") ||
+      msgLower.includes("paulo augusto")
+
+    if (assuntoVIP) {
+
+      return res.status(200).json({
+        resposta:
+`Claro! Vou verificar a disponibilidade da sala pra você agora 😊
+
+Pode me informar:
+• Data
+• Horário
+• Quantidade de pessoas`
+      })
+    }
+
+    /* =========================================================
+       🧠 PROMPT BASE
+    ========================================================= */
 
     const prompt = `
 Você é o assistente oficial do restaurante Mercatto Delícia.
 
-SEU PAPEL:
-Atender clientes via WhatsApp de forma natural, educada e comercial.
-
----------------------------------------
-REGRAS DE COMPORTAMENTO
----------------------------------------
+REGRAS OBRIGATÓRIAS:
 
 - Nunca diga que é IA
 - Responder como humano
-- Ser direto, elegante e objetivo
 - Linguagem de WhatsApp
+- Ser direto e elegante
 - Evitar textos longos
-- Sempre ajudar a converter em venda ou reserva
+- Sempre tentar converter em reserva ou venda
 
----------------------------------------
-SALAS DISPONÍVEIS
----------------------------------------
+⚠️ REGRA CRÍTICA:
+Se o assunto for sala VIP:
+- Nunca informar disponibilidade
+- Nunca assumir nada
+- Sempre dizer que vai verificar
 
-• Sala Paulo Augusto 1  
-• Sala Paulo Augusto 2  
+SALAS:
+- Sala Paulo Augusto 1 (prioridade)
+- Sala Paulo Augusto 2
 
----------------------------------------
-REGRA CRÍTICA — SALA VIP
----------------------------------------
-
-- Nunca informar disponibilidade sem verificar sistema
-- Nunca assumir disponibilidade
-- Sempre dizer que irá verificar
-
-Exemplo:
-"Vou verificar a disponibilidade pra você agora 😊"
-
----------------------------------------
-ORDEM DE PRIORIDADE
----------------------------------------
-
-1. Sempre oferecer:
-→ Sala Paulo Augusto 1
-
-2. Só oferecer a 2 se a 1 estiver ocupada
-
----------------------------------------
-SERVIÇOS
----------------------------------------
-
-Você ajuda com:
-
-- reservas
-- aniversários
-- eventos
-- cardápio
-- horários
-
----------------------------------------
-CONTEXTO
----------------------------------------
-
+CONTEXTO:
 Telefone: ${telefone || "não informado"}
 Origem: ${origem || "desconhecida"}
 
----------------------------------------
-CLIENTE DISSE:
+CLIENTE:
 ${mensagem}
 
----------------------------------------
 RESPONDA:
-Como um atendente real do WhatsApp do Mercatto Delícia.
+Como um atendente real do Mercatto.
 `
 
-    /* ================= CHAMADA OPENAI ================= */
+    /* =========================================================
+       🤖 CHAMADA OPENAI
+    ========================================================= */
 
     const completion = await openai.responses.create({
       model: "gpt-4.1-mini",
       input: prompt
     })
 
-    const resposta = completion.output_text
+    let resposta = completion.output_text || "Desculpe, não entendi."
+
+    /* =========================================================
+       🎯 AJUSTE FINAL POR ORIGEM
+    ========================================================= */
+
+    if (origem === "whatsapp") {
+      // mais curto
+      resposta = resposta.substring(0, 300)
+    }
+
+    if (origem === "painel") {
+      // pode ser mais explicativo
+      resposta = resposta
+    }
+
+    /* =========================================================
+       📊 LOG
+    ========================================================= */
 
     console.log("📩 Pergunta:", mensagem)
+    console.log("📞 Telefone:", telefone)
+    console.log("📍 Origem:", origem)
     console.log("🤖 Resposta:", resposta)
 
     return res.status(200).json({
       resposta
     })
 
-  } catch (erro) {
+  } catch (err) {
 
-    console.error("❌ Erro OpenAI:", erro)
+    console.error("❌ ERRO OTAVIO:", err)
 
     return res.status(500).json({
-      resposta: "Desculpe, tivemos um problema aqui. Pode repetir por favor? 🙏"
+      resposta: "Tive um problema aqui 😕 Pode repetir pra mim?"
     })
-
   }
-
 }
