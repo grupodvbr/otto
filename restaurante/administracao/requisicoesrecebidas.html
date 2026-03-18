@@ -629,25 +629,27 @@ async function carregarUsuarios(){
 }
 
 async function salvarUsuario(){
- const nome = document.getElementById("nomeUser").value.toUpperCase();
- const setor = document.getElementById("setorUser").value;
- const senha = document.getElementById("senhaUser").value;
+ const nome = document.getElementById("nomeUser").value.toUpperCase().trim();
+ const setor = document.getElementById("setorUser").value.trim();
+ const senha = document.getElementById("senhaUser").value.trim();
 
- if(!nome){
-  alert("Preencha o nome");
+ // 🔥 VALIDAÇÃO TOTAL
+ if(!nome || !setor || !senha){
+  mostrarAlerta("Preencha TODOS os campos");
   return;
  }
 
  try{
 
-  // 🔥 SE ESTIVER EDITANDO → UPDATE
-if(userEditando !== null){
+  // 🔥 UPDATE
+  if(userEditando !== null){
+
     const { error } = await sb
       .from("usuarios")
       .update({
         nome,
         setor,
-        ...(senha && { senha }) // só atualiza senha se preencher
+        senha
       })
       .eq("id", userEditando);
 
@@ -657,12 +659,7 @@ if(userEditando !== null){
 
   } else {
 
-    // 🔥 SENÃO → INSERT
-    if(!senha){
-      alert("Preencha a senha");
-      return;
-    }
-
+    // 🔥 INSERT
     const { error } = await sb
       .from("usuarios")
       .insert([{ nome, setor, senha }]);
@@ -672,12 +669,14 @@ if(userEditando !== null){
     mostrarAlerta("Usuário criado!");
   }
 
-  // 🔄 LIMPA CAMPOS
+  // 🔄 RESET
   document.getElementById("nomeUser").value="";
   document.getElementById("setorUser").value="";
   document.getElementById("senhaUser").value="";
 
   userEditando = null;
+
+  document.querySelector(".btn-save").textContent = "Salvar Usuário";
 
   carregarUsuarios();
 
@@ -687,12 +686,14 @@ if(userEditando !== null){
  }
 }
 
-
 function editarUsuario(id,nome,setor){
  document.getElementById("nomeUser").value = nome;
  document.getElementById("setorUser").value = setor;
+ document.getElementById("senhaUser").value = ""; // 🔥 força digitar nova senha
 
  userEditando = id;
+
+ document.querySelector(".btn-save").textContent = "Atualizar Usuário";
 
  mostrarAlerta("Modo edição ativado");
 }
