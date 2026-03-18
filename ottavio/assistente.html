@@ -64,6 +64,7 @@ padding:14px;
 border-radius:14px;
 font-size:14px;
 line-height:1.5;
+white-space:pre-wrap;
 }
 
 .user{
@@ -75,6 +76,13 @@ align-self:flex-end;
 background:var(--assistant);
 align-self:flex-start;
 color:white;
+}
+
+/* LOADING */
+
+.loading{
+opacity:.6;
+font-style:italic;
 }
 
 /* INPUT */
@@ -95,6 +103,7 @@ background:var(--card);
 color:white;
 padding:10px;
 height:55px;
+font-family:Inter;
 }
 
 .send button{
@@ -105,6 +114,11 @@ padding:10px 16px;
 border-radius:10px;
 font-weight:600;
 cursor:pointer;
+}
+
+.send button:disabled{
+opacity:.5;
+cursor:not-allowed;
 }
 
 </style>
@@ -120,7 +134,7 @@ Assistente IA (Simulação WhatsApp)
 
 <div class="send">
 <textarea id="input" placeholder="Pergunte como cliente..."></textarea>
-<button onclick="enviar()">Enviar</button>
+<button id="btnEnviar" onclick="enviar()">Enviar</button>
 </div>
 
 <script>
@@ -132,72 +146,117 @@ const db = supabase.createClient(
 
 const telefoneFake = "SIMULADOR"
 
+/* ENTER ENVIA */
+
+document.getElementById("input").addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault()
+    enviar()
+  }
+})
+
+/* SCROLL */
+
+function scrollBottom(){
+  const el = document.getElementById("messages")
+  el.scrollTop = el.scrollHeight
+}
+
 /* RENDER */
 
-function addMsg(text,role){
+function addMsg(text,role,loading=false){
 
-const div = document.createElement("div")
-div.className = "msg " + role
-div.innerText = text
+  const div = document.createElement("div")
+  div.className = "msg " + role
 
-document.getElementById("messages").appendChild(div)
+  if(loading){
+    div.classList.add("loading")
+    div.innerText = "Digitando..."
+  }else{
+    div.innerText = text
+  }
 
-setTimeout(()=>{
-document.getElementById("messages").scrollTop = 999999
-},50)
+  document.getElementById("messages").appendChild(div)
 
+  scrollBottom()
+
+  return div
 }
 
 /* ENVIAR */
 
 async function enviar(){
 
-const input = document.getElementById("input")
-const msg = input.value.trim()
+  const input = document.getElementById("input")
+  const btn = document.getElementById("btnEnviar")
 
-if(!msg) return
+  const msg = input.value.trim()
+  if(!msg) return
 
-addMsg(msg,"user")
+  /* UI */
 
-input.value=""
+  addMsg(msg,"user")
+  input.value=""
+  btn.disabled = true
 
-/* SALVA USER */
+  /* SALVA USER */
 
-await db.from("conversas_whatsapp").insert({
-telefone: telefoneFake,
-mensagem: msg,
-role: "user"
-})
+  await db.from("conversas_whatsapp").insert({
+    telefone: telefoneFake,
+    mensagem: msg,
+    role: "user"
+  })
 
-/* CHAMA IA */
+  /* LOADING */
 
-const res = await fetch("/api/ask",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-mensagem: msg,
-telefone: telefoneFake
-})
-})
+  const loadingMsg = addMsg("","assistant",true)
 
-const data = await res.json()
+  try{
 
-const resposta = data.resposta || "Erro"
+    /* CHAMA OTAVIO */
 
-/* MOSTRA */
+    const res = await fetch("/api/otavio",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        mensagem: msg,
+        telefone: telefoneFake,
+        origem: "painel"
+      })
+    })
 
-addMsg(resposta,"assistant")
+    const data = await res.json()
 
-/* SALVA IA */
+    if(!res.ok){
+      throw new Error(data.error || "Erro na API")
+    }
 
-await db.from("conversas_whatsapp").insert({
-telefone: telefoneFake,
-mensagem: resposta,
-role: "assistant"
-})
+    const resposta = data.resposta || "Sem resposta"
 
+    /* REMOVE LOADING */
+    loadingMsg.remove()
+
+    /* MOSTRA */
+    addMsg(resposta,"assistant")
+
+    /* SALVA IA */
+    await db.from("conversas_whatsapp").insert({
+      telefone: telefoneFake,
+      mensagem: resposta,
+      role: "assistant"
+    })
+
+  }catch(err){
+
+    loadingMsg.remove()
+
+    addMsg("Erro: " + err.message,"assistant")
+
+  }
+
+  btn.disabled = false
 }
 
 </script>
