@@ -426,9 +426,8 @@ const sb = supabase.createClient(
  "https://mybsriouiwqsdufujbsc.supabase.co",
  "sb_publishable_AUyBEIVCAMUoXwDKUmlqSw_v8EY8rVN"
 );
-  
-  
-  let dadosRequisicoes=[];
+let userEditando = null;  
+let dadosRequisicoes=[];
 
 function formatarDataHora(valor){
   if(!valor) return "";
@@ -634,25 +633,69 @@ async function salvarUsuario(){
  const setor = document.getElementById("setorUser").value;
  const senha = document.getElementById("senhaUser").value;
 
- if(!nome || !senha){
-  alert("Preencha nome e senha");
+ if(!nome){
+  alert("Preencha o nome");
   return;
  }
 
- await sb.from("usuarios").insert([{ nome, setor, senha }]);
+ try{
 
- document.getElementById("nomeUser").value="";
- document.getElementById("setorUser").value="";
- document.getElementById("senhaUser").value="";
+  // 🔥 SE ESTIVER EDITANDO → UPDATE
+  if(userEditando){
 
- carregarUsuarios();
+    const { error } = await sb
+      .from("usuarios")
+      .update({
+        nome,
+        setor,
+        ...(senha && { senha }) // só atualiza senha se preencher
+      })
+      .eq("id", userEditando);
+
+    if(error) throw error;
+
+    mostrarAlerta("Usuário atualizado!");
+
+  } else {
+
+    // 🔥 SENÃO → INSERT
+    if(!senha){
+      alert("Preencha a senha");
+      return;
+    }
+
+    const { error } = await sb
+      .from("usuarios")
+      .insert([{ nome, setor, senha }]);
+
+    if(error) throw error;
+
+    mostrarAlerta("Usuário criado!");
+  }
+
+  // 🔄 LIMPA CAMPOS
+  document.getElementById("nomeUser").value="";
+  document.getElementById("setorUser").value="";
+  document.getElementById("senhaUser").value="";
+
+  userEditando = null;
+
+  carregarUsuarios();
+
+ }catch(e){
+  console.error(e);
+  mostrarAlerta("Erro ao salvar");
+ }
+}
 }
 
 function editarUsuario(id,nome,setor){
  document.getElementById("nomeUser").value = nome;
  document.getElementById("setorUser").value = setor;
 
- window.userEditando = id;
+ userEditando = id;
+
+ mostrarAlerta("Modo edição ativado");
 }
 
 async function excluirUsuario(id){
