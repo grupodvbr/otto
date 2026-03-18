@@ -843,24 +843,22 @@ const res = await fetch("/api/send-template", {
   },
   body:JSON.stringify({
     telefone,
-    tipo:"template",
-    template:{
-      nome:"confirmao_de_reserva",
-      idioma:"en_US",
-     parametros:[
-  nomes[telefone] || "Cliente",
-  "14-04-2026",
-  "17:00",
-  "5"
-]
-    }
+    nomeTemplate:"confirmao_de_reserva",
+    idioma:"en_US",
+    parametros:[
+      nomes[telefone] || "Cliente",
+      "14-04-2026",
+      "17:00",
+      "5"
+    ]
   })
 })
 
 const data = await res.json()
 
 if(!res.ok){
-  alert("Erro: " + JSON.stringify(data))
+  console.error(data)
+  alert("Erro ao enviar template")
   return
 }
 
