@@ -204,6 +204,8 @@ body.dark #overlay-carregando { background: rgba(0,0,0,0.8); color: #fff; }
 </style>
 </head>
 <body>
+  <div class="alerta" id="alertaStatus"></div>
+
 <header>
   <div style="display:flex;align-items:center;gap:10px;">
     <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo">
@@ -395,9 +397,6 @@ async function atualizarStatus(i,st){
 }
 
 
-  
- const it=dadosRequisicoes.find(r=>r.index===i);if(it)it.status=st;filtrarRequisicoes();mostrarAlerta("Status atualizado!");
-}
 
 
   
