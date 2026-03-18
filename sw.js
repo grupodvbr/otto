@@ -14,7 +14,6 @@ caches.open(CACHE)
 .then(cache=>cache.addAll(ASSETS))
 
 )
-
 })
 
 self.addEventListener("fetch",e=>{
