@@ -469,12 +469,31 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 const textoNormalizado = normalizar(texto)
-
 /* ================= DETECTAR NOME INTELIGENTE ================= */
 
 let nomeDetectado = null
 let querAtualizarNome = false
 
+/* 🔥 EXTRAIR NOME DIRETO DA FRASE (COLE AQUI) */
+
+const matchNome = mensagem.match(
+/(?:meu nome (?:é|agora é)|me chamo|atualiza(?:r)? meu nome(?: para)?|nome correto é)\s+(.+)/i
+)
+
+if(matchNome){
+  nomeDetectado = matchNome[1]
+    .split(/,|\.|!|\?/) // corta lixo depois do nome
+    [0]
+    .trim()
+
+  console.log("🔥 Nome extraído:", nomeDetectado)
+}
+
+
+
+
+
+  
 /* 🔥 INTENÇÃO DE ATUALIZAÇÃO (CORRIGIDA) */
 if(
 mensagem.match(/(meu nome|me chamo|atualiza(r)? meu nome|nome correto)/i)
