@@ -334,52 +334,136 @@ return html
 
   
 /* ===== RENDER ===== */
-function render(m,top=false){
+function gerarHTML(m){
 
-const existente = document.getElementById(m.id)
+div.innerHTML = gerarHTML(m)
+/* ===== MIDIA ===== */
 
-if(existente){
-  existente.innerHTML = gerarHTML(m)
-  return
-}
-  mensagensIds.add(m.id)
+if(m?.tipo === "imagem" && m?.media_url){
 
-/* DATA */
-const label = dataLabel(m.created_at)
-if(label !== ultimaDataRender){
-const d = document.createElement("div")
-d.className="date"
-d.innerText = label
-top ? msgs.prepend(d) : msgs.appendChild(d)
-ultimaDataRender = label
+html += `
+<img 
+  src="${m.media_url}" 
+  loading="lazy"
+  onerror="this.style.display='none'"
+  onclick="window.open('${m.media_url}')">
+`
+
 }
 
-const div = document.createElement("div")
-div.id = m.id || m.message_id
-  
-  div.className="msg "+(m.role==="assistant"?"assistant":"user")
+else if(m?.tipo === "video" && m?.media_url){
 
-let html=""
+html += `
+<video controls preload="metadata" style="max-width:220px;border-radius:10px;">
+  <source src="${m.media_url}">
+  Seu navegador não suporta vídeo
+</video>
+`
 
-/* MIDIA */
-if(m.tipo==="imagem"){
-html+=`<img src="${m.media_url}" onclick="window.open('${m.media_url}')">`
-}
-if(m.tipo==="video"){
-html+=`<video controls src="${m.media_url}"></video>`
-}
-if(m.tipo==="audio"){
-html+=`<audio controls src="${m.media_url}"></audio>`
-}
-if(m.tipo==="documento"){
-html+=`<div class="fileBox" onclick="window.open('${m.media_url}')">📄 ${m.nome_arquivo}</div>`
 }
 
-/* TEXTO */
+else if(m?.tipo === "audio" && m?.media_url){
+
+html += `
+<audio controls style="width:200px;">
+  <source src="${m.media_url}">
+</audio>
+`
+
+}
+
+else if(m?.tipo === "documento" && m?.media_url){
+
+const ext = (m?.nome_arquivo || "").split(".").pop()?.toLowerCase()
+
+/* ===== PDF ===== */
+if(ext === "pdf"){
+
+html += `
+<iframe 
+  src="${m.media_url}" 
+  width="220" 
+  height="260"
+  style="border:none;border-radius:10px;background:#fff;"
+  onerror="this.style.display='none'">
+</iframe>
+`
+
+}
+
+/* ===== OUTROS DOCUMENTOS ===== */
+else{
+
+html += `
+<div class="fileBox" onclick="window.open('${m.media_url}')">
+  📄 ${m?.nome_arquivo || "Abrir arquivo"}
+</div>
+`
+
+}
+
+}
+
+/* ===== TEXTO ===== */
+
+if(m?.mensagem){
+
+html += `
+<div style="margin-top:${m.tipo !== "texto" ? "6px" : "0"}">
+${m.mensagem}
+</div>
+`
+
+}
+
+/* ===== STATUS ===== */
+
+function statusIcon(status){
+
+if(status === "sent") return "✓"
+if(status === "delivered") return "✓✓"
+if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
+
+return ""
+
+}
+
+/* ===== TIME ===== */
+
+html += `
+<div class="time">
+  ${hora(m.created_at)} ${statusIcon(m.status)}
+</div>
+`
+
+return html
+}
+
+/* ===== TEXTO ===== */
+
 if(m.mensagem){
 html+=`<div>${m.mensagem}</div>`
 }
 
+/* ===== STATUS ===== */
+
+function statusIcon(status){
+if(status === "sent") return "✓"
+if(status === "delivered") return "✓✓"
+if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
+return ""
+}
+
+html += `
+<div class="time">
+${hora(m.created_at)} ${statusIcon(m.status)}
+</div>
+`
+
+return html
+}
+
+  
 function statusIcon(status){
 
 if(status === "sent") return "✓"
