@@ -156,7 +156,18 @@ align-items:center;
 justify-content:center;
 cursor:pointer;
 }
+.time{
+font-size:11px;
+opacity:.7;
+text-align:right;
+display:flex;
+justify-content:flex-end;
+gap:4px;
+align-items:center;
+}
 
+
+  
 </style>
 
 </head>
@@ -231,24 +242,7 @@ carregarMais()
 }
 })
 
-/* ===== RENDER ===== */
-function render(m,top=false){
-
-if(mensagensIds.has(m.id)) return
-mensagensIds.add(m.id)
-
-/* DATA */
-const label = dataLabel(m.created_at)
-if(label !== ultimaDataRender){
-const d = document.createElement("div")
-d.className="date"
-d.innerText = label
-top ? msgs.prepend(d) : msgs.appendChild(d)
-ultimaDataRender = label
-}
-
-const div = document.createElement("div")
-div.className="msg "+(m.role==="assistant"?"assistant":"user")
+function gerarHTML(m){
 
 let html=""
 
@@ -271,8 +265,95 @@ if(m.mensagem){
 html+=`<div>${m.mensagem}</div>`
 }
 
-html += `<div class="time">${hora(m.created_at)}</div>`
+/* STATUS */
+function statusIcon(status){
+if(status === "sent") return "✓"
+if(status === "delivered") return "✓✓"
+if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
+return ""
+}
 
+html += `
+<div class="time">
+${hora(m.created_at)} ${statusIcon(m.status)}
+</div>
+`
+
+return html
+}
+
+
+
+
+
+
+
+
+
+
+
+  
+/* ===== RENDER ===== */
+function render(m,top=false){
+
+const existente = document.getElementById(m.id)
+
+if(existente){
+  existente.innerHTML = gerarHTML(m)
+  return
+}
+  mensagensIds.add(m.id)
+
+/* DATA */
+const label = dataLabel(m.created_at)
+if(label !== ultimaDataRender){
+const d = document.createElement("div")
+d.className="date"
+d.innerText = label
+top ? msgs.prepend(d) : msgs.appendChild(d)
+ultimaDataRender = label
+}
+
+const div = document.createElement("div")
+div.id = m.id || m.message_id
+  
+  div.className="msg "+(m.role==="assistant"?"assistant":"user")
+
+let html=""
+
+/* MIDIA */
+if(m.tipo==="imagem"){
+html+=`<img src="${m.media_url}" onclick="window.open('${m.media_url}')">`
+}
+if(m.tipo==="video"){
+html+=`<video controls src="${m.media_url}"></video>`
+}
+if(m.tipo==="audio"){
+html+=`<audio controls src="${m.media_url}"></audio>`
+}
+if(m.tipo==="documento"){
+html+=`<div class="fileBox" onclick="window.open('${m.media_url}')">📄 ${m.nome_arquivo}</div>`
+}
+
+/* TEXTO */
+if(m.mensagem){
+html+=`<div>${m.mensagem}</div>`
+}
+
+function statusIcon(status){
+
+if(status === "sent") return "✓"
+if(status === "delivered") return "✓✓"
+if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
+
+return ""
+}
+
+html += `
+<div class="time">
+  ${hora(m.created_at)} ${statusIcon(m.status)}
+</div>
+`
 div.innerHTML = html
 
 top ? msgs.prepend(div) : msgs.appendChild(div)
@@ -335,7 +416,7 @@ if(canal) db.removeChannel(canal)
 
 canal = db.channel("chat-"+telefone)
 .on("postgres_changes",{
-event:"INSERT",
+event:"*",
 schema:"public",
 table:"conversas_whatsapp",
 filter:`telefone=eq.${telefone}`
@@ -391,7 +472,8 @@ const temp = {
 id:"temp-"+Date.now(),
 mensagem:texto,
 created_at:new Date().toISOString(),
-role:"assistant"
+role:"assistant",
+status:"sent"
 }
 
 render(temp)
@@ -417,7 +499,7 @@ else tipo="documento"
 }
 
 /* API */
-await fetch("/api/send",{
+const send = await fetch("/api/send",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
@@ -427,7 +509,9 @@ media_url:media,
 tipo,
 nome_arquivo:nomeArquivo
 })
-})
+}).then(r => r.json())
+
+const messageId = send?.message_id
 
 /* BANCO */
 await db.from("conversas_whatsapp").insert({
@@ -436,7 +520,9 @@ mensagem:texto,
 tipo,
 media_url:media,
 nome_arquivo:nomeArquivo,
-role:"assistant"
+role:"assistant",
+message_id: messageId,
+status: "sent"
 })
 
 arquivo=null
