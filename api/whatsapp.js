@@ -451,6 +451,17 @@ return res.status(200).end()
 
 const mensagensRecebidas = change.messages || []
 
+if(!mensagensRecebidas.length){
+  console.log("⚠️ SEM MENSAGEM")
+  return res.status(200).end()
+}
+
+const msg = mensagensRecebidas[0]
+
+console.log("📩 TIPO RECEBIDO:", msg.type)
+
+
+  
 // ignora mensagens do próprio bot
 if(mensagensRecebidas[0]?.from === change.metadata.phone_number_id){
 console.log("Mensagem do próprio bot ignorada")
@@ -462,67 +473,71 @@ let mensagem = ""
 let tipo = "texto"
 let media_url = null
 let nome_arquivo = null
-const msg = mensagensRecebidas[0]
-// TEXTO
-if(msg.text){
-  mensagem = msg.text.body
-}
 
-// IMAGEM
-else if(msg.image){
+/* ================= SWITCH CORRETO ================= */
 
-  tipo = "imagem"
-  mensagem = "[Imagem]"
+switch(msg.type){
 
-  media_url = await baixarESalvarMidia(
-    msg.image.id,
-    "jpg",
-    msg.image.mime_type || "image/jpeg"
-  )
-}
+  case "text":
+    mensagem = msg.text?.body || ""
+  break
 
-// VIDEO
-else if(msg.video){
+  case "image":
+    tipo = "imagem"
+    mensagem = "[Imagem]"
 
-  tipo = "video"
-  mensagem = "[Vídeo]"
+    console.log("🖼️ BAIXANDO IMAGEM:", msg.image.id)
 
-  media_url = await baixarESalvarMidia(
-    msg.video.id,
-    "mp4",
-    msg.video.mime_type || "video/mp4"
-  )
-}
+    media_url = await baixarESalvarMidia(
+      msg.image.id,
+      "jpg",
+      msg.image.mime_type || "image/jpeg"
+    )
 
-// AUDIO
-else if(msg.audio){
+    console.log("✅ URL SALVA:", media_url)
 
-  tipo = "audio"
-  mensagem = "[Áudio]"
+  break
 
-  media_url = await baixarESalvarMidia(
-    msg.audio.id,
-    "ogg",
-    msg.audio.mime_type || "audio/ogg"
-  )
-}
+  case "video":
+    tipo = "video"
+    mensagem = "[Vídeo]"
 
-// DOCUMENTO
-else if(msg.document){
+    media_url = await baixarESalvarMidia(
+      msg.video.id,
+      "mp4",
+      msg.video.mime_type || "video/mp4"
+    )
+  break
 
-  tipo = "documento"
+  case "audio":
+    tipo = "audio"
+    mensagem = "[Áudio]"
 
-  nome_arquivo = msg.document.filename || "arquivo"
+    media_url = await baixarESalvarMidia(
+      msg.audio.id,
+      "ogg",
+      msg.audio.mime_type || "audio/ogg"
+    )
+  break
 
-  mensagem = `[Documento: ${nome_arquivo}]`
+  case "document":
+    tipo = "documento"
 
-  const ext = nome_arquivo.split(".").pop() || "bin"
+    nome_arquivo = msg.document.filename || "arquivo"
 
-  media_url = await baixarESalvarMidia(
-    msg.document.id,
-    ext,
-    msg.document.mime_type || "application/octet-stream"
-  )
+    mensagem = `[Documento: ${nome_arquivo}]`
+
+    const ext = nome_arquivo.split(".").pop() || "bin"
+
+    media_url = await baixarESalvarMidia(
+      msg.document.id,
+      ext,
+      msg.document.mime_type
+    )
+  break
+
+  default:
+    console.log("⚠️ TIPO NÃO TRATADO:", msg.type)
 }
 
 
