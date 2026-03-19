@@ -482,27 +482,28 @@ switch(msg.type){
     mensagem = msg.text?.body || ""
   break
 
-  case "image":
+case "image":
 
   tipo = "imagem"
   mensagem = "[Imagem]"
 
-  console.log("🖼️ BAIXANDO IMAGEM:", msg.image.id)
+  console.log("🖼️ IMAGEM RECEBIDA")
 
-  media_url = await baixarESalvarMidia(
-    msg.image.id,
-    "jpg",
-    msg.image.mime_type || "image/jpeg"
-  )
+  if(msg.image.url){
 
-  if(!media_url){
-    console.log("❌ FALHOU AO SALVAR IMAGEM")
+    console.log("⚡ USANDO URL DIRETA META")
 
-    mensagem = "[Erro ao carregar imagem]"
-    tipo = "texto"
+    media_url = msg.image.url
 
   }else{
-    console.log("✅ URL SALVA:", media_url)
+
+    console.log("⬇️ BAIXANDO VIA API")
+
+    media_url = await baixarESalvarMidia(
+      msg.image.id,
+      "jpg",
+      msg.image.mime_type || "image/jpeg"
+    )
   }
 
 break
