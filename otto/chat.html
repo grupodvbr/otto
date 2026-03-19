@@ -174,7 +174,6 @@ align-items:center;
 
 <body>
 
-<div class="header">Mercatto • WhatsApp</div>
 
 <div id="msgs" class="messages"></div>
 
@@ -208,23 +207,64 @@ let ultimaDataRender = null
 
 /* ===== TIME ===== */
 function hora(d){
+
+let data
+
+if(d.includes("Z")){
+  // veio do Supabase (UTC)
+  data = new Date(d)
+}else{
+  // veio do seu envio local
+  data = new Date(d.replace(" ", "T"))
+}
+
 return new Intl.DateTimeFormat("pt-BR",{
-hour:"2-digit",
-minute:"2-digit",
-timeZone:"America/Sao_Paulo"
-}).format(new Date(d))
-}
+  hour:"2-digit",
+  minute:"2-digit",
+  timeZone:"America/Bahia"
+}).format(data)
 
-/* ===== DATA ===== */
+}
+  
 function dataLabel(d){
-const date = new Date(d)
-const hoje = new Date()
-const diff = Math.floor((hoje - date)/(1000*60*60*24))
-if(diff===0) return "HOJE"
-if(diff===1) return "ONTEM"
-return date.toLocaleDateString("pt-BR")
+
+let data
+
+// 🔥 trata os dois formatos (Supabase + local)
+if(d.includes("Z")){
+  data = new Date(d) // UTC
+}else{
+  data = new Date(d.replace(" ", "T")) // banco local
 }
 
+// formatter padrão (comparação)
+const formatter = new Intl.DateTimeFormat("en-CA",{
+  timeZone:"America/Bahia",
+  year:"numeric",
+  month:"2-digit",
+  day:"2-digit"
+})
+
+const hoje = formatter.format(new Date())
+const dataMsg = formatter.format(data)
+
+// HOJE
+if(dataMsg === hoje) return "HOJE"
+
+// ONTEM
+const ontemDate = new Date()
+ontemDate.setDate(ontemDate.getDate()-1)
+
+const ontem = formatter.format(ontemDate)
+
+if(dataMsg === ontem) return "ONTEM"
+
+// PADRÃO (data normal)
+return new Intl.DateTimeFormat("pt-BR",{
+  timeZone:"America/Bahia"
+}).format(data)
+
+}
 /* ===== SCROLL ===== */
 function scrollBottom(){
 msgs.scrollTop = msgs.scrollHeight
@@ -471,8 +511,8 @@ const texto = msg.value.trim()
 const temp = {
 id:"temp-"+Date.now(),
 mensagem:texto,
-created_at:new Date().toISOString(),
-role:"assistant",
+created_at:new Date().toLocaleString("sv-SE").replace("T"," "),
+  role:"assistant",
 status:"sent"
 }
 
