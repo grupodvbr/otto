@@ -320,8 +320,7 @@ async function baixarESalvarMidia(mediaId, extensao, mime){
       }
     })
 
-    const buffer = await fileRes.arrayBuffer()
-
+const buffer = Buffer.from(await fileRes.arrayBuffer())
     const fileName = `whatsapp/${Date.now()}.${extensao}`
 
     const { error } = await supabase.storage
