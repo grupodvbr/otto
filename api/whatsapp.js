@@ -483,20 +483,29 @@ switch(msg.type){
   break
 
   case "image":
-    tipo = "imagem"
-    mensagem = "[Imagem]"
 
-    console.log("🖼️ BAIXANDO IMAGEM:", msg.image.id)
+  tipo = "imagem"
+  mensagem = "[Imagem]"
 
-    media_url = await baixarESalvarMidia(
-      msg.image.id,
-      "jpg",
-      msg.image.mime_type || "image/jpeg"
-    )
+  console.log("🖼️ BAIXANDO IMAGEM:", msg.image.id)
 
+  media_url = await baixarESalvarMidia(
+    msg.image.id,
+    "jpg",
+    msg.image.mime_type || "image/jpeg"
+  )
+
+  if(!media_url){
+    console.log("❌ FALHOU AO SALVAR IMAGEM")
+
+    mensagem = "[Erro ao carregar imagem]"
+    tipo = "texto"
+
+  }else{
     console.log("✅ URL SALVA:", media_url)
+  }
 
-  break
+break
 
   case "video":
     tipo = "video"
