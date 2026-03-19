@@ -284,34 +284,61 @@ carregarMais()
 
 function gerarHTML(m){
 
-let html=""
+let html = ""
 
-/* MIDIA */
-if(m.tipo==="imagem"){
-html+=`<img src="${m.media_url}" onclick="window.open('${m.media_url}')">`
-}
-if(m.tipo==="video"){
-html+=`<video controls src="${m.media_url}"></video>`
-}
-if(m.tipo==="audio"){
-html+=`<audio controls src="${m.media_url}"></audio>`
-}
-if(m.tipo==="documento"){
-html+=`<div class="fileBox" onclick="window.open('${m.media_url}')">📄 ${m.nome_arquivo}</div>`
+/* ===== MIDIA ===== */
+
+if(m?.tipo === "imagem" && m?.media_url){
+html += `<img src="${m.media_url}" onclick="window.open('${m.media_url}')">`
 }
 
-/* TEXTO */
-if(m.mensagem){
-html+=`<div>${m.mensagem}</div>`
+else if(m?.tipo === "video" && m?.media_url){
+html += `
+<video controls style="max-width:220px;border-radius:10px;">
+  <source src="${m.media_url}">
+</video>`
 }
 
-/* STATUS */
+else if(m?.tipo === "audio" && m?.media_url){
+html += `
+<audio controls style="width:200px;">
+  <source src="${m.media_url}">
+</audio>`
+}
+
+else if(m?.tipo === "documento" && m?.media_url){
+
+const ext = (m.nome_arquivo || "").split(".").pop()?.toLowerCase()
+
+if(ext === "pdf"){
+html += `
+<iframe src="${m.media_url}" width="220" height="260"
+style="border:none;border-radius:10px;"></iframe>`
+}else{
+html += `
+<div class="fileBox" onclick="window.open('${m.media_url}')">
+📄 ${m.nome_arquivo || "Abrir arquivo"}
+</div>`
+}
+
+}
+
+/* ===== TEXTO ===== */
+
+if(m?.mensagem){
+html += `<div>${m.mensagem}</div>`
+}
+
+/* ===== STATUS ===== */
+
 function statusIcon(status){
 if(status === "sent") return "✓"
 if(status === "delivered") return "✓✓"
 if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
 return ""
 }
+
+/* ===== TIME ===== */
 
 html += `
 <div class="time">
@@ -323,7 +350,35 @@ return html
 }
 
 
+function render(m,top=false){
 
+const existente = document.getElementById(m.id)
+
+if(existente){
+  existente.innerHTML = gerarHTML(m)
+  return
+}
+
+mensagensIds.add(m.id)
+
+const label = dataLabel(m.created_at)
+
+if(label !== ultimaDataRender){
+  const d = document.createElement("div")
+  d.className="date"
+  d.innerText = label
+  top ? msgs.prepend(d) : msgs.appendChild(d)
+  ultimaDataRender = label
+}
+
+const div = document.createElement("div")
+div.id = m.id || m.message_id
+div.className = "msg " + (m.role==="assistant"?"assistant":"user")
+
+div.innerHTML = gerarHTML(m)
+
+top ? msgs.prepend(div) : msgs.appendChild(div)
+}
 
 
 
