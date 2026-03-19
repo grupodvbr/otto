@@ -19,10 +19,9 @@ viewport-fit=cover">
 <style>
 
 :root{
---bg:#0f172a;
+--bg:#075e54; 
 --sidebar:#f4f4f5;
---chat:#020617;
-
+--chat:#075e54; 
 --card:#ffffff;
 --border:#e5e7eb;
 
@@ -43,7 +42,7 @@ box-sizing:border-box;
 body{
 margin:0;
 font-family:Inter;
-background:var(--bg);
+background:var(--bg); /* 🔥 agora verde */
 color:var(--text);
 height:100vh;
 display:flex;
@@ -224,7 +223,6 @@ flex:1;
 display:flex;
 flex-direction:column;
 background:var(--chat);
-height:100vh;
 }
 
 /* HEADER CHAT */
@@ -313,32 +311,8 @@ from{opacity:0;transform:translateY(6px)}
 to{opacity:1}
 }
 
-/* ================= SEND BOX ================= */
 
-.sendBox{
-padding:16px;
-border-top:1px solid #334155;
-background:#020617;
-display:flex;
-gap:10px;
-}
 
-.sendBox textarea{
-flex:1;
-resize:none;
-border-radius:10px;
-border:1px solid #334155;
-background:#020617;
-color:white;
-padding:10px;
-font-family:Inter;
-height:60px;
-}
-
-.sendBox button{
-background:#22c55e;
-color:white;
-}
 
 /* ================= POPUP ================= */
 
@@ -432,8 +406,170 @@ background:#d1d5db;
 border-radius:10px;
 }
   
+/* ===== MENU LATERAL MODERNO ===== */
 
+.menuOverlay{
+position:absolute;
+inset:0;
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(6px);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:50;
+}
+
+.menuBox{
+width:85%;
+background:white;
+border-radius:16px;
+padding:16px;
+box-shadow:0 20px 60px rgba(0,0,0,0.2);
+display:flex;
+flex-direction:column;
+gap:10px;
+animation:fade .2s ease;
+}
+
+.menuBox button{
+padding:12px;
+border:none;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+font-size:14px;
+transition:.2s;
+}
+
+.menuBox button:hover{
+transform:scale(1.02);
+}
+
+.menuPrimary{
+background:#2563eb;
+color:white;
+}
+
+.menuDanger{
+background:#ef4444;
+color:white;
+}
+
+.menuGhost{
+background:#f3f4f6;
+}
   
+.sidebar{
+width:380px;
+background:var(--sidebar);
+border-right:1px solid var(--border);
+display:flex;
+flex-direction:column;
+position:relative; /* 🔥 ESSENCIAL */
+}
+
+
+
+
+
+.menuOverlay{
+position:absolute;
+inset:0;
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(8px);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:50;
+animation:fade .2s ease;
+}
+
+.menuBox{
+width:85%;
+max-width:280px;
+background:white;
+border-radius:18px;
+padding:18px;
+box-shadow:0 30px 80px rgba(0,0,0,0.25);
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+
+
+
+/* HEADER DO CONTATO */
+
+.menuHeader{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:10px;
+padding-bottom:10px;
+border-bottom:1px solid #e5e7eb;
+}
+
+.menuAvatar{
+width:42px;
+height:42px;
+border-radius:50%;
+background:#e5e7eb;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:700;
+}
+
+.menuNome{
+font-weight:700;
+font-size:15px;
+color:#111827;
+}
+
+.menuNumero{
+font-size:12px;
+color:#6b7280;
+}
+
+/* BOTÕES */
+
+.menuAction{
+background:#f3f4f6;
+border:none;
+padding:12px;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+text-align:left;
+transition:.2s;
+}
+
+.menuAction:hover{
+background:#e5e7eb;
+}
+
+.menuAtivar{
+background:#22c55e;
+color:white;
+}
+
+.menuDesativar{
+background:#ef4444;
+color:white;
+}
+
+.menuCancel{
+background:#e5e7eb;
+border:none;
+padding:12px;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+margin-top:6px;
+}
+
+
 
   
 </style>
@@ -452,6 +588,10 @@ Conversas
 </div>
 
 <div class="clients" id="clientes"></div>
+  <!-- 🔥 COLE AQUI -->
+<div class="menuOverlay" id="menuOverlay">
+  <div class="menuBox" id="menuBox"></div>
+</div>
 
 </div>
 
@@ -471,19 +611,15 @@ Controle
 </div>
 </div>
 
-<div id="chatIframeContainer" style="flex:1;display:flex;height:100%">
+<div id="chatIframeContainer" style="flex:1;display:flex">
 
-  
 <iframe id="frameChat" style="
 width:100%;
 height:100%;
 border:none;
-display:block;
 background:#020617;
 "></iframe>
 </div>
-
-
 
 
 </div>
@@ -731,30 +867,68 @@ document.getElementById("frameRepertorio").src=url
 
 /* MENU */
 
-function abrirMenu(e,telefone){
+function abrirMenu(e, telefone){
 
 e.stopPropagation()
 
-document.querySelectorAll(".menu").forEach(m=>{
-m.style.display="none"
+const overlay = document.getElementById("menuOverlay")
+const box = document.getElementById("menuBox")
+
+overlay.style.display = "flex"
+
+/* 🔥 DADOS DO CONTATO */
+const nome = nomes[telefone] || "Sem nome"
+const numero = telefone
+
+verificarPausa(telefone).then(pausado=>{
+
+box.innerHTML = `
+
+<!-- HEADER CONTATO -->
+<div class="menuHeader">
+  <div class="menuAvatar">${telefone.slice(-2)}</div>
+  <div>
+    <div class="menuNome">${nome}</div>
+    <div class="menuNumero">${numero}</div>
+  </div>
+</div>
+
+<!-- AÇÕES -->
+<button class="menuAction" onclick="editarContato('${telefone}')">
+✏️ Editar contato
+</button>
+
+<button class="menuAction ${pausado ? 'menuAtivar' : 'menuDesativar'}"
+onclick="toggleBot('${telefone}'); fecharMenu()">
+${pausado ? "▶️ Ativar BOT" : "⛔ Desativar BOT"}
+</button>
+
+<button class="menuCancel" onclick="fecharMenu()">
+Cancelar
+</button>
+
+`
+
 })
-
-const menu=document.getElementById("menu-"+telefone)
-
-menu.style.display="flex"
-
-menu.style.top = e.pageY + "px"
-menu.style.left = e.pageX + "px"
 
 }
 
-/* FECHAR MENU */
+  function fecharMenu(){
+document.getElementById("menuOverlay").style.display = "none"
+}
 
-document.addEventListener("click",()=>{
-document.querySelectorAll(".menu").forEach(m=>{
-m.style.display="none"
+setTimeout(()=>{
+const overlay = document.getElementById("menuOverlay")
+
+overlay.addEventListener("click", function(e){
+if(e.target.id === "menuOverlay"){
+fecharMenu()
+}
 })
-})
+},0)
+  
+  
+
 
 /* VERIFICAR PAUSA */
 
