@@ -333,64 +333,6 @@ return html
 
 
   
-/* ===== RENDER ===== */
-function gerarHTML(m){
-
-div.innerHTML = gerarHTML(m)
-/* ===== MIDIA ===== */
-
-if(m?.tipo === "imagem" && m?.media_url){
-
-html += `
-<img 
-  src="${m.media_url}" 
-  loading="lazy"
-  onerror="this.style.display='none'"
-  onclick="window.open('${m.media_url}')">
-`
-
-}
-
-else if(m?.tipo === "video" && m?.media_url){
-
-html += `
-<video controls preload="metadata" style="max-width:220px;border-radius:10px;">
-  <source src="${m.media_url}">
-  Seu navegador não suporta vídeo
-</video>
-`
-
-}
-
-else if(m?.tipo === "audio" && m?.media_url){
-
-html += `
-<audio controls style="width:200px;">
-  <source src="${m.media_url}">
-</audio>
-`
-
-}
-
-else if(m?.tipo === "documento" && m?.media_url){
-
-const ext = (m?.nome_arquivo || "").split(".").pop()?.toLowerCase()
-
-/* ===== PDF ===== */
-if(ext === "pdf"){
-
-html += `
-<iframe 
-  src="${m.media_url}" 
-  width="220" 
-  height="260"
-  style="border:none;border-radius:10px;background:#fff;"
-  onerror="this.style.display='none'">
-</iframe>
-`
-
-}
-
 /* ===== OUTROS DOCUMENTOS ===== */
 else{
 
