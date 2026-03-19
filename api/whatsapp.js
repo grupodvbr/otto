@@ -427,13 +427,61 @@ if(msg.text){
   mensagem = msg.text.body
 }
 
-// IMAGEM
 else if(msg.image){
-  tipo = "imagem"
-  media_url = msg.image.url || msg.image.id
-  mensagem = "[Imagem]"
-}
 
+  tipo = "imagem"
+  mensagem = "[Imagem]"
+
+  try{
+
+    /* 1. BUSCAR URL REAL */
+    const mediaInfo = await fetch(
+      `https://graph.facebook.com/v19.0/${msg.image.id}`,
+      {
+        headers:{
+          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`
+        }
+      }
+    )
+
+    const mediaJson = await mediaInfo.json()
+
+    /* 2. BAIXAR ARQUIVO */
+    const fileRes = await fetch(mediaJson.url,{
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`
+      }
+    })
+
+    const buffer = await fileRes.arrayBuffer()
+
+    /* 3. SALVAR NO SUPABASE */
+    const fileName = `whatsapp/${Date.now()}.jpg`
+
+    const { error: uploadError } = await supabase.storage
+      .from("buffet_whatsa_mercatto")
+      .upload(fileName, buffer, {
+        contentType: "image/jpeg"
+      })
+
+    if(uploadError){
+      console.log("❌ ERRO UPLOAD:", uploadError)
+    }else{
+
+      /* 4. GERAR URL PUBLICA */
+      const { data } = supabase.storage
+        .from("buffet_whatsa_mercatto")
+        .getPublicUrl(fileName)
+
+      media_url = data.publicUrl
+
+      console.log("✅ URL FINAL:", media_url)
+    }
+
+  }catch(err){
+    console.log("❌ ERRO AO PROCESSAR MIDIA:", err)
+  }
+}
 // VIDEO
 else if(msg.video){
   tipo = "video"
