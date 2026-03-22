@@ -142,10 +142,10 @@ export default async function handler(req, res) {
 
     console.error("🔥 ERRO:", err)
 
-    return res.status(500).json({
-      ok: false,
-      error: "Erro interno"
-    })
+return res.status(500).json({
+  ok: false,
+  error: err.message
+})
   }
 
 }
