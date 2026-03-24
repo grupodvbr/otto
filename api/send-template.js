@@ -2,7 +2,9 @@ module.exports = async function(req, res){
 
   try {
 
-    const { telefone, template } = req.body
+    const { telefone, template, parametros = {} } = req.body
+
+    /* ================= VALIDAÇÃO ================= */
 
     if(!telefone || !template){
       return res.status(400).json({
@@ -24,70 +26,93 @@ module.exports = async function(req, res){
     console.log("📤 TEMPLATE:", template)
     console.log("📞 TELEFONE:", telefone)
 
-    /* ================= TEMPLATE CONFIG ================= */
+    /* ================= IDIOMAS ================= */
 
-    let templateData = null
-
-    /* ===== TEMPLATE 1: CONFIRMAÇÃO ===== */
-
-    if(template === "confirmao_de_reserva"){
-
-      templateData = {
-        name: template,
-        language: { code: "en_US" },
-        components: [
-          {
-            type: "body",
-            parameters: [
-              { type:"text", text:"Nalbert" },   // {{1}}
-              { type:"text", text:"20/03" },     // {{2}}
-              { type:"text", text:"20:00" },     // {{3}}
-              { type:"text", text:"4" }          // {{4}}
-            ]
-          }
-        ]
-      }
-
+    const TEMPLATE_IDIOMAS = {
+      confirmao_de_reserva: "en_US",
+      reserva_especial: "en",
+      hello_world: "en_US"
     }
 
-    /* ===== TEMPLATE 2: RESERVA ESPECIAL (VÍDEO) ===== */
+    const idioma = TEMPLATE_IDIOMAS[template]
 
-    else if(template === "reserva_especial"){
+    if(!idioma){
+      return res.status(400).json({
+        error: "Template não permitido ou idioma não configurado"
+      })
+    }
 
-      templateData = {
-        name: template,
-        language: { code: "en_US" },
-        components: [
-          {
-            type: "header",
-            parameters: [
+    /* ================= FUNÇÃO TEMPLATE ================= */
+
+    function montarTemplate(template, parametros){
+
+      switch(template){
+
+        /* ================= CONFIRMAÇÃO ================= */
+
+        case "confirmao_de_reserva":
+          return {
+            name: template,
+            language: { code: idioma },
+            components: [
               {
-                type: "video",
-                video: {
-                  link: "https://www.w3schools.com/html/mov_bbb.mp4"
-                }
+                type: "body",
+                parameters: [
+                  { type:"text", text: parametros.nome || "Cliente" },
+                  { type:"text", text: parametros.data || "20/03" },
+                  { type:"text", text: parametros.hora || "20:00" },
+                  { type:"text", text: parametros.pessoas || "2" }
+                ]
               }
             ]
           }
-        ]
-      }
 
+        /* ================= RESERVA ESPECIAL (VIDEO) ================= */
+
+        case "reserva_especial":
+
+          if(!parametros.video){
+            throw new Error("Template reserva_especial precisa de video")
+          }
+
+          return {
+            name: template,
+            language: { code: idioma },
+            components: [
+              {
+                type: "header",
+                parameters: [
+                  {
+                    type: "video",
+                    video: {
+                      link: parametros.video
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+
+        /* ================= HELLO WORLD ================= */
+
+        case "hello_world":
+          return {
+            name: template,
+            language: { code: idioma }
+          }
+
+        default:
+          return null
+      }
     }
 
-    /* ===== TEMPLATE 3: HELLO WORLD ===== */
+    /* ================= MONTA TEMPLATE ================= */
 
-    else if(template === "hello_world"){
+    const templateData = montarTemplate(template, parametros)
 
-      templateData = {
-        name: template,
-        language: { code: "en_US" }
-      }
-
-    }
-
-    else{
+    if(!templateData){
       return res.status(400).json({
-        error: "Template não configurado no backend"
+        error: "Template não configurado"
       })
     }
 
@@ -126,6 +151,7 @@ module.exports = async function(req, res){
     return res.json({
       ok:true,
       enviado:true,
+      template,
       data
     })
 
@@ -137,4 +163,5 @@ module.exports = async function(req, res){
       error: err.message
     })
   }
+
 }
