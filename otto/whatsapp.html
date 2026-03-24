@@ -1196,8 +1196,11 @@ function abrirChatIframe(telefone){
 
   frame.src = "./chat.html?telefone=" + telefone
 
-  const sendBox = document.getElementById("sendBox")
+const sendBox = document.getElementById("sendBox")
+
+if(sendBox){
   sendBox.style.display = "flex"
+}
 
 }
 
