@@ -1800,9 +1800,7 @@ components:[
     ]
   }
 ]
-}
-  })
-})
+
 
 const data = await resp.json()
 
