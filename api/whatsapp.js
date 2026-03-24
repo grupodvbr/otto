@@ -1797,20 +1797,7 @@ if(templateNome === "confirmao_de_reserva"){
 else if(templateNome === "reserva_especial"){
   templatePayload = {
     name: templateNome,
-    language:{ code:"en_US" },
-    components:[
-      {
-        type:"header",
-        parameters:[
-          {
-            type:"video",
-            video:{
-              link:"https://www.w3schools.com/html/mov_bbb.mp4"
-            }
-          }
-        ]
-      }
-    ]
+    language:{ code:"en_US" }
   }
 }
 
