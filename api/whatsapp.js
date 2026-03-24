@@ -1772,30 +1772,71 @@ if(templateMatch){
     console.log("Template não permitido:",templateNome)
   }else{
 
-    const resp = await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        messaging_product:"whatsapp",
-        to:cliente,
-        type:"template",
-        template:{
-          name:templateNome,
-          language:{ code: idiomaTemplate },
-          components:[
-            {
-              type:"body",
-              parameters:[
-                { type:"text", text: nomeMemoria || "Cliente" }
-              ]
+let templatePayload = null
+
+/* ===== TEMPLATE CONFIRMAÇÃO ===== */
+if(templateNome === "confirmao_de_reserva"){
+  templatePayload = {
+    name: templateNome,
+    language:{ code:"en_US" },
+    components:[
+      {
+        type:"body",
+        parameters:[
+          { type:"text", text: nomeMemoria || "Cliente" },
+          { type:"text", text: "20/03" },
+          { type:"text", text: "20:00" },
+          { type:"text", text: "4" }
+        ]
+      }
+    ]
+  }
+}
+
+/* ===== TEMPLATE VIDEO ===== */
+else if(templateNome === "reserva_especial"){
+  templatePayload = {
+    name: templateNome,
+    language:{ code:"en_US" },
+    components:[
+      {
+        type:"header",
+        parameters:[
+          {
+            type:"video",
+            video:{
+              link:"https://www.w3schools.com/html/mov_bbb.mp4"
             }
-          ]
-        }
-      })
-    })
+          }
+        ]
+      }
+    ]
+  }
+}
+
+/* ===== TEMPLATE SIMPLES ===== */
+else if(templateNome === "hello_world"){
+  templatePayload = {
+    name: templateNome,
+    language:{ code:"en_US" }
+  }
+}
+
+/* ===== ENVIO ===== */
+
+const resp = await fetch(url,{
+  method:"POST",
+  headers:{
+    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type":"application/json"
+  },
+  body: JSON.stringify({
+    messaging_product:"whatsapp",
+    to:cliente,
+    type:"template",
+    template: templatePayload
+  })
+})
 
     const data = await resp.json()
 
