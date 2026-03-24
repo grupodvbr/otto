@@ -1785,21 +1785,30 @@ const TEMPLATE_IDIOMAS = {
     messaging_product:"whatsapp",
     to:cliente,
     type:"template",
-template:{
-  name:templateNome,
-  language:{ code: idiomaTemplate },
-  components:[
-    {
-      type:"body",
-      parameters:[
-components:[
-  {
-    type:"body",
-    parameters:[
-      { type:"text", text: nomeMemoria || "Cliente" }
-    ]
-  }
-]
+const resp = await fetch(url,{
+  method:"POST",
+  headers:{
+    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type":"application/json"
+  },
+  body: JSON.stringify({
+    messaging_product:"whatsapp",
+    to:cliente,
+    type:"template",
+    template:{
+      name:templateNome,
+      language:{ code: idiomaTemplate },
+      components:[
+        {
+          type:"body",
+          parameters:[
+            { type:"text", text: nomeMemoria || "Cliente" }
+          ]
+        }
+      ]
+    }
+  })
+})
 
 
 const data = await resp.json()
