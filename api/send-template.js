@@ -142,11 +142,13 @@ module.exports = async function(req, res){
 
     console.log("📩 META RESPONSE:", data)
 
-    if(data.error){
-      return res.status(500).json({
-        error: data.error
-      })
-    }
+if(data.error){
+  console.log("❌ ERRO META DETALHADO:", JSON.stringify(data.error, null, 2))
+
+  return res.status(500).json({
+    error: data.error
+  })
+}
 
     return res.json({
       ok:true,
