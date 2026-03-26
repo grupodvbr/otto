@@ -30,7 +30,7 @@ module.exports = async function(req, res){
 
     const TEMPLATE_IDIOMAS = {
       confirmao_de_reserva: "en_US",
-      reserva_especial: "en",
+      reserva_especial: "en_US",
       hello_world: "en_US"
     }
 
