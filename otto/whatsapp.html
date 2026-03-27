@@ -1254,95 +1254,92 @@ if(sendBox){
 }
 
 
-  async function atualizarClientesSilencioso(){
+ let atualizando = false
 
-  const container = document.getElementById("clientes")
+async function atualizarClientesSilencioso(){
 
-  const {data} = await db
-  .from("conversas_whatsapp")
-  .select("*")
-  .order("created_at",{ascending:false})
+  if(atualizando) return
+  atualizando = true
 
-  const {data:memoria} = await db
-  .from("memoria_clientes")
-  .select("telefone,nome")
+  try{
 
-  /* nomes */
-  const nomesTemp = {}
-  memoria.forEach(c=>{
-    nomesTemp[c.telefone] = c.nome
-  })
+    const container = document.getElementById("clientes")
 
-  /* agrupar */
-  const map = {}
-  data.forEach(m=>{
-    if(!map[m.telefone]) map[m.telefone] = m
-  })
+    const {data} = await db
+    .from("conversas_whatsapp")
+    .select("telefone,mensagem,created_at")
+    .order("created_at",{ascending:false})
+    .limit(50) // 🔥 evita travamento
 
-  const clientes = Object.values(map)
+    const {data:memoria} = await db
+    .from("memoria_clientes")
+    .select("telefone,nome")
 
-  /* 🔥 NÃO LIMPA TUDO → ATUALIZA OU CRIA */
-  clientes.forEach(async c=>{
+    /* nomes */
+    const nomesTemp = {}
+    memoria.forEach(c=>{
+      nomesTemp[c.telefone] = c.nome
+    })
 
-    let card = document.querySelector(`[data-telefone="${c.telefone}"]`)
+    /* agrupar */
+    const map = {}
+    data.forEach(m=>{
+      if(!map[m.telefone]) map[m.telefone] = m
+    })
 
-    const pausado = await verificarPausa(c.telefone)
+    const clientes = Object.values(map)
 
-    const nome = nomesTemp[c.telefone] || c.telefone
+    /* 🔥 LOOP CORRETO (SEM forEach async) */
+    for(const c of clientes){
 
-    /* SE NÃO EXISTE → CRIA */
-    if(!card){
+      let card = document.querySelector(`[data-telefone="${c.telefone}"]`)
 
-      card = document.createElement("div")
-      card.setAttribute("data-telefone", c.telefone)
+      const pausado = await verificarPausa(c.telefone)
+      const nome = nomesTemp[c.telefone] || c.telefone
 
-      card.className = pausado ? "client pausado" : "client"
+      /* 🔥 SE NÃO EXISTE → IGNORA (NÃO CRIA) */
+      if(!card) continue
 
-      card.innerHTML = `
-        <div class="avatar">
-          <img src="https://ui-avatars.com/api/?name=${nome}&background=25d366&color=fff&size=128"
-          style="width:100%;height:100%;border-radius:50%">
-        </div>
+      /* 🔥 ATUALIZA SEM RECRIAR */
+      const phoneEl = card.querySelector(".phone")
+      const previewEl = card.querySelector(".preview")
+      const statusEl = card.querySelector(".status")
 
-        <div>
-          <div class="phone">${nome}</div>
-          <div class="preview">${c.mensagem}</div>
-          <div class="status ${pausado?'off':'on'}">
-            ● ${pausado?'BOT PAUSADO':'BOT ATIVO'}
-          </div>
-        </div>
+      if(phoneEl && phoneEl.innerText !== nome){
+        phoneEl.innerText = nome
+      }
 
-        <div class="menuDots" onclick="event.stopPropagation(); abrirMenu(event,'${c.telefone}')">⋮</div>
-      `
+      if(previewEl && previewEl.innerText !== c.mensagem){
+        previewEl.innerText = c.mensagem
 
-      card.addEventListener("click", () => {
-        if(window.innerWidth <= 768){
-          window.location.assign("chat.html?telefone=" + c.telefone)
-        } else {
-          abrirChatIframe(c.telefone)
-        }
-      })
+        // 🔥 efeito leve (sem travar UI)
+        card.style.transition = "0.2s"
+        card.style.background = "#dcfce7"
 
-      container.prepend(card) // 🔥 NOVO VAI PRO TOPO
+        setTimeout(()=>{
+          card.style.background = ""
+        },300)
+      }
+
+      if(statusEl){
+        statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
+        statusEl.className = "status " + (pausado ? "off" : "on")
+      }
+
     }
 
-    /* 🔥 ATUALIZA SEM RECRIAR */
-    else{
-      card.querySelector(".phone").innerText = nome
-      card.querySelector(".preview").innerText = c.mensagem
-      card.querySelector(".status").innerHTML =
-        `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
-    }
+  }catch(err){
+    console.error("Erro atualização:", err)
+  }
 
-  })
-
+  atualizando = false
 }
+
+/* ================= INTERVALO ================= */
+
 setInterval(() => {
   atualizarClientesSilencioso()
 }, 5000)
-
-
-
 
 
 
