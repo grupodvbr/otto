@@ -641,27 +641,36 @@ if(isAdmin){
   console.log("👨‍💼 MENSAGEM DO ADMIN DETECTADA")
 
   /* 🔥 BUSCAR ÚLTIMA DÚVIDA */
-  const { data: ultimaDuvida } = await supabase
-  .from("duvidas_pendentes")
-  .select("*")
-  .order("created_at",{ascending:false})
-  .limit(1)
-  .maybeSingle()
+const match = mensagem.match(/^([a-z0-9\-]+)\s+([\s\S]+)/i)
 
-  if(!ultimaDuvida){
-    console.log("⚠️ SEM DÚVIDA PENDENTE")
-    return res.status(200).end()
-  }
+if(!match){
+  console.log("❌ ADMIN NÃO INFORMOU ID")
+  return res.status(200).end()
+}
 
-  const telefoneCliente = ultimaDuvida.telefone
+const id = match[1]
+const respostaAdmin = match[2]
+
+const { data: duvida } = await supabase
+.from("duvidas_pendentes")
+.select("*")
+.eq("id", id)
+.maybeSingle()
+
+if(!duvida){
+  console.log("❌ DÚVIDA NÃO ENCONTRADA")
+  return res.status(200).end()
+}
+
+const telefoneCliente = duvida.telefone
 
   /* 🔥 SALVAR APRENDIZADO */
-  await supabase
-  .from("aprendizado_bot")
-  .insert({
-    pergunta: ultimaDuvida.pergunta,
-    resposta: mensagem
-  })
+await supabase
+.from("aprendizado_bot")
+.insert({
+  pergunta: duvida.pergunta,
+  resposta: respostaAdmin
+})
 
   console.log("🧠 APRENDIZADO SALVO")
 
@@ -672,12 +681,12 @@ if(isAdmin){
       Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
       "Content-Type":"application/json"
     },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to: telefoneCliente,
-      type:"text",
-      text:{ body: mensagem }
-    })
+body:JSON.stringify({
+  messaging_product:"whatsapp",
+  to: telefoneCliente,
+  type:"text",
+  text:{ body: respostaAdmin }
+})
   })
 
   console.log("📤 RESPOSTA ENVIADA PARA CLIENTE")
@@ -1885,14 +1894,16 @@ if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
     .map(m => `${m.role}: ${m.content}`)
     .join("\n")
 
-  const alerta = `
+const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
+🆔 ID: ${novaDuvida.id}
+
 📱 Telefone: ${cliente}
-👤 Nome: ${nomeMemoria || "Não identificado"}
 
 💬 Pergunta:
 "${mensagem}"
+
 
 📄 Histórico:
 ${resumo}
@@ -1930,26 +1941,30 @@ resposta.toLowerCase().includes("não encontrei")
 
 if(naoSabe){
 /* 🔥 SALVAR DÚVIDA */
-await supabase
+const { data: novaDuvida } = await supabase
 .from("duvidas_pendentes")
 .insert({
   telefone: cliente,
   pergunta: mensagem
 })
+.select()
+.single()
   console.log("🚨 IA NÃO SABE → ESCALANDO")
 
   const resumo = mensagens
     .map(m => `${m.role}: ${m.content}`)
     .join("\n")
 
-  const alerta = `
+const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
+🆔 ID: ${novaDuvida.id}
+
 📱 Telefone: ${cliente}
-👤 Nome: ${nomeMemoria || "Não identificado"}
 
 💬 Pergunta:
 "${mensagem}"
+
 
 📄 Histórico:
 ${resumo}
