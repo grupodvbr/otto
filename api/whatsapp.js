@@ -427,8 +427,18 @@ content:pergunta
 
 })
 
+const respostaAdmin = completion.choices[0].message.content
+
+/* 🔥 SALVAR APRENDIZADO */
+await supabase
+.from("aprendizado_bot")
+.insert({
+  pergunta: pergunta,
+  resposta: respostaAdmin
+})
+
 return res.json({
-resposta: completion.choices[0].message.content
+  resposta: respostaAdmin
 })
 
 }
@@ -453,9 +463,28 @@ return res.status(200).end()
 
 /* IGNORA EVENTOS DE STATUS */
 
+/* ================= TRATAR STATUS ================= */
+
+if(change.statuses){
+
+  const status = change.statuses[0]
+
+  console.log("📩 STATUS RECEBIDO:", status.status)
+
+  await supabase
+  .from("conversas_whatsapp")
+  .update({
+    status: status.status // sent, delivered, read
+  })
+  .eq("message_id", status.id)
+
+  return res.status(200).end()
+}
+
+/* ================= CONTINUA NORMAL ================= */
+
 if(!change.messages){
-console.log("Evento sem mensagem (status)")
-return res.status(200).end()
+  return res.status(200).end()
 }
 
 const mensagensRecebidas = change.messages || []
@@ -1292,13 +1321,15 @@ await supabase
 .from("conversas_whatsapp")
 .insert({
   telefone:cliente,
-mensagem:
-  mensagem ||
-  (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
+  mensagem:
+    mensagem ||
+    (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
   tipo,
   media_url,
   nome_arquivo,
-  role:"user"
+  role:"user",
+  message_id: message_id, // 🔥 ESSENCIAL
+  status: "received"      // 🔥 ESSENCIAL
 })
 
 if(querEndereco){
@@ -1478,6 +1509,48 @@ const mensagens = (historico || [])
   content: m.mensagem
 }))
 .slice(-6)
+
+/* ================= 🔥 BUSCAR APRENDIZADO ================= */
+
+const { data: aprendizado } = await supabase
+.from("aprendizado_bot")
+.select("*")
+.ilike("pergunta", `%${mensagem}%`)
+.limit(1)
+
+if(aprendizado && aprendizado.length){
+
+  console.log("🧠 RESPOSTA VINDO DO APRENDIZADO")
+
+  const resposta = aprendizado[0].resposta
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"text",
+      text:{ body: resposta }
+    })
+  })
+
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:resposta,
+    role:"assistant"
+  })
+
+  return res.status(200).end()
+}
+
+
+
   
 if(assuntoMusica){
 mensagens.unshift({
@@ -1744,7 +1817,102 @@ REGRAS CRÍTICAS:
 })
 
 resposta = completion.choices[0].message.content
+/* 🚨 BLOQUEIO TOTAL DE ALERTA */
 
+if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
+
+  console.log("🚨 ALERTA DETECTADO → ENVIAR PARA ADMIN")
+
+  const resumo = mensagens
+    .map(m => `${m.role}: ${m.content}`)
+    .join("\n")
+
+  const alerta = `
+🚨 *DÚVIDA DO CLIENTE*
+
+📱 Telefone: ${cliente}
+👤 Nome: ${nomeMemoria || "Não identificado"}
+
+💬 Pergunta:
+"${mensagem}"
+
+📄 Histórico:
+${resumo}
+`
+
+  for(const admin of ADMINS){
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to: admin,
+        type:"text",
+        text:{ body: alerta }
+      })
+    })
+  }
+
+  /* 🚫 BLOQUEIA ENVIO PARA CLIENTE */
+  return res.status(200).end()
+}
+  
+
+/* ================= 🔥 DETECTAR SE NÃO SABE ================= */
+
+const naoSabe =
+!resposta ||
+resposta.length < 5 ||
+resposta.toLowerCase().includes("não sei") ||
+resposta.toLowerCase().includes("não tenho") ||
+resposta.toLowerCase().includes("não encontrei")
+
+if(naoSabe){
+
+  console.log("🚨 IA NÃO SABE → ESCALANDO")
+
+  const resumo = mensagens
+    .map(m => `${m.role}: ${m.content}`)
+    .join("\n")
+
+  const alerta = `
+🚨 *DÚVIDA DO CLIENTE*
+
+📱 Telefone: ${cliente}
+👤 Nome: ${nomeMemoria || "Não identificado"}
+
+💬 Pergunta:
+"${mensagem}"
+
+📄 Histórico:
+${resumo}
+`
+
+  for(const admin of ADMINS){
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to: admin,
+        type:"text",
+        text:{ body: alerta }
+      })
+    })
+  }
+
+  /* 🔥 NÃO RESPONDE O CLIENTE */
+  return res.status(200).end()
+}
+
+
+  
 console.log("RESPOSTA IA COMPLETA:", resposta)
 
 
@@ -2508,12 +2676,32 @@ console.log("Erro ao processar reserva:",e)
 
 /* ================= SALVAR RESPOSTA ================= */
 
+const envio = await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+const retorno = await envio.json()
+
+const messageId = retorno?.messages?.[0]?.id
+
 await supabase
 .from("conversas_whatsapp")
 .insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
+  telefone:cliente,
+  mensagem:resposta,
+  role:"assistant",
+  message_id: messageId, // 🔥 ESSENCIAL
+  status:"sent"          // 🔥 ESSENCIAL
 })
 /* ================= TEMPO NATURAL ================= */
 
@@ -2524,23 +2712,7 @@ Math.max(resposta.length * 35, 1500), // mínimo 1.5s
 
 await new Promise(resolve => setTimeout(resolve, tempoDigitando))
 
-/* ================= ENVIAR WHATSAPP ================= */
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{
-body:resposta
-}
-})
-})
 
 }catch(error){
 
