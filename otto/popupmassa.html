@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Disparo em Massa</title>
+
+<style>
+body{
+  font-family:Inter;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  color:#fff;
+  padding:20px;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+}
+
+h1{
+  font-size:22px;
+  margin-bottom:20px;
+}
+
+/* BOTÃO */
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:20px;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.02);
+}
+
+/* PROGRESS */
+.progress{
+  height:22px;
+  background:#1e293b;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#22c55e,#4ade80);
+  transition:.4s;
+}
+
+/* INFO */
+.info{
+  margin-top:15px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* LOG */
+.log{
+  margin-top:20px;
+  background:#020617;
+  border-radius:10px;
+  padding:10px;
+  max-height:250px;
+  overflow:auto;
+  font-size:12px;
+}
+
+.ok{ color:#4ade80 }
+.err{ color:#f87171 }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📢 Disparo em Massa</h1>
+
+<button onclick="iniciar()">🚀 Iniciar Disparo</button>
+
+<div class="progress">
+  <div class="bar" id="bar"></div>
+</div>
+
+<div class="info" id="info"></div>
+
+<div class="log" id="log"></div>
+
+</div>
+
+<script>
+
+let interval
+
+async function iniciar(){
+
+  const res = await fetch("/api/send-template-massa",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      template:"confirmao_de_reserva"
+    })
+  })
+
+  const data = await res.json()
+
+  if(data.error){
+    alert("Erro: " + data.error)
+    return
+  }
+
+  interval = setInterval(update, 1000)
+}
+
+async function update(){
+
+  const res = await fetch("/api/send-template-massa")
+  const data = await res.json()
+
+  document.getElementById("bar").style.width = data.progresso + "%"
+
+  document.getElementById("info").innerHTML = `
+    📊 Enviados: ${data.enviados}<br>
+    ❌ Erros: ${data.erros}<br>
+    👥 Total: ${data.total}<br>
+    📱 Atual: ${data.atual || "-"}<br>
+    📈 ${data.progresso}%
+  `
+
+  document.getElementById("log").innerHTML =
+    data.logs.slice(-30).map(l => `
+      <div class="${l.status === "ok" ? "ok" : "err"}">
+        ${l.telefone} → 
+        ${l.status === "ok" ? "ENVIADO" : "ERRO"} 
+        ${l.detalhe || ""}
+      </div>
+    `).join("")
+
+  if(data.finalizado){
+    clearInterval(interval)
+    alert("✅ Disparo finalizado")
+  }
+
+}
+</script>
+
+</body>
+</html>
