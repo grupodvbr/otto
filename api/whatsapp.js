@@ -834,7 +834,8 @@ if(
   console.log("🚨 RECLAMAÇÃO OU FEEDBACK DETECTADO")
 
   /* BUSCAR NOME */
-const nomeCliente = nomeMemoria || nomeDetectado || "Não identificado"
+  const nomeCliente = nomeMemoria || nomeDetectado || "Não identificado"
+
   /* MENSAGEM PARA ADMIN */
   const alertaAdmin = `
 🚨 *ALERTA DE CLIENTE*
@@ -849,30 +850,30 @@ const nomeCliente = nomeMemoria || nomeDetectado || "Não identificado"
 `
 
  /* ENVIAR PARA ADMINS */
-for(const admin of ADMINS){
+  for(const admin of ADMINS){
 
-  console.log("ENVIANDO PARA ADMIN:", admin)
+    console.log("ENVIANDO PARA ADMIN:", admin)
 
-  const resp = await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to: admin,
-      type:"text",
-      text:{ body: alertaAdmin }
+    const resp = await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to: admin,
+        type:"text",
+        text:{ body: alertaAdmin }
+      })
     })
-  })
 
-  const data = await resp.json()
-  console.log("RESPOSTA WHATSAPP:", data)
+    const data = await resp.json()
+    console.log("RESPOSTA WHATSAPP:", data)
 
-}
+  }
 
-  /* SALVAR NO BANCO (OPCIONAL MAS RECOMENDO) */
+  /* SALVAR NO BANCO (FEEDBACK) */
   await supabase
   .from("feedback_clientes")
   .insert({
@@ -880,6 +881,22 @@ for(const admin of ADMINS){
     nome: nomeCliente,
     mensagem: mensagem,
     tipo: tipoMensagem
+  })
+
+  /* 🔥 NOVO — SALVAR COMO CONVERSA NORMAL */
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:
+      mensagem ||
+      (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
+    tipo,
+    media_url,
+    nome_arquivo,
+    role:"user",
+    message_id: message_id,
+    status: "received"
   })
 
   /* RESPOSTA AUTOMÁTICA PARA CLIENTE */
