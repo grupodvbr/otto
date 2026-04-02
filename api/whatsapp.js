@@ -3392,21 +3392,16 @@ const tempoDigitando = Math.min(
 Math.max(resposta.length * 35, 1500), // mínimo 1.5s
 6000 // máximo 6s
 )
-
 await new Promise(resolve => setTimeout(resolve, tempoDigitando))
 
+} catch(error){
 
+  console.log("ERRO GERAL:", error)
 
-}catch(error){
-
-console.log("ERRO GERAL:",error)
-
-return res.status(200).end()
+  return res.status(200).end()
 
 }
 
 return res.status(200).end()
-
-}
 
 }
