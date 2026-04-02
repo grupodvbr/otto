@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>Disparo em Massa</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 body{
@@ -34,6 +36,11 @@ button{
   cursor:pointer;
   margin-bottom:20px;
   transition:.2s;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
 }
 
 button:hover{
@@ -73,8 +80,32 @@ button:hover{
   font-size:12px;
 }
 
+/* STATUS */
 .ok{ color:#4ade80 }
 .err{ color:#f87171 }
+.warn{ color:#facc15 }
+
+/* LOADING */
+.loading{
+  display:none;
+  text-align:center;
+  margin-top:10px;
+}
+
+.spinner{
+  border:4px solid #1e293b;
+  border-top:4px solid #22c55e;
+  border-radius:50%;
+  width:30px;
+  height:30px;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  0%{ transform:rotate(0deg) }
+  100%{ transform:rotate(360deg) }
+}
 </style>
 </head>
 
@@ -84,7 +115,11 @@ button:hover{
 
 <h1>📢 Disparo em Massa</h1>
 
-<button onclick="iniciar()">🚀 Iniciar Disparo</button>
+<button id="btn" onclick="iniciar()">🚀 Iniciar Disparo</button>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+</div>
 
 <div class="progress">
   <div class="bar" id="bar"></div>
@@ -98,55 +133,106 @@ button:hover{
 
 <script>
 
-let interval
+let interval = null
+
+function safeJSON(res){
+  return res.text().then(text=>{
+    try{
+      return JSON.parse(text)
+    }catch{
+      return { error:"Resposta inválida", raw:text }
+    }
+  })
+}
 
 async function iniciar(){
 
-  const res = await fetch("/api/send-template-massa",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      template:"confirmao_de_reserva"
+  const btn = document.getElementById("btn")
+  const loading = document.getElementById("loading")
+
+  btn.disabled = true
+  loading.style.display = "block"
+
+  try{
+
+    const res = await fetch("/api/send-template-massa",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        template:"confirmao_de_reserva"
+      })
     })
-  })
 
-  const data = await res.json()
+    const data = await safeJSON(res)
 
-  if(data.error){
-    alert("Erro: " + data.error)
-    return
+    if(!res.ok || data.error){
+      throw new Error(data.error || "Erro ao iniciar disparo")
+    }
+
+    interval = setInterval(update, 1000)
+
+  }catch(err){
+
+    alert("❌ " + err.message)
+    btn.disabled = false
+    loading.style.display = "none"
+
   }
 
-  interval = setInterval(update, 1000)
 }
 
 async function update(){
 
-  const res = await fetch("/api/send-template-massa")
-  const data = await res.json()
+  try{
 
-  document.getElementById("bar").style.width = data.progresso + "%"
+    const res = await fetch("/api/send-template-massa")
+    const data = await safeJSON(res)
 
-  document.getElementById("info").innerHTML = `
-    📊 Enviados: ${data.enviados}<br>
-    ❌ Erros: ${data.erros}<br>
-    👥 Total: ${data.total}<br>
-    📱 Atual: ${data.atual || "-"}<br>
-    📈 ${data.progresso}%
-  `
+    if(!res.ok){
+      throw new Error(data.error || "Erro ao buscar status")
+    }
 
-  document.getElementById("log").innerHTML =
-    data.logs.slice(-30).map(l => `
-      <div class="${l.status === "ok" ? "ok" : "err"}">
-        ${l.telefone} → 
-        ${l.status === "ok" ? "ENVIADO" : "ERRO"} 
-        ${l.detalhe || ""}
-      </div>
-    `).join("")
+    document.getElementById("bar").style.width = (data.progresso || 0) + "%"
 
-  if(data.finalizado){
-    clearInterval(interval)
-    alert("✅ Disparo finalizado")
+    document.getElementById("info").innerHTML = `
+      📊 Enviados: ${data.enviados || 0}<br>
+      ❌ Erros: ${data.erros || 0}<br>
+      👥 Total: ${data.total || 0}<br>
+      📱 Atual: ${data.atual || "-"}<br>
+      📈 ${data.progresso || 0}%
+    `
+
+    document.getElementById("log").innerHTML =
+      (data.logs || []).slice(-30).map(l => `
+        <div class="${
+          l.status === "ok" ? "ok" :
+          l.status === "erro" ? "err" : "warn"
+        }">
+          📞 ${l.telefone} →
+          ${l.status === "ok" ? "ENVIADO" : "ERRO"}
+          ${l.detalhe ? " | " + l.detalhe : ""}
+        </div>
+      `).join("")
+
+    if(data.finalizado){
+
+      clearInterval(interval)
+
+      document.getElementById("btn").disabled = false
+      document.getElementById("loading").style.display = "none"
+
+      alert("✅ Disparo finalizado")
+
+    }
+
+  }catch(err){
+
+    console.error("Erro update:", err)
+
+    document.getElementById("log").innerHTML += `
+      <div class="err">❌ ERRO UPDATE: ${err.message}</div>
+    `
+
   }
 
 }
