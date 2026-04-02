@@ -3305,8 +3305,17 @@ const { data: ultimaMsg } = await supabase
 .limit(1)
 .maybeSingle()
 
-if(ultimaMsg?.mensagem === resposta){
-  console.log("🚫 BLOQUEADO: resposta repetida")
+const temMidia =
+resposta.includes("ENVIAR_CARDAPIO") ||
+resposta.includes("ENVIAR_FOTOS") ||
+resposta.includes("ENVIAR_VIDEO") ||
+resposta.includes("ENVIAR_POSTER")
+
+if(
+  ultimaMsg?.mensagem === resposta &&
+  !temMidia
+){
+  console.log("🚫 BLOQUEADO: TEXTO REPETIDO")
   return res.status(200).end()
 }
 /* ================= SALVAR RESPOSTA ================= */
