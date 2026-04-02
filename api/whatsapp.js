@@ -2448,12 +2448,14 @@ resposta = resposta.replace(/ENVIAR_PROMO_HAPPY/g,"").trim()
 
 if(resposta.includes("ENVIAR_PROMO_ORIENTAL")){
 
-const hoje = new Date().toLocaleString("pt-BR",{
-timeZone:"America/Bahia",
-weekday:"long"
-}).toLowerCase()
+const agoraBahia = new Date().toLocaleString("en-US",{
+timeZone:"America/Bahia"
+})
 
-if(hoje.includes("domingo")){
+const diaNumero = new Date(agoraBahia).getDay()
+
+// 0 = domingo
+if(diaNumero === 0){
 
 const midias = [
 "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg"
@@ -2508,7 +2510,6 @@ body:"Essa promoção acontece somente aos domingos 🍣"
 
 resposta = resposta.replace(/ENVIAR_PROMO_ORIENTAL/g,"").trim()
 }
-
 
 
 
