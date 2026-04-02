@@ -2334,8 +2334,8 @@ resposta = resposta.replace(/ENVIAR_FOTOS_VIP2/g,"").trim()
 if(resposta.includes("ENVIAR_FOTOS_SACADA")){
 
 const fotos = [
-"https://link-sacada1.jpg",
-"https://link-sacada2.jpg"
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.21.01.jpeg",
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.24.01.jpeg"
 ]
 
 for(const foto of fotos){
