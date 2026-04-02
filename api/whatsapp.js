@@ -2219,8 +2219,8 @@ resposta = resposta.replace(/ENVIAR_FOTOS_VIP1/g,"").trim()
 if(resposta.includes("ENVIAR_FOTOS_VIP2")){
 
 const fotos = [
-"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/salas_vip/sala2.jpg",
-"https://link5.jpg"
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg",
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
 ]
 
 for(const foto of fotos){
