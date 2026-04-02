@@ -1499,18 +1499,7 @@ textoNormalizado.includes("endereço") ||
 textoNormalizado.includes("localizacao") ||
 textoNormalizado.includes("localização")
 
-const querSemana =
-textoNormalizado.includes("semana") ||
-textoNormalizado.includes("essa semana") ||
-textoNormalizado.includes("da semana") ||
-textoNormalizado.includes("proximos dias") ||
-textoNormalizado.includes("próximos dias")
 
-
-
-
-
-  
 const querMusica =
 texto.includes("musica") ||
 texto.includes("música") ||
@@ -1620,79 +1609,47 @@ return res.status(200).end()
   
 
 /* ================= MUSICA AO VIVO ================= */
+
 if(querMusica){
 
-console.log("🔥 BLOQUEIO TOTAL MUSICA")
+console.log("RESPONDENDO AUTOMATICO MUSICA")
 
-/* ===== SEMANA ===== */
-if(querSemana){
+resposta=""
 
-  const agenda = await buscarAgendaPeriodo(hojeISO, seteDiasISO)
-
-  if(!agenda.length){
-    resposta = "Ainda não temos programação musical para essa semana."
-  }else{
-
-    resposta = "🎶 Programação musical da semana:\n\n"
-
-    agenda.forEach(m=>{
-      resposta += `📅 ${m.data}\n`
-      resposta += `🎤 ${m.cantor}\n`
-      resposta += `🕒 ${m.hora}\n`
-      resposta += `🎵 ${m.estilo}\n\n`
-    })
-
-  }
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{body:resposta}
-    })
-  })
-
-  return res.status(200).end()
-}
-
-/* ===== DIA NORMAL ===== */
 if(agendaDia.length){
 
-  resposta = "🎶 Música ao vivo:\n\n"
-
-  agendaDia.forEach(m=>{
-    resposta += `🎤 ${m.cantor}\n`
-    resposta += `🕒 ${m.hora}\n`
-    resposta += `🎵 ${m.estilo}\n\n`
-  })
-
-  resposta += `💰 Couvert: R$ ${couvertHoje.toFixed(2)}`
-
-}else{
-  resposta = "Hoje não temos música ao vivo."
+if(textoDia==="ontem"){
+resposta = `🎶 Ontem tivemos música ao vivo no Mercatto:\n\n`
+}
+else if(textoDia==="amanhã"){
+resposta = `🎶 Música ao vivo amanhã no Mercatto:\n\n`
+}
+else{
+resposta = `🎶 Música ao vivo hoje no Mercatto:\n\n`
 }
 
-await fetch(url,{
-  method:"POST",
-  headers:{
-    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-    "Content-Type":"application/json"
-  },
-  body:JSON.stringify({
-    messaging_product:"whatsapp",
-    to:cliente,
-    type:"text",
-    text:{body:resposta}
-  })
+
+  
+agendaDia.forEach(m=>{
+
+resposta += `🎤 ${m.cantor}\n`
+resposta += `🕒 ${m.hora}\n`
+resposta += `🎵 ${m.estilo}\n\n`
+
 })
 
-return res.status(200).end()
+resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}`
+}else{
+
+if(textoDia==="ontem"){
+resposta = "Ontem não tivemos música ao vivo no Mercatto."
+}
+else if(textoDia==="amanhã"){
+resposta = "Ainda não temos música ao vivo programada para amanhã."
+}
+else{
+resposta = "Hoje não temos música ao vivo programada."
+}
 }
 
 /* ENVIA POSTER */
@@ -3288,7 +3245,6 @@ Nossa equipe entrará em contato para finalizar a reserva da sala VIP.`
 
 }
 try{
-
 const alterarMatch = resposta.match(/ALTERAR_RESERVA_JSON:\s*({[\s\S]*?})/)
 
 if(alterarMatch){
@@ -3329,19 +3285,16 @@ comandaIndividual: reserva.comandaIndividual || "Não"
 .order("datahora",{ascending:false})
 .limit(1)
 
-resposta = `✅ *Reserva atualizada!*`
+resposta = `✅ *Reserva atualizada!*
+
+Nome: ${reserva.nome}
+Pessoas: ${reserva.pessoas}
+Data: ${reserva.data}
+Hora: ${reserva.hora}
+
+Sua reserva foi atualizada.`
+
 }
-
-}catch(e){
-
-console.log("❌ ERRO AO PROCESSAR ALTERAÇÃO:", e)
-
-}
-
-
-
-
-  
 const match = resposta.match(/RESERVA_JSON:\s*({[\s\S]*?})/)
 if(match){
 
