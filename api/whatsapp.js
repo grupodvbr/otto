@@ -2443,13 +2443,12 @@ resposta = resposta.replace(/ENVIAR_PROMO_HAPPY/g,"").trim()
 }
 
 
+/* ===== PROMO RODIZIO ITALIANO ===== */
 
-/* ===== PROMO RODIZIO ORIENTAL ===== */
-
-if(resposta.includes("ENVIAR_PROMO_ORIENTAL")){
+if(resposta.includes("ENVIAR_PROMO_ITALIANO")){
 
 const midias = [
-"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg"
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
 ]
 
 for(const midia of midias){
@@ -2466,7 +2465,7 @@ to:cliente,
 type:"image",
 image:{
 link:midia,
-caption:"🍣 Rodízio Oriental • Domingo a partir das 19h"
+caption:"🍝 Rodízio Italiano • Toda quinta"
 }
 })
 })
@@ -2475,16 +2474,12 @@ caption:"🍣 Rodízio Oriental • Domingo a partir das 19h"
 
 await supabase.from("conversas_whatsapp").insert({
 telefone:cliente,
-mensagem:"[PROMO ORIENTAL ENVIADA]",
+mensagem:"[PROMO ITALIANO ENVIADA]",
 role:"assistant"
 })
 
-resposta = resposta.replace(/ENVIAR_PROMO_ORIENTAL/g,"").trim()
+resposta = resposta.replace(/ENVIAR_PROMO_ITALIANO/g,"").trim()
 }
-
-
-
-
 
   
 
@@ -2557,7 +2552,39 @@ resposta = resposta.replace(/ENVIAR_PROMO_ITALIANO/g,"").trim()
 
   
 
+/* ===== SUGESTÃO DE RESERVA ===== */
 
+if(
+respostaOriginal.includes("ENVIAR_PROMO_HAPPY") ||
+respostaOriginal.includes("ENVIAR_PROMO_ORIENTAL") ||
+respostaOriginal.includes("ENVIAR_PROMO_ITALIANO")
+){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{
+body:`🔥 Aproveite nossas promoções!
+
+Quer que eu já reserve sua mesa? 😊`
+}
+})
+})
+
+await supabase.from("conversas_whatsapp").insert({
+telefone:cliente,
+mensagem:"[SUGESTAO RESERVA PROMO]",
+role:"assistant"
+})
+
+}
   
 
 
