@@ -1416,18 +1416,20 @@ await supabase
   status: "received"
 })
 
+const respostaGPT = completion.choices[0].message.content
+
 /* ================= ENVIAR CARDAPIO PDF ================= */
 
-if(resposta && resposta.includes("ENVIAR_CARDAPIO")){
+if(respostaGPT && respostaGPT.includes("ENVIAR_CARDAPIO")){
 
-  console.log("📖 ENVIANDO CARDÁPIO PDF")
+  console.log("📖 CARDÁPIO DETECTADO")
 
-  resposta = resposta.replace("ENVIAR_CARDAPIO","").trim()
+  const textoLimpo = respostaGPT.replace("ENVIAR_CARDAPIO","").trim()
 
-  const pdf = req.body?.cardapio_link || "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf"
+  const pdf = "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf"
 
   /* 1️⃣ ENVIA TEXTO */
-  if(resposta){
+  if(textoLimpo){
     await fetch(url,{
       method:"POST",
       headers:{
@@ -1438,16 +1440,8 @@ if(resposta && resposta.includes("ENVIAR_CARDAPIO")){
         messaging_product:"whatsapp",
         to:cliente,
         type:"text",
-        text:{ body: resposta }
+        text:{ body: textoLimpo }
       })
-    })
-
-    await supabase
-    .from("conversas_whatsapp")
-    .insert({
-      telefone:cliente,
-      mensagem:resposta,
-      role:"assistant"
     })
   }
 
@@ -1468,6 +1462,9 @@ if(resposta && resposta.includes("ENVIAR_CARDAPIO")){
       }
     })
   })
+
+  return res.status(200).end()
+}
 
   await supabase
   .from("conversas_whatsapp")
