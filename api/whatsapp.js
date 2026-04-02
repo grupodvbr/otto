@@ -664,11 +664,106 @@ if(isAdmin){
   /* 🔥 BUSCAR ÚLTIMA DÚVIDA */
 const match = mensagem.match(/^([a-z0-9\-]+)\s+([\s\S]+)/i)
 
-if(!match){
-  console.log("❌ ADMIN NÃO INFORMOU ID")
+if(isAdmin){
+
+  console.log("👨‍💼 ADMIN DETECTADO")
+
+  const match = mensagem.match(/^([a-z0-9\-]+)\s+([\s\S]+)/i)
+
+  // =============================
+  // 🔥 CASO 1: ADMIN RESPONDENDO DÚVIDA
+  // =============================
+  if(match){
+
+    const id = match[1]
+    const respostaAdmin = match[2]
+
+    const { data: duvida } = await supabase
+    .from("duvidas_pendentes")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
+
+    if(!duvida){
+      console.log("❌ DÚVIDA NÃO ENCONTRADA")
+
+      await fetch(url,{
+        method:"POST",
+        headers:{
+          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          messaging_product:"whatsapp",
+          to:cliente,
+          type:"text",
+          text:{ body:"⚠️ ID não encontrado ou já respondido." }
+        })
+      })
+
+      return res.status(200).end()
+    }
+
+    const telefoneCliente = duvida.telefone
+
+    // salvar aprendizado
+    await supabase
+    .from("aprendizado_bot")
+    .insert({
+      pergunta: duvida.pergunta,
+      resposta: respostaAdmin
+    })
+
+    // responder cliente
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to: telefoneCliente,
+        type:"text",
+        text:{ body: respostaAdmin }
+      })
+    })
+
+    // apagar dúvida
+    await supabase
+    .from("duvidas_pendentes")
+    .delete()
+    .eq("id", id)
+
+    return res.status(200).end()
+  }
+
+  // =============================
+  // 🔥 CASO 2: ADMIN FALANDO NORMAL
+  // =============================
+
+  console.log("💬 ADMIN MODO NORMAL")
+
+  const resposta = `👨‍💼 Admin:
+
+${mensagem}`
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"text",
+      text:{ body: resposta }
+    })
+  })
+
   return res.status(200).end()
 }
-
 const id = match[1]
 const respostaAdmin = match[2]
 
