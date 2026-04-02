@@ -1499,7 +1499,18 @@ textoNormalizado.includes("endereço") ||
 textoNormalizado.includes("localizacao") ||
 textoNormalizado.includes("localização")
 
+const querSemana =
+textoNormalizado.includes("semana") ||
+textoNormalizado.includes("essa semana") ||
+textoNormalizado.includes("da semana") ||
+textoNormalizado.includes("proximos dias") ||
+textoNormalizado.includes("próximos dias")
 
+
+
+
+
+  
 const querMusica =
 texto.includes("musica") ||
 texto.includes("música") ||
@@ -1609,115 +1620,80 @@ return res.status(200).end()
   
 
 /* ================= MUSICA AO VIVO ================= */
-
 if(querMusica){
 
-console.log("🎯 MODO AGENDA REAL (SEM IA)")
+console.log("🔥 BLOQUEIO TOTAL MUSICA")
 
-const { inicio, fim } = interpretarPeriodo(texto)
+/* ===== SEMANA ===== */
+if(querSemana){
 
-console.log("📅 PERIODO:", inicio, fim)
+  const agenda = await buscarAgendaPeriodo(hojeISO, seteDiasISO)
 
-const agenda = await buscarAgendaPeriodo(inicio, fim)
+  if(!agenda.length){
+    resposta = "Ainda não temos programação musical para essa semana."
+  }else{
 
-if(!agenda.length){
+    resposta = "🎶 Programação musical da semana:\n\n"
 
-let resposta = "Não temos programação musical cadastrada para esse período 🎶"
+    agenda.forEach(m=>{
+      resposta += `📅 ${m.data}\n`
+      resposta += `🎤 ${m.cantor}\n`
+      resposta += `🕒 ${m.hora}\n`
+      resposta += `🎵 ${m.estilo}\n\n`
+    })
+
+  }
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"text",
+      text:{body:resposta}
+    })
+  })
+
+  return res.status(200).end()
+}
+
+/* ===== DIA NORMAL ===== */
+if(agendaDia.length){
+
+  resposta = "🎶 Música ao vivo:\n\n"
+
+  agendaDia.forEach(m=>{
+    resposta += `🎤 ${m.cantor}\n`
+    resposta += `🕒 ${m.hora}\n`
+    resposta += `🎵 ${m.estilo}\n\n`
+  })
+
+  resposta += `💰 Couvert: R$ ${couvertHoje.toFixed(2)}`
+
+}else{
+  resposta = "Hoje não temos música ao vivo."
+}
 
 await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{ body: resposta }
-})
+  method:"POST",
+  headers:{
+    Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    messaging_product:"whatsapp",
+    to:cliente,
+    type:"text",
+    text:{body:resposta}
+  })
 })
 
 return res.status(200).end()
 }
-
-/* AGRUPAR POR DATA */
-const porData = {}
-
-agenda.forEach(m => {
-if(!porData[m.data]) porData[m.data] = []
-porData[m.data].push(m)
-})
-
-let resposta = "🎶 Programação musical:\n\n"
-
-for(const data in porData){
-
-const dataBR = data.split("-").reverse().join("/")
-
-resposta += `📅 ${dataBR}\n`
-
-porData[data].forEach(m => {
-resposta += `• ${m.cantor} — ${m.hora.slice(0,5)} (${m.estilo})\n`
-})
-
-resposta += "\n"
-}
-
-/* ENVIAR POSTER DO PRIMEIRO */
-const poster = pegarPoster(agenda)
-
-if(poster){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:poster,
-caption:"🎶 Programação do Mercatto"
-}
-})
-})
-
-}
-
-/* ENVIAR TEXTO */
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{ body: resposta }
-})
-})
-
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
-})
-
-return res.status(200).end()
-}
-
-
-
-
-  
 
 /* ENVIA POSTER */
 
@@ -3312,6 +3288,7 @@ Nossa equipe entrará em contato para finalizar a reserva da sala VIP.`
 
 }
 try{
+
 const alterarMatch = resposta.match(/ALTERAR_RESERVA_JSON:\s*({[\s\S]*?})/)
 
 if(alterarMatch){
@@ -3352,16 +3329,19 @@ comandaIndividual: reserva.comandaIndividual || "Não"
 .order("datahora",{ascending:false})
 .limit(1)
 
-resposta = `✅ *Reserva atualizada!*
+resposta = `✅ *Reserva atualizada!*`
+}
 
-Nome: ${reserva.nome}
-Pessoas: ${reserva.pessoas}
-Data: ${reserva.data}
-Hora: ${reserva.hora}
+}catch(e){
 
-Sua reserva foi atualizada.`
+console.log("❌ ERRO AO PROCESSAR ALTERAÇÃO:", e)
 
 }
+
+
+
+
+  
 const match = resposta.match(/RESERVA_JSON:\s*({[\s\S]*?})/)
 if(match){
 
@@ -3582,42 +3562,4 @@ return res.status(200).end()
 
 }
 
-}
-function interpretarPeriodo(texto){
-
-  const hoje = new Date(
-    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-  )
-
-  let inicio = new Date(hoje)
-  let fim = new Date(hoje)
-
-  if(texto.includes("amanhã")){
-    inicio.setDate(hoje.getDate()+1)
-    fim = new Date(inicio)
-  }
-
-  else if(texto.includes("ontem")){
-    inicio.setDate(hoje.getDate()-1)
-    fim = new Date(inicio)
-  }
-
-  else if(texto.includes("semana passada")){
-    inicio.setDate(hoje.getDate()-7)
-    fim = new Date(hoje)
-  }
-
-  else if(texto.includes("próxima semana") || texto.includes("semana que vem")){
-    inicio.setDate(hoje.getDate()+7)
-    fim.setDate(hoje.getDate()+14)
-  }
-
-  else if(texto.includes("semana")){
-    fim.setDate(hoje.getDate()+7)
-  }
-
-  return {
-    inicio: inicio.toISOString().split("T")[0],
-    fim: fim.toISOString().split("T")[0]
-  }
 }
