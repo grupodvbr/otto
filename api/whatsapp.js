@@ -399,6 +399,10 @@ model:"gpt-4.1-mini",
 messages:[
 
 {
+
+
+
+  
 role:"system",
 content:`
 Você é o agente administrador do Mercatto Delícia.
@@ -419,6 +423,22 @@ Responda sempre de forma clara e direta.
 `
 },
 
+
+{
+role:"system",
+content:`
+REGRAS CRÍTICAS DE CONVERSA
+
+- Nunca repita respostas
+- Nunca envie promoções sem o cliente demonstrar interesse
+- Se o cliente mudar de assunto, abandone o anterior
+- Responda apenas o que foi perguntado
+- Seja natural e direto (como humano)
+`
+},
+
+
+  
 {
 role:"user",
 content:pergunta
@@ -747,80 +767,6 @@ const jaEnviouPromoHoje = !!controlePromo
   
 const bloqueiaPromo = false
 
-if(querPromocao && !jaEnviouPromoHoje && !bloqueiaPromo){
-
-  
-  console.log("🔥 FORÇANDO ENVIO DE TODAS PROMOÇÕES")
-
-  const comandos = [
-    "ENVIAR_PROMO_HAPPY",
-    "ENVIAR_PROMO_ORIENTAL",
-    "ENVIAR_PROMO_ITALIANO"
-  ]
-
-  for(const cmd of comandos){
-
-    if(cmd === "ENVIAR_PROMO_HAPPY"){
-      await fetch(url,{
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          messaging_product:"whatsapp",
-          to:cliente,
-          type:"image",
-          image:{
-            link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.27.52.jpeg",
-            caption:"🍻 Happy Hour • Todos os dias 17h às 20h"
-          }
-        })
-      })
-    }
-
-    if(cmd === "ENVIAR_PROMO_ORIENTAL"){
-      await fetch(url,{
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          messaging_product:"whatsapp",
-          to:cliente,
-          type:"image",
-          image:{
-            link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg",
-            caption:"🍣 Rodízio Oriental • Domingo a partir das 19h"
-          }
-        })
-      })
-    }
-
-    if(cmd === "ENVIAR_PROMO_ITALIANO"){
-      await fetch(url,{
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          messaging_product:"whatsapp",
-          to:cliente,
-          type:"image",
-          image:{
-            link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg",
-            caption:"🍝 Rodízio Italiano • Quinta-feira"
-          }
-        })
-      })
-    }
-
-  }
-
-  return res.status(200).end()
-}
 /* ================= DETECTAR NOME INTELIGENTE ================= */
 
 let nomeDetectado = null
@@ -1764,7 +1710,7 @@ const mensagens = (historico || [])
   role: m.role === "assistant" ? "assistant" : "user",
   content: m.mensagem
 }))
-.slice(-6)
+.slice(-15)
 
 /* ================= 🔥 BUSCAR APRENDIZADO ================= */
 
@@ -2561,6 +2507,14 @@ mensagem:"[PROMO HAPPY HOUR ENVIADA]",
 role:"assistant"
 })
 
+// 🔥 ADICIONA ISSO
+await supabase
+.from("controle_envio")
+.upsert({
+  telefone: cliente,
+  tipo: "promo",
+  data: getHojeBahia()
+}, { onConflict: "telefone,tipo,data" })
 resposta = resposta.replace(/ENVIAR_PROMO_HAPPY/g,"").trim()
 }
 
@@ -2601,6 +2555,14 @@ mensagem:"[PROMO ORIENTAL ENVIADA]",
 role:"assistant"
 })
 
+// 🔥 ADICIONA ISSO
+await supabase
+.from("controle_envio")
+.upsert({
+  telefone: cliente,
+  tipo: "promo",
+  data: getHojeBahia()
+}, { onConflict: "telefone,tipo,data" })
 resposta = resposta.replace(/ENVIAR_PROMO_ORIENTAL/g,"").trim()
 }
 
@@ -2651,6 +2613,14 @@ mensagem:"[PROMO ITALIANO ENVIADA]",
 role:"assistant"
 })
 
+// 🔥 ADICIONA ISSO
+await supabase
+.from("controle_envio")
+.upsert({
+  telefone: cliente,
+  tipo: "promo",
+  data: getHojeBahia()
+}, { onConflict: "telefone,tipo,data" })
 }else{
 
 await fetch(url,{
@@ -3295,9 +3265,24 @@ Aguardamos você!`
 console.log("Erro ao processar reserva:",e)
 
 }
+const { data: ultimaMsg } = await supabase
+.from("conversas_whatsapp")
+.select("mensagem")
+.eq("telefone", cliente)
+.eq("role", "assistant")
+.order("created_at", { ascending: false })
+.limit(1)
+.maybeSingle()
 
+if(ultimaMsg?.mensagem === resposta){
+  console.log("🚫 BLOQUEADO: resposta repetida")
+  return res.status(200).end()
+}
 /* ================= SALVAR RESPOSTA ================= */
 
+
+
+  
 const envio = await fetch(url,{
 method:"POST",
 headers:{
