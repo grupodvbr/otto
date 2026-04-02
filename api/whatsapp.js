@@ -2384,6 +2384,212 @@ resposta = resposta.replace(/ENVIAR_VIDEO_VIP/g,"").trim()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== PROMO HAPPY HOUR ===== */
+
+if(resposta.includes("ENVIAR_PROMO_HAPPY")){
+
+const midias = [
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.27.52.jpeg"
+]
+
+for(const midia of midias){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:midia,
+caption:"🍻 Happy Hour • Todos os dias das 17h às 20h"
+}
+})
+})
+
+}
+
+await supabase.from("conversas_whatsapp").insert({
+telefone:cliente,
+mensagem:"[PROMO HAPPY HOUR ENVIADA]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_PROMO_HAPPY/g,"").trim()
+}
+
+
+
+/* ===== PROMO RODIZIO ORIENTAL ===== */
+
+if(resposta.includes("ENVIAR_PROMO_ORIENTAL")){
+
+const hoje = new Date().toLocaleString("pt-BR",{
+timeZone:"America/Bahia",
+weekday:"long"
+}).toLowerCase()
+
+if(hoje.includes("domingo")){
+
+const midias = [
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg"
+]
+
+for(const midia of midias){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:midia,
+caption:"🍣 Rodízio Oriental • Domingo a partir das 19h"
+}
+})
+})
+
+}
+
+await supabase.from("conversas_whatsapp").insert({
+telefone:cliente,
+mensagem:"[PROMO ORIENTAL ENVIADA]",
+role:"assistant"
+})
+
+}else{
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{
+body:"Essa promoção acontece somente aos domingos 🍣"
+}
+})
+})
+
+}
+
+resposta = resposta.replace(/ENVIAR_PROMO_ORIENTAL/g,"").trim()
+}
+
+
+
+
+/* ===== PROMO RODIZIO ITALIANO ===== */
+
+if(resposta.includes("ENVIAR_PROMO_ITALIANO")){
+
+const hoje = new Date().toLocaleString("pt-BR",{
+timeZone:"America/Bahia",
+weekday:"long"
+}).toLowerCase()
+
+if(hoje.includes("quinta")){
+
+const midias = [
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
+]
+
+for(const midia of midias){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:midia,
+caption:"🍝 Rodízio Italiano • Toda quinta"
+}
+})
+})
+
+}
+
+await supabase.from("conversas_whatsapp").insert({
+telefone:cliente,
+mensagem:"[PROMO ITALIANO ENVIADA]",
+role:"assistant"
+})
+
+}else{
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{
+body:"O rodízio italiano acontece às quintas 🍝"
+}
+})
+})
+
+}
+
+resposta = resposta.replace(/ENVIAR_PROMO_ITALIANO/g,"").trim()
+}
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
   
 
 
