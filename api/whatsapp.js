@@ -764,57 +764,7 @@ ${mensagem}`
 
   return res.status(200).end()
 }
-const id = match[1]
-const respostaAdmin = match[2]
 
-const { data: duvida } = await supabase
-.from("duvidas_pendentes")
-.select("*")
-.eq("id", id)
-.maybeSingle()
-
-if(!duvida){
-  console.log("❌ DÚVIDA NÃO ENCONTRADA")
-  return res.status(200).end()
-}
-
-const telefoneCliente = duvida.telefone
-
-  /* 🔥 SALVAR APRENDIZADO */
-await supabase
-.from("aprendizado_bot")
-.insert({
-  pergunta: duvida.pergunta,
-  resposta: respostaAdmin
-})
-
-  console.log("🧠 APRENDIZADO SALVO")
-
-  /* 🔥 RESPONDER CLIENTE */
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-body:JSON.stringify({
-  messaging_product:"whatsapp",
-  to: telefoneCliente,
-  type:"text",
-  text:{ body: respostaAdmin }
-})
-  })
-
-  console.log("📤 RESPOSTA ENVIADA PARA CLIENTE")
-
-  /* 🔥 LIMPAR DÚVIDA */
-await supabase
-.from("duvidas_pendentes")
-.delete()
-.eq("id", id)
-
-  return res.status(200).end()
-}
   
 const textoNormalizado = normalizar(texto)
 
