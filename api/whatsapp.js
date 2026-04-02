@@ -1608,100 +1608,11 @@ return res.status(200).end()
 }
   
 
-/* ================= MUSICA AO VIVO ================= */
+/* ================= MUSICA VIA IA ================= */
 
 if(querMusica){
-
-console.log("RESPONDENDO AUTOMATICO MUSICA")
-
-resposta=""
-
-if(agendaDia.length){
-
-if(textoDia==="ontem"){
-resposta = `🎶 Ontem tivemos música ao vivo no Mercatto:\n\n`
-}
-else if(textoDia==="amanhã"){
-resposta = `🎶 Música ao vivo amanhã no Mercatto:\n\n`
-}
-else{
-resposta = `🎶 Música ao vivo hoje no Mercatto:\n\n`
-}
-
-
-  
-agendaDia.forEach(m=>{
-
-resposta += `🎤 ${m.cantor}\n`
-resposta += `🕒 ${m.hora}\n`
-resposta += `🎵 ${m.estilo}\n\n`
-
-})
-
-resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}`
-}else{
-
-if(textoDia==="ontem"){
-resposta = "Ontem não tivemos música ao vivo no Mercatto."
-}
-else if(textoDia==="amanhã"){
-resposta = "Ainda não temos música ao vivo programada para amanhã."
-}
-else{
-resposta = "Hoje não temos música ao vivo programada."
-}
-}
-
-/* ENVIA POSTER */
-
-if(posterHoje && posterHoje.startsWith("http")){
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:posterHoje,
-caption:`🎶 Música ao vivo ${textoDia} no Mercatto`
-}
-})
-})
-
-}
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{body:resposta}
-})
-})
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:resposta,
-role:"assistant"
-})
-await supabase
-.from("estado_conversa")
-.upsert({
-telefone:cliente,
-tipo:"musica"
-})
-return res.status(200).end()
-
+  console.log("🎶 DEIXANDO IA RESPONDER MUSICA")
+  assuntoMusica = true
 }
 
 if(querVideo){
@@ -2017,25 +1928,33 @@ REGRAS DE PRIORIDADE DO AGENTE
 4. Nunca use respostas antigas como regra se o prompt atual disser algo diferente.
 `
 },
-
 {
 role:"system",
 content:`
-AGENDA REAL DO SISTEMA
+AGENDA REAL DO MERCATTO
 
-HOJE:
+Hoje (${dataAtualISO}):
 ${agendaHojeTexto}
 
-PRÓXIMOS DIAS:
+Próximos dias:
 ${agendaTexto}
 
-REGRAS CRÍTICAS:
+REGRAS OBRIGATÓRIAS:
 
 - Use SOMENTE essas informações
 - Nunca invente artista
 - Nunca invente datas
 - Nunca invente horários
-- Se não tiver programação, diga que não tem
+- Nunca use memória antiga
+- Se não houver evento, diga claramente que não tem
+
+INTERPRETAÇÃO DE TEMPO:
+
+- "hoje" = data atual
+- "amanhã" = +1 dia
+- "ontem" = -1 dia
+- "sexta", "sábado" → encontre na agenda
+- "final de semana" = sexta + sábado + domingo
 `
 },
 
@@ -2045,10 +1964,23 @@ REGRAS CRÍTICAS:
 {
 role:"system",
 content: assuntoMusica 
-? "A pergunta atual do cliente é sobre música ao vivo. Ignore reservas."
-: "A pergunta atual do cliente não é sobre música."
-},
+? `
+🚨 PRIORIDADE MÁXIMA
 
+A mensagem do cliente é sobre MÚSICA AO VIVO.
+
+REGRAS:
+
+- Ignore reservas
+- Ignore cardápio
+- Ignore buffet
+- Use SOMENTE a agenda fornecida
+- Interprete corretamente datas como:
+  hoje, amanhã, sexta, sábado, final de semana
+- Responda direto e claro
+`
+: "A mensagem não é sobre música."
+},
 {
 role:"system",
 content: nomeMemoria
