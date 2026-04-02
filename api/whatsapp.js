@@ -2787,10 +2787,33 @@ if(fotoMatch){
 
 const nomePratoIA = fotoMatch[1].trim()
 
-const prato = cardapio.find(p =>
-normalizar(p.nome).includes(normalizar(nomePratoIA))
-)
+function encontrarPrato(cardapio, nomeIA){
 
+  const nomeLimpo = normalizar(nomeIA)
+
+  let melhor = null
+  let score = 0
+
+  for(const p of cardapio){
+
+    const nomeBanco = normalizar(p.nome)
+
+    let pontos = 0
+
+    nomeLimpo.split(" ").forEach(palavra=>{
+      if(nomeBanco.includes(palavra)){
+        pontos++
+      }
+    })
+
+    if(pontos > score){
+      score = pontos
+      melhor = p
+    }
+  }
+
+  return melhor
+}
 if(prato && prato.foto_url){
 
 await fetch(url,{
