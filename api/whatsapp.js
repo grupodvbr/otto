@@ -2158,8 +2158,19 @@ const resp = await fetch(url,{
 
 
 
-  
-if(resposta.includes("ENVIAR_FOTOS")){
+
+
+/* ===== SALA VIP 1 ===== */
+
+if(resposta.includes("ENVIAR_FOTOS_VIP1")){
+
+const fotos = [
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/salas_vip/sala1.jpg",
+"https://link2.jpg",
+"https://link3.jpg"
+]
+
+for(const foto of fotos){
 
 await fetch(url,{
 method:"POST",
@@ -2172,24 +2183,47 @@ messaging_product:"whatsapp",
 to:cliente,
 type:"image",
 image:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/images%20(1).jpg",
-caption:"Mercatto Delícia"
+link:foto,
+caption:"Sala VIP 1 • Mercatto Delícia"
 }
 })
 })
+
+}
 
 await supabase
 .from("conversas_whatsapp")
 .insert({
 telefone:cliente,
-mensagem:"[FOTOS DO RESTAURANTE ENVIADAS]",
+mensagem:"[FOTOS SALA VIP 1 ENVIADAS]",
 role:"assistant"
 })
 
-resposta = resposta.replace(/ENVIAR_FOTOS/g,"").trim()
+resposta = resposta.replace(/ENVIAR_FOTOS_VIP1/g,"").trim()
 
 }
-if(resposta.includes("ENVIAR_FOTOS_SALA_VIP")){
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== SALA VIP 2 ===== */
+
+if(resposta.includes("ENVIAR_FOTOS_VIP2")){
+
+const fotos = [
+"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/salas_vip/sala2.jpg",
+"https://link5.jpg"
+]
+
+for(const foto of fotos){
 
 await fetch(url,{
 method:"POST",
@@ -2202,11 +2236,41 @@ messaging_product:"whatsapp",
 to:cliente,
 type:"image",
 image:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/salas_vip/sala1.jpg",
-caption:"Sala VIP Mercatto Delícia"
+link:foto,
+caption:"Sala VIP 2 • Mercatto Delícia"
 }
 })
 })
+
+}
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[FOTOS SALA VIP 2 ENVIADAS]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_FOTOS_VIP2/g,"").trim()
+
+}
+
+
+
+
+
+
+/* ===== SACADA ===== */
+
+if(resposta.includes("ENVIAR_FOTOS_SACADA")){
+
+const fotos = [
+"https://link-sacada1.jpg",
+"https://link-sacada2.jpg"
+]
+
+for(const foto of fotos){
 
 await fetch(url,{
 method:"POST",
@@ -2219,15 +2283,112 @@ messaging_product:"whatsapp",
 to:cliente,
 type:"image",
 image:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/salas_vip/sala2.jpg",
-caption:"Ambiente da Sala VIP"
+link:foto,
+caption:"Sacada • Mercatto Delícia"
 }
 })
 })
 
-resposta = resposta.replace(/ENVIAR_FOTOS_SALA_VIP/g,"").trim()
+}
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[FOTOS SACADA ENVIADAS]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_FOTOS_SACADA/g,"").trim()
 
 }
+
+
+
+
+
+
+
+  /* ===== SALÃO ===== */
+
+if(resposta.includes("ENVIAR_FOTOS_SALAO")){
+
+const fotos = [
+"https://link-salao1.jpg",
+"https://link-salao2.jpg"
+]
+
+for(const foto of fotos){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:foto,
+caption:"Salão • Mercatto Delícia"
+}
+})
+})
+
+}
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[FOTOS SALÃO ENVIADAS]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_FOTOS_SALAO/g,"").trim()
+
+}
+
+
+
+
+
+
+
+  /* ===== VIDEO SALA VIP ===== */
+
+if(resposta.includes("ENVIAR_VIDEO_VIP")){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"video",
+video:{
+link:"https://seu-video.mp4",
+caption:"Sala VIP • Mercatto Delícia"
+}
+})
+})
+
+resposta = resposta.replace(/ENVIAR_VIDEO_VIP/g,"").trim()
+
+}
+
+
+
+  
+
+
+
+  
 
 if(resposta.includes("ENVIAR_POSTER")){
 
