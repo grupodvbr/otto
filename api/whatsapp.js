@@ -2288,7 +2288,7 @@ if(resposta.includes("ENVIAR_FOTOS_VIP2")){
 
 const fotos = [
 "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg",
-"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-27%20at%2011.14.47.mp4"
 ]
 
 for(const foto of fotos){
