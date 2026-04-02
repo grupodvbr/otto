@@ -721,8 +721,25 @@ textoNormalizado.includes("tem promocao") ||
 textoNormalizado.includes("vende oriental") ||
 textoNormalizado.includes("todo dia")
 
-if(querPromocao){
+const hojeInicio = getHojeBahia() + "T00:00"
+const hojeFim = getHojeBahia() + "T23:59"
 
+const { data: promosHoje } = await supabase
+.from("conversas_whatsapp")
+.select("mensagem")
+.eq("telefone", cliente)
+.eq("role", "assistant")
+.gte("created_at", hojeInicio)
+.lte("created_at", hojeFim)
+.ilike("mensagem", "%PROMO%")
+
+const jaEnviouPromoHoje = promosHoje && promosHoje.length > 0
+
+const bloqueiaPromo = false
+
+if(querPromocao && !jaEnviouPromoHoje && !bloqueiaPromo){
+
+  
   console.log("🔥 FORÇANDO ENVIO DE TODAS PROMOÇÕES")
 
   const comandos = [
@@ -2050,13 +2067,16 @@ resposta = completion.choices[0].message.content
 
 if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
 
-  console.log("🚨 ALERTA DETECTADO → ENVIAR PARA ADMIN")
+  const { data: novaDuvida } = await supabase
+  .from("duvidas_pendentes")
+  .insert({
+    telefone: cliente,
+    pergunta: mensagem
+  })
+  .select()
+  .single()
 
-  const resumo = mensagens
-    .map(m => `${m.role}: ${m.content}`)
-    .join("\n")
-
-const alerta = `
+  const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
 🆔 ID: ${novaDuvida.id}
