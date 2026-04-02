@@ -2448,15 +2448,6 @@ resposta = resposta.replace(/ENVIAR_PROMO_HAPPY/g,"").trim()
 
 if(resposta.includes("ENVIAR_PROMO_ORIENTAL")){
 
-const agoraBahia = new Date().toLocaleString("en-US",{
-timeZone:"America/Bahia"
-})
-
-const diaNumero = new Date(agoraBahia).getDay()
-
-// 0 = domingo
-if(diaNumero === 0){
-
 const midias = [
 "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.03.jpeg"
 ]
@@ -2488,30 +2479,14 @@ mensagem:"[PROMO ORIENTAL ENVIADA]",
 role:"assistant"
 })
 
-}else{
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{
-body:"Essa promoção acontece somente aos domingos 🍣"
-}
-})
-})
-
-}
-
 resposta = resposta.replace(/ENVIAR_PROMO_ORIENTAL/g,"").trim()
 }
 
 
+
+
+
+  
 
 /* ===== PROMO RODIZIO ITALIANO ===== */
 
