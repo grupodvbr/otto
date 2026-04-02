@@ -2325,7 +2325,38 @@ resposta = resposta.replace(/ENVIAR_FOTOS_VIP2/g,"").trim()
 }
 
 
+/* ===== VIDEO SALA VIP 2 ===== */
 
+if(resposta.includes("ENVIAR_VIDEO_VIP2")){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"video",
+video:{
+link:"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-27%20at%2011.14.47.mp4",
+caption:"Sala VIP 2 • Mercatto Delícia"
+}
+})
+})
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[VIDEO SALA VIP 2 ENVIADO]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_VIDEO_VIP2/g,"").trim()
+
+}
 
 
 
