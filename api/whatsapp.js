@@ -2159,24 +2159,82 @@ const resp = await fetch(url,{
 
 
   
-if(resposta.includes("ENVIAR_FOTOS")){
+if(querFotos){
 
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/images%20(1).jpg",
-caption:"Mercatto Delícia"
+/* ================= LISTA DE FOTOS ================= */
+
+const FOTOS = {
+
+  "sala vip 1": [
+    "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg",
+    "https://link2.jpg",
+    "https://link3.jpg"
+  ],
+
+  "sala vip 2": [
+    "https://link4.jpg",
+    "https://link5.jpg"
+  ],
+
+  "sacada": [
+    "https://link6.jpg",
+    "https://link7.jpg"
+  ],
+
+  "salao": [
+    "https://link8.jpg",
+    "https://link9.jpg"
+  ]
+
 }
+
+/* ================= DETECTAR ÁREA ================= */
+
+let area = "sala vip 1" // padrão
+
+if(texto.includes("vip 2")) area = "sala vip 2"
+if(texto.includes("vip 1")) area = "sala vip 1"
+if(texto.includes("sacada")) area = "sacada"
+if(texto.includes("salão") || texto.includes("salao")) area = "salao"
+
+/* ================= PEGAR LISTA ================= */
+
+const lista = FOTOS[area] || FOTOS["sala vip 1"]
+
+/* ================= ENVIAR TODAS ================= */
+
+for(const foto of lista){
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"image",
+      image:{
+        link:foto,
+        caption:"Mercatto Delícia"
+      }
+    })
+  })
+
+}
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:`[FOTOS ENVIADAS - ${area}]`,
+role:"assistant"
 })
-})
+
+resposta = resposta.replace(/ENVIAR_FOTOS/g,"").trim()
+
+}
 
 await supabase
 .from("conversas_whatsapp")
