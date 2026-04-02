@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Painel de Mídias • Mercatto</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Inter;
+background:#0f172a;
+color:#fff;
+}
+
+/* HEADER */
+
+.header{
+padding:20px;
+font-size:22px;
+font-weight:800;
+background:#020617;
+border-bottom:1px solid #1e293b;
+}
+
+/* CONTAINER */
+
+.container{
+padding:20px;
+display:grid;
+grid-template-columns: 350px 1fr;
+gap:20px;
+}
+
+/* CARD */
+
+.card{
+background:#020617;
+border:1px solid #1e293b;
+border-radius:16px;
+padding:16px;
+}
+
+/* FORM */
+
+input, textarea, select{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #1e293b;
+background:#0f172a;
+color:#fff;
+margin-top:5px;
+margin-bottom:10px;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:12px;
+background:#22c55e;
+color:#fff;
+font-weight:700;
+cursor:pointer;
+}
+
+/* GRID MIDIAS */
+
+.grid{
+display:grid;
+grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+gap:16px;
+}
+
+/* ITEM */
+
+.item{
+background:#020617;
+border:1px solid #1e293b;
+border-radius:12px;
+padding:10px;
+}
+
+.item img, .item video{
+width:100%;
+border-radius:10px;
+}
+
+.nome{
+font-weight:700;
+margin-top:8px;
+}
+
+.desc{
+font-size:12px;
+color:#94a3b8;
+}
+
+.tipo{
+font-size:11px;
+margin-top:5px;
+color:#22c55e;
+}
+
+.delete{
+margin-top:10px;
+background:#ef4444;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">📂 Painel de Mídias • Mercatto</div>
+
+<div class="container">
+
+<!-- FORM -->
+<div class="card">
+
+<h3>Nova mídia</h3>
+
+<label>Nome</label>
+<input id="nome">
+
+<label>Descrição (PROMPT DA IA)</label>
+<textarea id="descricao"></textarea>
+
+<label>Tipo</label>
+<select id="tipo">
+<option value="cardapio">Cardápio</option>
+<option value="promocao">Promoção</option>
+<option value="video">Vídeo</option>
+<option value="imagem">Imagem</option>
+</select>
+
+<label>Arquivo</label>
+<input type="file" id="file">
+
+<button onclick="upload()">Salvar mídia</button>
+
+</div>
+
+<!-- LISTA -->
+<div class="card">
+<div class="grid" id="lista"></div>
+</div>
+
+</div>
+
+<script>
+
+const supabase = window.supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+/* ================= UPLOAD ================= */
+
+async function upload(){
+
+const file = document.getElementById("file").files[0]
+const nome = document.getElementById("nome").value
+const descricao = document.getElementById("descricao").value
+const tipo = document.getElementById("tipo").value
+
+if(!file) return alert("Selecione um arquivo")
+
+const fileName = `midias/${Date.now()}_${file.name}`
+
+/* UPLOAD STORAGE */
+const { error } = await supabase.storage
+.from("midias")
+.upload(fileName, file)
+
+if(error){
+alert("Erro upload")
+return
+}
+
+/* URL */
+const { data } = supabase.storage
+.from("midias")
+.getPublicUrl(fileName)
+
+const url = data.publicUrl
+
+/* SALVAR NO BANCO */
+await supabase
+.from("midias_mercatto")
+.insert({
+nome,
+descricao,
+tipo,
+url
+})
+
+alert("Salvo com sucesso")
+
+carregar()
+
+}
+
+/* ================= LISTAR ================= */
+
+async function carregar(){
+
+const { data } = await supabase
+.from("midias_mercatto")
+.select("*")
+.eq("ativo",true)
+.order("created_at",{ascending:false})
+
+const lista = document.getElementById("lista")
+lista.innerHTML = ""
+
+data.forEach(m => {
+
+let media = ""
+
+if(m.url.includes(".mp4")){
+media = `<video src="${m.url}" controls></video>`
+}else{
+media = `<img src="${m.url}">`
+}
+
+lista.innerHTML += `
+<div class="item">
+
+${media}
+
+<div class="nome">${m.nome}</div>
+<div class="desc">${m.descricao}</div>
+<div class="tipo">${m.tipo}</div>
+
+<button class="delete" onclick="deletar('${m.id}')">Excluir</button>
+
+</div>
+`
+
+})
+
+}
+
+/* ================= DELETAR ================= */
+
+async function deletar(id){
+
+if(!confirm("Excluir mídia?")) return
+
+await supabase
+.from("midias_mercatto")
+.update({ativo:false})
+.eq("id",id)
+
+carregar()
+
+}
+
+carregar()
+
+</script>
+
+</body>
+</html>
