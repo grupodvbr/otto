@@ -2492,20 +2492,10 @@ Deseja confirmar o pedido?`
 
 console.log("ERRO OPENAI",e)
 
-resposta=
-`👋 Bem-vindo ao Mercatto Delícia
+resposta=`👋 Bem-vindo ao Mercatto Delícia`
 
-Digite:
-
-1️⃣ Cardápio
-2️⃣ Reservas
-3️⃣ Endereço`
-
-}
-
-/* ================= RESERVA SALA VIP ================= */
-
-const vipMatch = resposta?.match(/RESERVA_SALA_VIP_JSON:\s*({[\s\S]*?})/)
+try{
+const alterarMatch = resposta.match(/ALTERAR_RESERVA_JSON:\s*({[\s\S]*?})/)
 if(vipMatch){
 
 let reservaVip
