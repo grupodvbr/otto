@@ -267,6 +267,41 @@ return item.produto_nome
 
 return null
 }
+
+
+
+
+
+/* ================= ENCONTRAR PRATO COM FOTO ================= */
+
+function encontrarPratoComFoto(cardapio, texto){
+
+  const textoLimpo = normalizar(texto)
+
+  for(const item of cardapio){
+
+    if(!item.foto_url) continue // 🔥 IGNORA PRATO SEM FOTO
+
+    const nome = normalizar(item.nome)
+
+    if(nome.includes(textoLimpo)){
+      return item
+    }
+
+  }
+
+  return null
+}
+
+
+
+
+
+
+
+
+
+
 /* ================= CLASSIFICAR MENSAGEM ================= */
 
 async function classificarMensagem(texto){
@@ -1450,9 +1485,11 @@ const querVideo =
 textoNormalizado.includes("video") ||
 textoNormalizado.includes("vídeo")
 
-const querFotos =
-textoNormalizado.includes("foto") ||
-textoNormalizado.includes("imagem")
+const pediuFotoEspecifica =
+textoNormalizado.includes("foto") &&
+(
+  textoNormalizado.length > 10 // evita "tem foto?"
+)
 
 const querEndereco =
 textoNormalizado.includes("onde fica") ||
@@ -1693,6 +1730,70 @@ return res.status(200).end()
 }
   
 
+/* ================= FOTO DE PRATO ================= */
+
+if(pediuFotoEspecifica){
+
+  console.log("📸 CLIENTE PEDIU FOTO")
+
+  const cardapio = await buscarCardapio()
+
+  const prato = encontrarPratoComFoto(cardapio, mensagem)
+
+  if(prato){
+
+    console.log("✅ FOTO ENCONTRADA:", prato.nome)
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to:cliente,
+        type:"image",
+        image:{
+          link:prato.foto_url,
+          caption:prato.nome
+        }
+      })
+    })
+
+    await supabase.from("conversas_whatsapp").insert({
+      telefone:cliente,
+      mensagem:`[FOTO ENVIADA: ${prato.nome}]`,
+      role:"assistant"
+    })
+
+    return res.status(200).end()
+
+  }else{
+
+    console.log("❌ PRATO SEM FOTO")
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to:cliente,
+        type:"text",
+        text:{ body:"Esse prato ainda não tem foto disponível 😅" }
+      })
+    })
+
+    return res.status(200).end()
+  }
+
+}
+
+
+  
 
 
 /* ================= HISTÓRICO ================= */
@@ -1963,8 +2064,11 @@ Regras importantes:
 - Utilize apenas pratos desta lista.
 - Nunca invente pratos.
 - Se o cliente perguntar preço use PRECO.
-- Se pedir foto de um prato responda com ENVIAR_FOTO_PRATO.
-`
+- Só ofereça foto se o cliente pedir explicitamente
+- Só ofereça foto de UM prato específico
+- Nunca ofereça foto de vários pratos
+- Nunca invente imagem
+- Se não tiver foto, diga que não possui`
 },
 
 
