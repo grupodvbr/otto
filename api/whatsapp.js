@@ -1370,7 +1370,6 @@ const { data: estadoMusica } = await supabase
 .eq("tipo","musica")
 .maybeSingle()
 
-const jaFalouMusica = !!estadoMusica
 console.log("JA ENVIOU PROGRAMAÇÃO:", jaFalouMusica)
 let dataConsulta = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
@@ -1407,7 +1406,6 @@ agoraBahia.getHours().toString().padStart(2,"0") +
 agoraBahia.getMinutes().toString().padStart(2,"0")
 
   
-resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}`
 const posterHoje = pegarPoster(agendaDia)
 
 /* ================= AGENDA PARA IA ================= */
