@@ -733,8 +733,18 @@ const { data: promosHoje } = await supabase
 .lte("created_at", hojeFim)
 .ilike("mensagem", "%PROMO%")
 
-const jaEnviouPromoHoje = promosHoje && promosHoje.length > 0
+const { data: controlePromo } = await supabase
+.from("controle_envio")
+.select("*")
+.eq("telefone", cliente)
+.eq("tipo", "promo")
+.eq("data", getHojeBahia())
+.maybeSingle()
 
+const jaEnviouPromoHoje = !!controlePromo
+
+
+  
 const bloqueiaPromo = false
 
 if(querPromocao && !jaEnviouPromoHoje && !bloqueiaPromo){
