@@ -1412,75 +1412,17 @@ await supabase
   media_url,
   nome_arquivo,
   role:"user",
-  message_id: message_id,
-  status: "received"
+  message_id: message_id, // 🔥 ESSENCIAL
+  status: "received"      // 🔥 ESSENCIAL
 })
 
-const respostaGPT = completion.choices[0].message.content
+/* ================= CARDÁPIO PDF ================= */
 
-/* ================= ENVIAR CARDAPIO PDF ================= */
+if(querCardapio){
 
-if(respostaGPT && respostaGPT.includes("ENVIAR_CARDAPIO")){
+console.log("📄 ENVIANDO CARDÁPIO PDF")
 
-  console.log("📖 CARDÁPIO DETECTADO")
-
-  const textoLimpo = respostaGPT.replace("ENVIAR_CARDAPIO","").trim()
-
-  const pdf = "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf"
-
-  /* 1️⃣ ENVIA TEXTO */
-  if(textoLimpo){
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        messaging_product:"whatsapp",
-        to:cliente,
-        type:"text",
-        text:{ body: textoLimpo }
-      })
-    })
-  }
-
-  /* 2️⃣ ENVIA PDF */
-  const resp = await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"document",
-      document:{
-        link: pdf,
-        filename: "Cardapio_Mercatto.pdf"
-      }
-    })
-  })
-
-  const data = await resp.json()
-  console.log("📄 ENVIO PDF:", data)
-
-  return res.status(200).end()
-}
-
-/* ================= CONTINUA O RESTO DO CÓDIGO ================= */
-
-if(querEndereco){
-
-const resposta = `📍 Estamos localizados em:
-
-Mercatto Delícia
-Avenida Rui Barbosa 1264
-Barreiras - BA
-
-Mapa:
-https://maps.app.goo.gl/mQcEjj8s21ttRbrQ8`
+const linkPDF = "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf" // 🔥 COLOQUE O LINK REAL
 
 await fetch(url,{
 method:"POST",
@@ -1491,17 +1433,22 @@ Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
 body:JSON.stringify({
 messaging_product:"whatsapp",
 to:cliente,
-type:"text",
-text:{body:resposta}
+type:"document",
+document:{
+  link: linkPDF,
+  filename: "Cardapio_Mercatto.pdf"
+}
 })
 })
+
 await supabase
 .from("conversas_whatsapp")
 .insert({
 telefone:cliente,
-mensagem:resposta,
+mensagem:"[CARDÁPIO PDF ENVIADO]",
 role:"assistant"
 })
+
 return res.status(200).end()
 
 }
