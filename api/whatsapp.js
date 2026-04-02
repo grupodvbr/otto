@@ -1446,7 +1446,7 @@ if(respostaGPT && respostaGPT.includes("ENVIAR_CARDAPIO")){
   }
 
   /* 2️⃣ ENVIA PDF */
-  await fetch(url,{
+  const resp = await fetch(url,{
     method:"POST",
     headers:{
       Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
@@ -1463,18 +1463,8 @@ if(respostaGPT && respostaGPT.includes("ENVIAR_CARDAPIO")){
     })
   })
 
-  return res.status(200).end()
-}
-
-  await supabase
-  .from("conversas_whatsapp")
-  .insert({
-    telefone:cliente,
-    mensagem:"[CARDÁPIO PDF ENVIADO]",
-    tipo:"documento",
-    media_url: pdf,
-    role:"assistant"
-  })
+  const data = await resp.json()
+  console.log("📄 ENVIO PDF:", data)
 
   return res.status(200).end()
 }
