@@ -2679,6 +2679,40 @@ resposta = resposta.replace(/ENVIAR_PROMO_ITALIANO/g,"").trim()
 
   
 
+// 🔥 CARDÁPIO EM PDF
+
+
+  if(resposta.includes("ENVIAR_CARDAPIO")){
+
+  const pdfLink = "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf"
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"document",
+      document:{
+        link: pdfLink,
+        filename:"Cardápio Mercatto Delícia.pdf"
+      }
+    })
+  })
+
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:"[CARDÁPIO PDF ENVIADO]",
+    role:"assistant"
+  })
+
+  resposta = resposta.replace(/ENVIAR_CARDAPIO/g,"").trim()
+}
 
   
 
