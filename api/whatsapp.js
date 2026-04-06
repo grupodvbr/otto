@@ -54,9 +54,8 @@ const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const hoje = agoraBahia.toLocaleDateString("sv-SE", {
-  timeZone: "America/Bahia"
-})const {data:reservas} = await supabase
+const hoje = agoraBahia.toISOString().split("T")[0]
+const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
 .gte("datahora", hoje+"T00:00")
@@ -697,6 +696,36 @@ const texto = mensagem.toLowerCase()
 
 
 
+/* ================= DETECÇÃO MUSICA (SUBIR PRIORIDADE) ================= */
+
+const querMusica =
+texto.includes("musica") ||
+texto.includes("música") ||
+texto.includes("cantor") ||
+texto.includes("cantora") ||
+texto.includes("banda") ||
+texto.includes("show") ||
+texto.includes("ao vivo") ||
+texto.includes("dj") ||
+texto.includes("quem canta") ||
+texto.includes("quem vai cantar") ||
+texto.includes("quem vai tocar") ||
+texto.includes("quem toca") ||
+texto.includes("tocando") ||
+texto.includes("quem está tocando") ||
+texto.includes("quem ta tocando") ||
+texto.includes("tem musica") ||
+texto.includes("tem música") ||
+texto.includes("tem banda") ||
+texto.includes("tem show") ||
+texto.includes("vai ter musica") ||
+texto.includes("vai ter música") ||
+texto.includes("amanhã") ||
+texto.includes("hoje") ||
+texto.includes("ontem")
+
+assuntoMusica = querMusica
+
 
 
 
@@ -778,24 +807,6 @@ await supabase
   
 const textoNormalizado = normalizar(texto)
 
-/* ================= DETECTAR AMBIENTE ================= */
-
-const querAmbiente =
-textoNormalizado.includes("sacada") ||
-textoNormalizado.includes("area externa") ||
-textoNormalizado.includes("externa") ||
-textoNormalizado.includes("sala vip") ||
-textoNormalizado.includes("vip") ||
-textoNormalizado.includes("sala") ||
-textoNormalizado.includes("ambiente") ||
-textoNormalizado.includes("lugar") ||
-textoNormalizado.includes("espaço") ||
-textoNormalizado.includes("espaco") ||
-textoNormalizado.includes("restaurante") ||
-textoNormalizado.includes("como é") ||
-textoNormalizado.includes("como e")
-
-  
 /* ================= FORÇAR PROMOÇÕES ================= */
 
 const querPromocao =
@@ -1332,9 +1343,8 @@ const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const hoje = agoraBahia.toLocaleDateString("sv-SE", {
-  timeZone: "America/Bahia"
-})const {data:reservas} = await supabase
+const hoje = agoraBahia.toISOString().split("T")[0]
+const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
 .gte("datahora", hoje+"T00:00")
@@ -1385,38 +1395,19 @@ text:{body:resposta}
 return res.status(200).end()
 
 }
+let assuntoMusica = false
 
-
-let querMusica =
-texto.includes("musica") ||
-texto.includes("música") ||
-texto.includes("cantor") ||
-texto.includes("cantora") ||
+if(
+texto.includes("tocando") ||
+texto.includes("quem toca") ||
+texto.includes("quem canta") ||
 texto.includes("banda") ||
 texto.includes("show") ||
-texto.includes("ao vivo") ||
 texto.includes("dj") ||
-texto.includes("quem canta") ||
-texto.includes("quem vai cantar") ||
-texto.includes("quem vai tocar") ||
-texto.includes("quem toca") ||
-texto.includes("tocando") ||
-texto.includes("quem está tocando") ||
-texto.includes("quem ta tocando") ||
-texto.includes("tem musica") ||
-texto.includes("tem música") ||
-texto.includes("tem banda") ||
-texto.includes("tem show") ||
-texto.includes("vai ter musica") ||
-texto.includes("vai ter música") ||
-texto.includes("programação") ||
-texto.includes("programacao") ||
-texto.includes("agenda") ||
-texto.includes("quem canta hoje") ||
-texto.includes("qual o couvert") ||
-texto.includes("couvert")
-
-let assuntoMusica = querMusica
+texto.includes("música")
+){
+assuntoMusica = true
+}
 
   
 /* ================= CONTROLE MUSICA ================= */
@@ -1430,9 +1421,6 @@ const { data: estadoMusica } = await supabase
 
 const jaFalouMusica = !!estadoMusica
 console.log("JA ENVIOU PROGRAMAÇÃO:", jaFalouMusica)
-
-
-  
 let dataConsulta = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -1452,9 +1440,8 @@ textoDia = "ontem"
 if(texto.includes("amanhã")){
 textoDia = "amanhã"
 }
-const dataISO = dataConsulta.toLocaleDateString("sv-SE", {
-  timeZone: "America/Bahia"
-})
+const dataISO = dataConsulta.toISOString().split("T")[0]
+
 const agendaDia = await buscarAgendaDoDia(dataISO)
 const couvertHoje = calcularCouvert(agendaDia)
 const agora = new Date()
@@ -1484,9 +1471,8 @@ const seteDias = new Date(hojeBahia)
 
 seteDias.setDate(hojeBahia.getDate()+7)
 
-const seteDiasISO = seteDias.toLocaleDateString("sv-SE", {
-  timeZone: "America/Bahia"
-})
+const seteDiasISO = seteDias.toISOString().split("T")[0]
+
 const agendaSemana = await buscarAgendaPeriodo(hojeISO,seteDiasISO)
 
 let agendaTexto = ""
@@ -1672,6 +1658,50 @@ return res.status(200).end()
 }
 
 
+
+
+
+
+  
+
+const querMusica =
+texto.includes("musica") ||
+texto.includes("música") ||
+texto.includes("cantor") ||
+texto.includes("cantora") ||
+texto.includes("banda") ||
+texto.includes("show") ||
+texto.includes("ao vivo") ||
+texto.includes("dj") ||
+texto.includes("quem canta") ||
+texto.includes("quem vai cantar") ||
+texto.includes("quem vai tocar") ||
+texto.includes("quem toca") ||
+texto.includes("tocando") ||
+texto.includes("quem está tocando") ||
+texto.includes("quem ta tocando") ||
+texto.includes("tem musica") ||
+texto.includes("tem música") ||
+texto.includes("tem banda") ||
+texto.includes("tem show") ||
+texto.includes("vai ter musica") ||
+texto.includes("vai ter música") ||
+texto.includes("programação") ||
+texto.includes("programacao") ||
+texto.includes("agenda") ||
+texto.includes("quem canta hoje") ||
+texto.includes("qual o couvert") ||
+texto.includes("couvert")
+
+
+
+  
+console.log("DETECTOU MUSICA:", querMusica)
+assuntoMusica = querMusica
+
+if(querMusica){
+console.log("FORÇANDO ASSUNTO MUSICA")
+}
 /* ================= BLOQUEAR DUPLICIDADE ================= */
 
 const { data: jaProcessada } = await supabase
@@ -1930,156 +1960,7 @@ if(pediuFotoEspecifica){
 
 }
 
-/* ================= AMBIENTES COM MIDIA ================= */
 
-if(querAmbiente){
-
-console.log("📸 CLIENTE PEDIU AMBIENTE")
-
-let enviou = false
-
-/* ===== SACADA ===== */
-if(textoNormalizado.includes("sacada") || textoNormalizado.includes("externa")){
-
-const fotos = [
-"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.21.01.jpeg",
-"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.24.01.jpeg"
-]
-
-if(fotos.length){
-
-for(const foto of fotos){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:foto,
-caption:"Sacada • Mercatto Delícia"
-}
-})
-})
-
-}
-
-enviou = true
-}
-
-}
-
-/* ===== SALA VIP ===== */
-if(textoNormalizado.includes("vip")){
-
-const fotos = [
-"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
-]
-
-if(fotos.length){
-
-for(const foto of fotos){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:foto,
-caption:"Sala VIP • Mercatto Delícia"
-}
-})
-})
-
-}
-
-enviou = true
-}
-
-}
-
-/* ===== SALÃO ===== */
-if(textoNormalizado.includes("salao") || textoNormalizado.includes("salão")){
-
-const fotos = [
-"https://link-salao1.jpg"
-]
-
-if(fotos.length){
-
-for(const foto of fotos){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"image",
-image:{
-link:foto,
-caption:"Salão • Mercatto Delícia"
-}
-})
-})
-
-}
-
-enviou = true
-}
-
-}
-
-/* ===== SE NÃO TEM FOTO → MANDA VIDEO ===== */
-if(!enviou){
-
-console.log("🎥 SEM FOTO → ENVIANDO VIDEO")
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"video",
-video:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
-caption:"Conheça o ambiente do Mercatto Delícia"
-}
-})
-})
-
-}
-
-/* SALVA NO BANCO */
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:"[MIDIA AMBIENTE ENVIADA]",
-role:"assistant"
-})
-
-return res.status(200).end()
-
-}
   
 
 
