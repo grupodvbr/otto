@@ -1198,9 +1198,11 @@ ultima_interacao: new Date().toISOString()
   
 
 if(error){
-console.log("❌ ERRO AO SALVAR:", error)
+console.log("❌ ERRO AO SALVAR PEDIDO:", error)
 }else{
-console.log("✅ SALVO NO BANCO:", data)
+console.log("✅ PEDIDO SALVO COM SUCESSO")
+console.log("🧾 ID:", data?.[0]?.id)
+console.log("📦 DADOS:", data)
 }
 
 /* ================= RESPOSTA ================= */
