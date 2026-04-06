@@ -1862,7 +1862,9 @@ Buffet de hoje no Mercatto Delícia:
 })
 
 resposta = completionBuffet.choices[0].message.content
-
+resposta = resposta
+.replace(/[Ø‹›ß]/g,"")
+.replace(/[^\x00-\x7FÀ-ÿ\n\r:•\-]/g,"")
   }
 
   await fetch(url,{
