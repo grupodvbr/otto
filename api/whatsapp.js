@@ -1746,13 +1746,37 @@ return res.status(200).end()
 }
   
 
-/* ================= FOTO DE PRATO ================= */
-
 if(pediuFotoAmbiente){
 
   console.log("📸 FOTO DE AMBIENTE DETECTADA")
 
-  let resposta = "Claro! Vou te mostrar 😊 ENVIAR_FOTOS_SACADA"
+  let resposta = "Claro! Vou te mostrar 😊 "
+
+  /* 🔥 DETECTAR QUAL AMBIENTE */
+  if(textoNormalizado.includes("sacada")){
+    resposta += "ENVIAR_FOTOS_SACADA"
+  }
+
+  else if(textoNormalizado.includes("vip 1") || textoNormalizado.includes("vip")){
+    resposta += "ENVIAR_FOTOS_VIP1"
+  }
+
+  else if(textoNormalizado.includes("vip 2")){
+    resposta += "ENVIAR_FOTOS_VIP2"
+  }
+
+  else if(
+    textoNormalizado.includes("salão") ||
+    textoNormalizado.includes("salao") ||
+    textoNormalizado.includes("interno")
+  ){
+    resposta += "ENVIAR_FOTOS_SALAO"
+  }
+
+  /* 🔥 SE NÃO IDENTIFICAR → MANDA VÍDEO */
+  else{
+    resposta += "ENVIAR_VIDEO_RESTAURANTE"
+  }
 
   await fetch(url,{
     method:"POST",
@@ -1770,7 +1794,6 @@ if(pediuFotoAmbiente){
 
   return res.status(200).end()
 }
-
 
 
 
@@ -2488,7 +2511,38 @@ const resp = await fetch(url,{
 }
 
 
+/* ===== VIDEO RESTAURANTE ===== */
 
+if(resposta.includes("ENVIAR_VIDEO_RESTAURANTE")){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"video",
+video:{
+link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
+caption:"Conheça o ambiente do Mercatto Delícia 🍷"
+}
+})
+})
+
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[VIDEO RESTAURANTE ENVIADO]",
+role:"assistant"
+})
+
+resposta = resposta.replace(/ENVIAR_VIDEO_RESTAURANTE/g,"").trim()
+
+}
 
 
 
