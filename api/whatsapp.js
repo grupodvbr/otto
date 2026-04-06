@@ -1814,11 +1814,13 @@ if(pediuFotoPrato){
 }
 
 
+/* ================= FOTO AMBIENTE (BLOQUEIO TOTAL) ================= */
+
 if(pediuFotoAmbiente){
 
   console.log("📸 FOTO DE AMBIENTE DETECTADA")
 
-  if(textoNormalizado.includes("sacada")){
+  if(textoNormalizado.match(/sacad|extern|fora|varanda|vista/)){
     resposta = "ENVIAR_FOTOS_SACADA"
   }
   else if(textoNormalizado.includes("vip")){
@@ -1828,11 +1830,54 @@ if(pediuFotoAmbiente){
     resposta = "ENVIAR_FOTOS_SALAO"
   }
 
-  // 🔥 PULA IA
-  console.log("⛔ IGNORANDO OPENAI PARA FOTO")
+  console.log("🚀 EXECUTANDO DIRETO:", resposta)
 
-}else{
-  // segue fluxo normal
+  /* 🔥 EXECUTA IMEDIATO (SEM IA) */
+
+  if(resposta === "ENVIAR_FOTOS_SACADA"){
+
+    const fotos = [
+      "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.21.01.jpeg",
+      "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.24.01.jpeg"
+    ]
+
+    for(const foto of fotos){
+      await fetch(url,{
+        method:"POST",
+        headers:{
+          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+          messaging_product:"whatsapp",
+          to:cliente,
+          type:"image",
+          image:{
+            link:foto,
+            caption:"Sacada • Mercatto Delícia"
+          }
+        })
+      })
+    }
+
+    await supabase.from("conversas_whatsapp").insert({
+      telefone:cliente,
+      mensagem:"[FOTOS SACADA ENVIADAS]",
+      role:"assistant"
+    })
+
+    return res.status(200).end()
+  }
+
+  if(resposta === "ENVIAR_FOTOS_VIP1"){
+    // você pode reaproveitar seu bloco atual
+    return res.status(200).end()
+  }
+
+  if(resposta === "ENVIAR_FOTOS_SALAO"){
+    return res.status(200).end()
+  }
+
 }
 
 if(resposta.includes("ENVIAR_FOTOS_")){
