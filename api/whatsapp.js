@@ -1813,29 +1813,55 @@ if(querBuffet){
 
   }else{
 
-    const categorias = {}
+const nomes = buffet.map(i => i.produto_nome).join("\n")
 
-    for(const item of buffet){
+const completionBuffet = await openai.chat.completions.create({
+  model:"gpt-4.1-mini",
+  messages:[
+    {
+      role:"system",
+      content:`
+Você é um chef organizando um buffet.
 
-      const tipo = item.tipo || "Outros"
+Classifique os pratos em categorias alimentares reais.
 
-      if(!categorias[tipo]){
-        categorias[tipo] = []
-      }
+Categorias possíveis:
+🍖 Carnes
+🍝 Massas
+🥗 Saladas
+🍚 Acompanhamentos
+🍗 Frango
+🐟 Peixes
+🥔 Guarnições
 
-      categorias[tipo].push(item.produto_nome)
+REGRAS:
+
+- NUNCA use termos como:
+MONTAGEM, PRODUÇÃO, FINALIZAÇÃO
+
+- NÃO invente pratos
+- NÃO repita categorias
+- Use apenas os itens fornecidos
+
+FORMATO:
+
+Buffet de hoje no Mercatto Delícia:
+
+🍖 Carnes
+- item
+
+🍝 Massas
+- item
+`
+    },
+    {
+      role:"user",
+      content: nomes
     }
+  ]
+})
 
-    for(const tipo in categorias){
-
-      resposta += `🍴 *${tipo}*\n`
-
-      categorias[tipo].forEach(nome=>{
-        resposta += `- ${nome}\n`
-      })
-
-      resposta += `\n`
-    }
+resposta = completionBuffet.choices[0].message.content
 
   }
 
