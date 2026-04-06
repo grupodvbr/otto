@@ -1085,29 +1085,60 @@ Vamos resolver o mais rápido possível. 💛`
 
 const pedidoClienteMatch = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
 
+let pedido = null
+
+/* ================= TENTAR JSON ================= */
+
 if(pedidoClienteMatch){
 
-console.log("🔥 PEDIDO DETECTADO")
-
-let pedido
-let jsonTexto = pedidoClienteMatch[1]
-
 try{
-
-pedido = JSON.parse(jsonTexto)
-
-console.log("✅ JSON OK:", pedido)
-
+pedido = JSON.parse(pedidoClienteMatch[1])
+console.log("✅ PEDIDO VIA JSON:", pedido)
 }catch(err){
-
 console.log("❌ ERRO JSON:", err)
-console.log("JSON RECEBIDO:", jsonTexto)
-
-return res.status(200).end()
+}
 
 }
 
-/* CALCULAR TOTAL */
+/* ================= 🔥 NOVO: TEXTO LIVRE ================= */
+
+if(!pedido){
+
+console.log("🔥 TENTANDO INTERPRETAR TEXTO LIVRE")
+
+if(
+mensagem.toLowerCase().includes("pedido") ||
+mensagem.toLowerCase().includes("pizza") ||
+mensagem.toLowerCase().includes("quero")
+){
+
+pedido = {
+nome: "Cliente",
+endereco: mensagem,
+bairro: "",
+pagamento: "não informado",
+itens: [
+{
+nome: mensagem,
+quantidade: 1,
+preco: 0
+}
+]
+}
+
+console.log("⚠️ PEDIDO GERADO VIA TEXTO:", pedido)
+
+}
+
+}
+
+/* ================= SE NÃO TEM PEDIDO, IGNORA ================= */
+
+if(!pedido){
+console.log("❌ NÃO É PEDIDO")
+}else{
+
+/* ================= CALCULAR TOTAL ================= */
 
 const valorTotal = (pedido.itens || []).reduce((s,i)=>{
 const preco = Number(i.preco || 0)
@@ -1115,7 +1146,7 @@ const qtd = Number(i.quantidade || 1)
 return s + (preco * qtd)
 },0)
 
-/* SALVAR DIRETO NA TABELA pedidos */
+/* ================= SALVAR ================= */
 
 const { data, error } = await supabase
 .from("pedidos")
@@ -1127,28 +1158,23 @@ cliente_bairro: pedido.bairro || "",
 itens: pedido.itens || [],
 valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
-observacao: pedido.observacao || "",
+observacao: "",
 status: "novo",
 origem: "whatsapp"
 }])
 .select()
 
 if(error){
-console.log("❌ ERRO AO SALVAR PEDIDO:", error)
+console.log("❌ ERRO AO SALVAR:", error)
 }else{
-console.log("✅ PEDIDO SALVO COM SUCESSO:", data)
+console.log("✅ SALVO NO BANCO:", data)
 }
 
-/* RESPOSTA PARA CLIENTE */
+/* ================= RESPOSTA ================= */
 
-resposta = `✅ Pedido confirmado!
+resposta = `✅ Pedido recebido!
 
-🧾 Itens:
-${(pedido.itens || []).map(i=>`• ${i.quantidade}x ${i.nome}`).join("\n")}
-
-💰 Total: R$ ${valorTotal.toFixed(2)}
-
-Seu pedido já foi enviado para a cozinha 🚀`
+Seu pedido já foi registrado e enviado para a cozinha 🚀`
 
 }
 
