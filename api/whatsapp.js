@@ -54,8 +54,9 @@ const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const hoje = agoraBahia.toISOString().split("T")[0]
-const {data:reservas} = await supabase
+const hoje = agoraBahia.toLocaleDateString("sv-SE", {
+  timeZone: "America/Bahia"
+})const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
 .gte("datahora", hoje+"T00:00")
@@ -692,7 +693,24 @@ return res.status(200).end()
 }
 
 const texto = mensagem.toLowerCase()
+
+
+
+
+
+
+
+
+
+  
 /* ================= ADMIN RESPONDENDO CLIENTE ================= */
+
+
+
+
+
+
+  
 
 if(isAdmin){
 
@@ -1296,8 +1314,9 @@ const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const hoje = agoraBahia.toISOString().split("T")[0]
-const {data:reservas} = await supabase
+const hoje = agoraBahia.toLocaleDateString("sv-SE", {
+  timeZone: "America/Bahia"
+})const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
 .gte("datahora", hoje+"T00:00")
@@ -1348,19 +1367,38 @@ text:{body:resposta}
 return res.status(200).end()
 
 }
-let assuntoMusica = false
 
-if(
-texto.includes("tocando") ||
-texto.includes("quem toca") ||
-texto.includes("quem canta") ||
+
+let querMusica =
+texto.includes("musica") ||
+texto.includes("música") ||
+texto.includes("cantor") ||
+texto.includes("cantora") ||
 texto.includes("banda") ||
 texto.includes("show") ||
+texto.includes("ao vivo") ||
 texto.includes("dj") ||
-texto.includes("música")
-){
-assuntoMusica = true
-}
+texto.includes("quem canta") ||
+texto.includes("quem vai cantar") ||
+texto.includes("quem vai tocar") ||
+texto.includes("quem toca") ||
+texto.includes("tocando") ||
+texto.includes("quem está tocando") ||
+texto.includes("quem ta tocando") ||
+texto.includes("tem musica") ||
+texto.includes("tem música") ||
+texto.includes("tem banda") ||
+texto.includes("tem show") ||
+texto.includes("vai ter musica") ||
+texto.includes("vai ter música") ||
+texto.includes("programação") ||
+texto.includes("programacao") ||
+texto.includes("agenda") ||
+texto.includes("quem canta hoje") ||
+texto.includes("qual o couvert") ||
+texto.includes("couvert")
+
+let assuntoMusica = querMusica
 
   
 /* ================= CONTROLE MUSICA ================= */
@@ -1374,6 +1412,9 @@ const { data: estadoMusica } = await supabase
 
 const jaFalouMusica = !!estadoMusica
 console.log("JA ENVIOU PROGRAMAÇÃO:", jaFalouMusica)
+
+
+  
 let dataConsulta = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -1393,8 +1434,9 @@ textoDia = "ontem"
 if(texto.includes("amanhã")){
 textoDia = "amanhã"
 }
-const dataISO = dataConsulta.toISOString().split("T")[0]
-
+const dataISO = dataConsulta.toLocaleDateString("sv-SE", {
+  timeZone: "America/Bahia"
+})
 const agendaDia = await buscarAgendaDoDia(dataISO)
 const couvertHoje = calcularCouvert(agendaDia)
 const agora = new Date()
@@ -1424,8 +1466,9 @@ const seteDias = new Date(hojeBahia)
 
 seteDias.setDate(hojeBahia.getDate()+7)
 
-const seteDiasISO = seteDias.toISOString().split("T")[0]
-
+const seteDiasISO = seteDias.toLocaleDateString("sv-SE", {
+  timeZone: "America/Bahia"
+})
 const agendaSemana = await buscarAgendaPeriodo(hojeISO,seteDiasISO)
 
 let agendaTexto = ""
@@ -1444,6 +1487,64 @@ POSTER: ${m.foto || "sem"}
 
 })
 
+
+
+/* ================= RESPOSTA SEMANA ================= */
+
+const querSemana =
+texto.includes("semana") ||
+texto.includes("essa semana") ||
+texto.includes("da semana")
+
+if(querSemana){
+
+if(!agendaSemana.length){
+
+resposta = "Ainda não temos música ao vivo programada para essa semana 🎶"
+
+}else{
+
+resposta = "🎶 Programação da semana:\n\n"
+
+agendaSemana.forEach(m => {
+
+resposta += `📅 ${m.data}\n`
+resposta += `🎤 ${m.cantor}\n`
+resposta += `🕒 ${m.hora}\n\n`
+
+})
+
+}
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+}
+
+
+
+
+
+
+  
+
+
+
+
+
+  
 let agendaHojeTexto = "SEM SHOW HOJE"
 
 if(agendaDia.length){
@@ -1502,44 +1603,57 @@ textoNormalizado.includes("localizacao") ||
 textoNormalizado.includes("localização")
 
 
-const querMusica =
-texto.includes("musica") ||
-texto.includes("música") ||
-texto.includes("cantor") ||
-texto.includes("cantora") ||
-texto.includes("banda") ||
-texto.includes("show") ||
-texto.includes("ao vivo") ||
-texto.includes("dj") ||
-texto.includes("quem canta") ||
-texto.includes("quem vai cantar") ||
-texto.includes("quem vai tocar") ||
-texto.includes("quem toca") ||
-texto.includes("tocando") ||
-texto.includes("quem está tocando") ||
-texto.includes("quem ta tocando") ||
-texto.includes("tem musica") ||
-texto.includes("tem música") ||
-texto.includes("tem banda") ||
-texto.includes("tem show") ||
-texto.includes("vai ter musica") ||
-texto.includes("vai ter música") ||
-texto.includes("programação") ||
-texto.includes("programacao") ||
-texto.includes("agenda") ||
-texto.includes("quem canta hoje") ||
-texto.includes("qual o couvert") ||
-texto.includes("couvert")
 
+/* ================= DATA ESPECIFICA ================= */
 
+const matchData = texto.match(/(\d{2})\/(\d{2})/)
 
-  
-console.log("DETECTOU MUSICA:", querMusica)
-assuntoMusica = querMusica
+if(matchData){
 
-if(querMusica){
-console.log("FORÇANDO ASSUNTO MUSICA")
+const dia = matchData[1]
+const mes = matchData[2]
+
+const ano = new Date().getFullYear()
+
+const dataISO = `${ano}-${mes}-${dia}`
+
+const agendaDia = await buscarAgendaDoDia(dataISO)
+
+if(!agendaDia.length){
+
+resposta = `Ainda não temos música ao vivo programada para o dia ${dia}/${mes} 🎶`
+
+}else{
+
+resposta = `🎶 Programação do dia ${dia}/${mes}:\n\n`
+
+agendaDia.forEach(m => {
+
+resposta += `🎤 ${m.cantor}\n`
+resposta += `🕒 ${m.hora}\n\n`
+
+})
+
 }
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
+})
+})
+
+return res.status(200).end()
+}
+
+
 /* ================= BLOQUEAR DUPLICIDADE ================= */
 
 const { data: jaProcessada } = await supabase
