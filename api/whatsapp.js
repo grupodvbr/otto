@@ -205,6 +205,7 @@ const { data, error } = await supabase
 .from("buffet_lancamentos")
 .select("produto_nome,tipo,data")
 .eq("empresa","MERCATTO DELÍCIA")
+.eq("tipo","MONTAGEM")
 .gte("data", hojeISO)
 .lte("data", hojeISO)
 
@@ -1487,22 +1488,11 @@ const querVideo =
 textoNormalizado.includes("video") ||
 textoNormalizado.includes("vídeo")
 
-const pediuFotoAmbiente =
+const pediuFotoEspecifica =
 textoNormalizado.includes("foto") &&
 (
-  textoNormalizado.includes("sacada") ||
-  textoNormalizado.includes("ambiente") ||
-  textoNormalizado.includes("lugar") ||
-  textoNormalizado.includes("espaco") ||
-  textoNormalizado.includes("espaço") ||
-  textoNormalizado.includes("salão") ||
-  textoNormalizado.includes("sala") ||
-  textoNormalizado.includes("vip")
+  textoNormalizado.length > 10 // evita "tem foto?"
 )
-
-const pediuFotoPrato =
-textoNormalizado.includes("foto") &&
-!pediuFotoAmbiente
 
 const querEndereco =
 textoNormalizado.includes("onde fica") ||
@@ -1746,63 +1736,19 @@ return res.status(200).end()
 }
   
 
-if(pediuFotoAmbiente){
-
-  console.log("📸 FOTO DE AMBIENTE DETECTADA")
-
-  resposta = "Claro! Vou te mostrar nosso ambiente 😊\n\nENVIAR_VIDEO_RESTAURANTE"
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ body: resposta }
-    })
-  })
-
-  return res.status(200).end()
-}
-
-
-
-
-  
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ body: resposta }
-    })
-  })
-
-  return res.status(200).end()
-}
-
-
-
 /* ================= FOTO DE PRATO ================= */
 
-if(pediuFotoPrato){
+if(pediuFotoEspecifica){
 
-  console.log("📸 CLIENTE PEDIU FOTO DE PRATO")
+  console.log("📸 CLIENTE PEDIU FOTO")
 
   const cardapio = await buscarCardapio()
 
   const prato = encontrarPratoComFoto(cardapio, mensagem)
 
   if(prato){
+
+    console.log("✅ FOTO ENCONTRADA:", prato.nome)
 
     await fetch(url,{
       method:"POST",
@@ -1831,6 +1777,8 @@ if(pediuFotoPrato){
 
   }else{
 
+    console.log("❌ PRATO SEM FOTO")
+
     await fetch(url,{
       method:"POST",
       headers:{
@@ -1851,103 +1799,6 @@ if(pediuFotoPrato){
 }
 
 
-
-
-
-/* ================= RESPOSTA DIRETA BUFFET ================= */
-
-if(querBuffet){
-
-  console.log("🍽️ RESPONDENDO BUFFET DIRETO")
-
-  const buffet = await buscarBuffetHoje()
-
-  let resposta = "🍽️ *Buffet de hoje no Mercatto Delícia:*\n\n"
-
-  if(!buffet.length){
-
-    resposta += "Hoje não temos buffet disponível 😢"
-
-  }else{
-
-const nomes = buffet.map(i => i.produto_nome).join("\n")
-
-const completionBuffet = await openai.chat.completions.create({
-  model:"gpt-4.1-mini",
-  messages:[
-    {
-      role:"system",
-      content:`
-Você é um chef organizando um buffet.
-
-Classifique os pratos em categorias alimentares reais.
-
-Categorias possíveis:
-🍖 Carnes
-🍝 Massas
-🥗 Saladas
-🍚 Acompanhamentos
-🍗 Frango
-🐟 Peixes
-🥔 Guarnições
-
-REGRAS:
-
-- NUNCA use termos como:
-MONTAGEM, PRODUÇÃO, FINALIZAÇÃO
-
-- NÃO invente pratos
-- NÃO repita categorias
-- Use apenas os itens fornecidos
-
-FORMATO:
-
-Buffet de hoje no Mercatto Delícia:
-
-🍖 Carnes
-- item
-
-🍝 Massas
-- item
-`
-    },
-    {
-      role:"user",
-      content: nomes
-    }
-  ]
-})
-
-resposta = completionBuffet.choices[0].message.content
-resposta = resposta
-.replace(/[Ø‹›ß]/g,"")
-.replace(/[^\x00-\x7FÀ-ÿ\n\r:•\-]/g,"")
-  }
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ body:resposta }
-    })
-  })
-
-  await supabase
-  .from("conversas_whatsapp")
-  .insert({
-    telefone:cliente,
-    mensagem:resposta,
-    role:"assistant"
-  })
-
-  return res.status(200).end()
-}
   
 
 
@@ -2046,7 +1897,10 @@ if(!buffet.length){
   buffetTexto = "SEM ITENS NO BUFFET HOJE"
 }else{
   buffet.forEach(item => {
-buffetTexto += `${item.produto_nome}\n`
+    buffetTexto += `
+ITEM: ${item.produto_nome}
+CATEGORIA: ${item.tipo || "geral"}
+`
   })
 }
 
@@ -2231,40 +2085,13 @@ BUFFET DE HOJE (DADOS REAIS):
 
 ${buffetTexto}
 
-REGRAS IMPORTANTES:
+Regras:
 
-- Você deve organizar os itens em categorias alimentares reais como:
-
-🍖 Carnes  
-🍝 Massas  
-🥗 Saladas  
-🍚 Acompanhamentos  
-🍗 Frango  
-🐟 Peixes  
-🥔 Guarnições  
-
-- NUNCA use termos técnicos como:
-"MONTAGEM", "PRODUÇÃO", "FINALIZAÇÃO"
-
-- NÃO repita categorias
-
-- NÃO invente itens
-
-- Formate exatamente assim:
-
-Buffet de hoje no Mercatto Delícia:
-
-🍖 Carnes
-- item
-- item
-
-🍝 Massas
-- item
-
-🥗 Saladas
-- item
-
-- Use apenas texto simples (sem caracteres estranhos)
+- Esses são os itens reais do buffet de hoje
+- Não invente itens
+- Se o cliente perguntar "o que tem hoje", liste os itens
+- Se perguntar "tem X", verifique nessa lista
+- Organize de forma bonita
 `
 },
 
@@ -2506,38 +2333,7 @@ const resp = await fetch(url,{
 }
 
 
-/* ===== VIDEO RESTAURANTE ===== */
 
-if(resposta.includes("ENVIAR_VIDEO_RESTAURANTE")){
-
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"video",
-video:{
-link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
-caption:"Conheça o ambiente do Mercatto Delícia 🍷"
-}
-})
-})
-
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-mensagem:"[VIDEO RESTAURANTE ENVIADO]",
-role:"assistant"
-})
-
-resposta = resposta.replace(/ENVIAR_VIDEO_RESTAURANTE/g,"").trim()
-
-}
 
 
 
