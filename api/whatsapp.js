@@ -1122,11 +1122,68 @@ const palavrasPedido = [
 
 const temIntencaoPedido = palavrasPedido.some(p => textoLower.includes(p))
 
-if(
-  textoLower.includes("pizza") ||
-  textoLower.includes("pedido") ||
-  temIntencaoPedido
-){
+const textoLower = mensagem.toLowerCase()
+
+const palavrasPedido = [
+  "quero pedir",
+  "vou querer",
+  "me vê",
+  "me ver",
+  "manda",
+  "entrega",
+  "pra entrega",
+  "retirada",
+  "fechar pedido",
+  "pode mandar",
+  "quero uma",
+  "quero um",
+  "quero 1",
+  "quero 2"
+]
+
+const palavrasConsulta = [
+  "tem",
+  "tem o que",
+  "tem algo",
+  "o que tem",
+  "me mostra",
+  "cardapio",
+  "cardápio",
+  "opções",
+  "similar",
+  "igual",
+  "como funciona",
+  "preço",
+  "valor",
+  "quanto custa",
+  "quais",
+  "qual"
+]
+
+const temIntencaoPedido = palavrasPedido.some(p => textoLower.includes(p))
+const ehConsulta = palavrasConsulta.some(p => textoLower.includes(p))
+
+if(temIntencaoPedido && !ehConsulta){
+
+  pedido = {
+    nome: "Cliente",
+    endereco: "", // 🔥 NÃO USAR mensagem
+    bairro: "",
+    pagamento: "não informado",
+    itens: [
+      {
+        nome: mensagem,
+        quantidade: 1,
+        preco: 0
+      }
+    ]
+  }
+
+  console.log("✅ PEDIDO REAL DETECTADO:", pedido)
+
+}else{
+  console.log("🚫 NÃO É PEDIDO (CONSULTA OU CONVERSA)")
+}
 
 pedido = {
 nome: "Cliente",
