@@ -461,55 +461,6 @@ Responda sempre de forma clara e direta.
 },
 
 
-
-
-{
-role:"system",
-content:`
-REGRAS DE SUGESTÃO INTELIGENTE (UPSELL AUTOMÁTICO)
-
-1. Quando o cliente escolher uma data que NÃO corresponde ao evento solicitado:
-   - Informe normalmente (sem bloquear)
-   - E SEMPRE verifique se existe algo interessante nesse dia
-
-2. Se houver:
-   - música ao vivo
-   - promoção
-   - rodízio diferente
-   - happy hour
-   - buffet especial
-
-→ Você DEVE sugerir isso de forma natural
-
-3. Exemplo de comportamento:
-
-Cliente quer rodízio oriental na terça:
-
-Resposta ideal:
-"Perfeito 😊 Só te avisando: o rodízio oriental acontece aos domingos 🍣  
-Mas na terça teremos música ao vivo 🎶 e nosso happy hour 🍻  
-Quer reservar para esse dia mesmo ou prefere domingo?"
-
-4. IMPORTANTE:
-- Nunca inventar eventos
-- Usar apenas dados reais fornecidos no sistema
-- Não forçar, apenas sugerir
-
-5. OBJETIVO:
-- Sempre ajudar o cliente
-- Sempre aumentar valor da experiência
-- Sempre aproveitar oportunidade de venda
-
-`
-},
-
-
-
-
-
-
-  
-
 {
 role:"system",
 content:`
@@ -1537,25 +1488,10 @@ const querVideo =
 textoNormalizado.includes("video") ||
 textoNormalizado.includes("vídeo")
 
-const pediuFotoAmbiente =
-textoNormalizado.match(/foto|imagem|mostrar|ver|conhecer/) &&
-(
-  textoNormalizado.includes("sacada") ||
-  textoNormalizado.includes("ambiente") ||
-  textoNormalizado.includes("salão") ||
-  textoNormalizado.includes("area") ||
-  textoNormalizado.includes("espaço") ||
-  textoNormalizado.includes("lugar")
-)
-
-const pediuFotoPrato =
+const pediuFotoEspecifica =
 textoNormalizado.includes("foto") &&
 (
-  textoNormalizado.includes("prato") ||
-  textoNormalizado.includes("comida") ||
-  textoNormalizado.includes("cardapio") ||
-  textoNormalizado.includes("cardápio") ||
-  textoNormalizado.match(/(salm|camar|pizza|sushi|carne|frango)/)
+  textoNormalizado.length > 10 // evita "tem foto?"
 )
 
 const querEndereco =
@@ -1802,8 +1738,8 @@ return res.status(200).end()
 
 /* ================= FOTO DE PRATO ================= */
 
-if(pediuFotoPrato){
-  
+if(pediuFotoEspecifica){
+
   console.log("📸 CLIENTE PEDIU FOTO")
 
   const cardapio = await buscarCardapio()
@@ -1863,78 +1799,6 @@ if(pediuFotoPrato){
 }
 
 
-/* ================= FOTO AMBIENTE (BLOQUEIO TOTAL) ================= */
-
-if(pediuFotoAmbiente){
-
-  console.log("📸 FOTO DE AMBIENTE DETECTADA")
-
-  if(textoNormalizado.match(/sacad|extern|fora|varanda|vista/)){
-    resposta = "ENVIAR_FOTOS_SACADA"
-  }
-  else if(textoNormalizado.includes("vip")){
-    resposta = "ENVIAR_FOTOS_VIP1"
-  }
-  else{
-    resposta = "ENVIAR_FOTOS_SALAO"
-  }
-
-  console.log("🚀 EXECUTANDO DIRETO:", resposta)
-
-  /* 🔥 EXECUTA IMEDIATO (SEM IA) */
-
-  if(resposta === "ENVIAR_FOTOS_SACADA"){
-
-    const fotos = [
-      "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.21.01.jpeg",
-      "https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.24.01.jpeg"
-    ]
-
-    for(const foto of fotos){
-      await fetch(url,{
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          messaging_product:"whatsapp",
-          to:cliente,
-          type:"image",
-          image:{
-            link:foto,
-            caption:"Sacada • Mercatto Delícia"
-          }
-        })
-      })
-    }
-
-    await supabase.from("conversas_whatsapp").insert({
-      telefone:cliente,
-      mensagem:"[FOTOS SACADA ENVIADAS]",
-      role:"assistant"
-    })
-
-    return res.status(200).end()
-  }
-
-  if(resposta === "ENVIAR_FOTOS_VIP1"){
-    // você pode reaproveitar seu bloco atual
-    return res.status(200).end()
-  }
-
-  if(resposta === "ENVIAR_FOTOS_SALAO"){
-    return res.status(200).end()
-  }
-
-}
-
-if(resposta.includes("ENVIAR_FOTOS_")){
-  console.log("🚀 ENVIANDO FOTO DE AMBIENTE DIRETO")
-}
-
-
-  
   
 
 
@@ -2144,11 +2008,6 @@ model:"gpt-4.1-mini",
 
 messages:[
 
-
-
-
-
-  
 {
 role:"system",
 content:`
@@ -2258,43 +2117,6 @@ REGRAS CRÍTICAS:
 `
 },
 
-{
-role:"system",
-content:`
-REGRA CRÍTICA DE RESERVA (AÇÃO AUTOMÁTICA)
-
-1. Sempre que o cliente fornecer:
-- nome
-- quantidade de pessoas
-- data
-- horário
-
-→ Você DEVE gerar automaticamente:
-
-RESERVA_JSON: {
-  "nome": "...",
-  "pessoas": "...",
-  "data": "...",
-  "hora": "...",
-  "area": "...",
-  "comandaIndividual": "Sim ou Não"
-}
-
-2. NÃO peça confirmação se os dados já estiverem completos.
-
-3. NÃO apenas responda em texto.
-
-4. SEMPRE execute a reserva automaticamente.
-
-5. O cliente pode escolher QUALQUER data.
-
-6. IMPORTANTE:
-- Se o cliente mencionar um evento (ex: rodízio oriental), você pode sugerir a data correta
-- MAS nunca impedir a escolha do cliente
-- Se ele escolher outro dia, você deve respeitar e reservar normalmente
-
-`
-},
 
 
   
@@ -2309,111 +2131,6 @@ RESERVA_JSON: {
 resposta = completion.choices[0].message.content
 /* 🚨 BLOQUEIO TOTAL DE ALERTA */
 
-
-/* ================= 🚀 CAPTURA IMEDIATA RESERVA ================= */
-
-const reservaMatch = resposta.match(/RESERVA_JSON:\s*({[\s\S]*?})/)
-
-if(reservaMatch){
-
-  console.log("🔥 RESERVA DETECTADA IMEDIATA")
-
-  let reserva
-
-  try{
-    reserva = JSON.parse(reservaMatch[1])
-  }catch(err){
-    console.log("❌ ERRO JSON:", reservaMatch[1])
-    console.log(err)
-    return res.status(200).end()
-  }
-
-  console.log("✅ RESERVA PARSEADA:", reserva)
-
-  /* ================= NORMALIZAR DATA ================= */
-
-  let dataISO = reserva.data
-
-  if(reserva.data && reserva.data.includes("/")){
-
-    const [dia,mes] = reserva.data.split("/")
-
-    const agoraBahia = new Date(
-      new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-    )
-
-    const ano = agoraBahia.getFullYear()
-
-    dataISO = `${ano}-${mes}-${dia}`
-  }
-
-  /* ================= NORMALIZAR AREA ================= */
-
-  let mesa="Salão Central"
-  const areaTexto=(reserva.area || "").toLowerCase()
-
-  if(areaTexto.includes("extern") || areaTexto.includes("sacada")){
-    mesa="Área Externa"
-  }
-
-  if(areaTexto.includes("vip 2")){
-    mesa="Sala VIP 2"
-  }
-  else if(areaTexto.includes("vip")){
-    mesa="Sala VIP 1"
-  }
-
-  /* ================= DATAHORA ================= */
-
-  const datahora = dataISO+"T"+reserva.hora
-
-  /* ================= SALVAR ================= */
-
-  const { error } = await supabase
-  .from("reservas_mercatto")
-  .insert({
-    nome: reserva.nome,
-    telefone: cliente,
-    pessoas: parseInt(reserva.pessoas) || 1,
-    mesa: mesa,
-    datahora: datahora,
-    comandaIndividual: reserva.comandaIndividual || "Não",
-    status: "Pendente",
-    origem: "whatsapp"
-  })
-
-  if(error){
-    console.log("❌ ERRO AO SALVAR:", error)
-  }else{
-    console.log("✅ RESERVA SALVA COM SUCESSO")
-  }
-
-  /* ================= RESPOSTA FINAL ================= */
-
-  const [anoR, mesR, diaR] = dataISO.split("-")
-  const dataCliente = `${diaR}/${mesR}/${anoR}`
-
-  resposta =
-`✅ *Reserva confirmada!*
-
-Nome: ${reserva.nome}
-Pessoas: ${reserva.pessoas}
-Data: ${dataCliente}
-Hora: ${reserva.hora}
-Área: ${mesa}
-
-📍 Mercatto Delícia
-Avenida Rui Barbosa 1264
-
-Aguardamos você! 😊`
-
-}
-
-
-
-
-
-  
 if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
 
   const { data: novaDuvida } = await supabase
