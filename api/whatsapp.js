@@ -1081,6 +1081,18 @@ Vamos resolver o mais rápido possível. 💛`
 
   return res.status(200).end()
 }
+
+
+
+// 🔥 GARANTE CARDÁPIO CARREGADO
+if(!global.cardapioAtual){
+  console.log("📦 CARREGANDO CARDÁPIO...")
+  global.cardapioAtual = await buscarCardapio()
+}
+
+
+
+  
 /* ================= PEDIDO DIRETO DO CLIENTE ================= */
 
 const pedidoClienteMatch = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
@@ -1242,10 +1254,17 @@ if(!item && (
     const nomeCardapio = normalizar(p.nome)
     const linhaNormalizada = normalizar(linha)
 
-    if(
-      linhaNormalizada.includes(nomeCardapio) ||
-      nomeCardapio.includes(linhaNormalizada)
-    ){
+const palavrasLinha = linhaNormalizada.split(" ")
+
+if(
+  palavrasLinha.some(p => nomeCardapio.includes(p))
+){
+  itemEncontrado = p
+  break
+}
+    
+    
+    {
       itemEncontrado = p
       break
     }
@@ -1264,8 +1283,9 @@ if(!item && (
 
   // 🔥 LIMPAR ITEM (tirar "quero pedir")
 item = item
-  .replace(/quero pedir|vou querer|me vê|me ver|manda|pra entrega/gi,"")
+  .replace(/quero pedir|vou querer|me vê|me ver|manda|pra entrega|para viagem|delivery/gi,"")
   .replace(/\d+/g,"")
+  .replace(/\bum\b|\buma\b/g,"")
   .trim()
 
 return {
