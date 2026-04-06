@@ -1106,49 +1106,13 @@ if(!pedido){
 
 console.log("🔥 TENTANDO INTERPRETAR TEXTO LIVRE")
 
-const textoLower = mensagem.toLowerCase()
+// ❌ NÃO CRIA PEDIDO POR TEXTO
+// 🔥 FORÇA A IA GERAR JSON CORRETO
 
-const palavrasPedido = [
-  "quero pedir",
-  "vou querer",
-  "me vê",
-  "me ver",
-  "manda",
-  "entrega",
-  "pra entrega",
-  "retirada",
-  "fechar pedido"
-]
+console.log("⛔ BLOQUEADO: texto livre não gera pedido")
 
-const temIntencaoPedido = palavrasPedido.some(p => textoLower.includes(p))
+pedido = null
 
-if(temIntencaoPedido){
-
-  console.log("🧾 INTENÇÃO DE PEDIDO DETECTADA")
-
-  const dados = extrairDadosPedido(mensagem)
-
-  pedido = {
-    nome: dados.nome || nomeMemoria || "Cliente",
-    endereco: dados.endereco || "",
-    bairro: dados.bairro || "",
-    pagamento: dados.pagamento || "não informado",
-    troco_para: dados.troco || null,
-    observacao: dados.observacao || "",
-    itens: [
-      {
-        nome: dados.item || "Pedido não identificado",
-        quantidade: dados.quantidade || 1,
-        preco: 0
-      }
-    ]
-  }
-
-  console.log("✅ PEDIDO GERADO:", pedido)
-
-}else{
-  console.log("❌ NÃO É PEDIDO")
-}
 }
 
 
@@ -1294,9 +1258,11 @@ cliente_nome: nomeFinal,
 cliente_telefone: cliente,
 cliente_endereco: enderecoFinal,
 cliente_bairro: bairroFinal,
-itens: pedido.itens || [],
-valor_total: valorTotal,
-forma_pagamento: pedido.pagamento || "",
+itens: pedidoIA.dados.itens || [],
+valor_total: pedidoIA.dados.valor_total || 0,
+forma_pagamento: pedidoIA.dados.forma_pagamento || "",
+observacao: pedidoIA.dados.observacao || "",
+cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
 observacao: pedido.observacao || "",
 status: "novo",
 origem: "whatsapp"
@@ -1442,9 +1408,11 @@ cliente_telefone: cliente,
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
 tipo: pedido.tipo || "entrega",
-itens: pedido.itens || [],
-valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
-forma_pagamento: pedido.pagamento || "",
+itens: pedidoIA.dados.itens || [],
+valor_total: pedidoIA.dados.valor_total || 0,
+forma_pagamento: pedidoIA.dados.forma_pagamento || "",
+observacao: pedidoIA.dados.observacao || "",
+cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
 observacao: pedido.observacao || "",
 status: "novo"
 }])
@@ -3232,7 +3200,7 @@ const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
 
 if(pedidoMatch){
 
-let pedido = null
+let pedidoIA = null
 
 let jsonTexto = pedidoMatch[1]
 
@@ -3249,8 +3217,7 @@ jsonTexto = jsonTexto
 
 try{
 
-pedido = JSON.parse(jsonTexto)
-
+pedidoIA = JSON.parse(jsonTexto)
 console.log("JSON DO PEDIDO OK:", pedido)
 
 }catch(err){
@@ -3261,8 +3228,7 @@ console.log("ERRO:", err)
 
 }
 
-if(pedido){
-
+if(pedidoIA){
 console.log("Pedido detectado:",pedido)
 
 /* CALCULAR TOTAL */
@@ -3294,9 +3260,11 @@ cliente_nome: pedido.nome,
 cliente_telefone: cliente,
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
-itens: pedido.itens || [],
-valor_total: valorTotal,
-forma_pagamento: pedido.pagamento || "",
+itens: pedidoIA.dados.itens || [],
+valor_total: pedidoIA.dados.valor_total || 0,
+forma_pagamento: pedidoIA.dados.forma_pagamento || "",
+observacao: pedidoIA.dados.observacao || "",
+cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
 observacao: pedido.observacao || ""
 })
 .select()
