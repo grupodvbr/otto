@@ -511,6 +511,8 @@ const body=req.body
 
 console.log("Webhook recebido:",JSON.stringify(body,null,2))
 
+try{
+
 const change = body.entry?.[0]?.changes?.[0]?.value
 
 if(!change){
@@ -1350,18 +1352,7 @@ await supabase
 }
 /* ================= RELATORIO ADMIN ================= */
 
-if(req.method==="POST"){
-
-const body=req.body
-
-console.log("Webhook recebido:",JSON.stringify(body,null,2))
-
-try{
-
-// 🔥 TODO SEU CÓDIGO AQUI DENTRO
-
 if(ADMINS.includes(cliente) && texto.includes("Reservas do dia")){
-
 const agoraBahia = new Date(
 new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -1418,27 +1409,6 @@ text:{body:resposta}
 return res.status(200).end()
 
 }
-
-}catch(error){
-
-console.log("ERRO GERAL:",error)
-
-return res.status(200).end()
-
-}
-
-}
-
-
-
-
-
-
-
-
-
-
-
 let assuntoMusica = false
 
 if(
