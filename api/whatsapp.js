@@ -1106,24 +1106,45 @@ if(!pedido){
 
 console.log("🔥 TENTANDO INTERPRETAR TEXTO LIVRE")
 
-if(
-mensagem.toLowerCase().includes("pedido") ||
-mensagem.toLowerCase().includes("pizza") ||
-mensagem.toLowerCase().includes("quero")
-){
+const texto = mensagem.toLowerCase()
+
+// 🔥 EXTRAI PRODUTO (REMOVE FRASES COMUNS)
+let produto = texto
+  .replace(/quero|pedir|pra viagem|para viagem|um|uma|o|a|por favor|me manda|gostaria/g,"")
+  .trim()
+
+// remove duplicidade de espaços
+produto = produto.replace(/\s+/g," ")
+
+// capitaliza
+produto = produto
+  .split(" ")
+  .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+  .join(" ")
+
+if(produto.length < 2){
+  console.log("❌ NÃO IDENTIFICOU PRODUTO")
+  pedido = null
+}else{
 
 pedido = {
-nome: "Cliente",
-endereco: mensagem,
-bairro: "",
-pagamento: "não informado",
-itens: [
-{
-nome: mensagem,
-quantidade: 1,
-preco: 0
+  nome: nomeMemoria || "Cliente",
+  endereco: "",
+  bairro: "",
+  pagamento: "não informado",
+  itens: [
+    {
+      nome: produto,
+      quantidade: 1,
+      preco: 0
+    }
+  ]
 }
-]
+
+console.log("✅ PEDIDO LIMPO:", pedido)
+
+}
+
 }
 
 console.log("⚠️ PEDIDO GERADO VIA TEXTO:", pedido)
