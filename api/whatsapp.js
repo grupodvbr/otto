@@ -1466,8 +1466,9 @@ const seteDias = new Date(hojeBahia)
 
 seteDias.setDate(hojeBahia.getDate()+7)
 
-const seteDiasISO = seteDias.toISOString().split("T")[0]
-
+const seteDiasISO = seteDias.toLocaleDateString("sv-SE", {
+  timeZone: "America/Bahia"
+})
 const agendaSemana = await buscarAgendaPeriodo(hojeISO,seteDiasISO)
 
 let agendaTexto = ""
