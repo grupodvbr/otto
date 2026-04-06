@@ -1237,9 +1237,10 @@ const { data: estado } = await supabase
 .from("estado_conversa")
 .select("*")
 .eq("telefone",cliente)
+.eq("tipo","confirmacao_pedido") // 🔥 FILTRO CRÍTICO
 .maybeSingle()
 
-if(estado?.tipo === "confirmacao_pedido"){
+if(estado){
 
 console.log("CONFIRMAÇÃO DE PEDIDO")
 
