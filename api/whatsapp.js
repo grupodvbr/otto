@@ -1350,6 +1350,16 @@ await supabase
 }
 /* ================= RELATORIO ADMIN ================= */
 
+if(req.method==="POST"){
+
+const body=req.body
+
+console.log("Webhook recebido:",JSON.stringify(body,null,2))
+
+try{
+
+// 🔥 TODO SEU CÓDIGO AQUI DENTRO
+
 if(ADMINS.includes(cliente) && texto.includes("Reservas do dia")){
 
 const agoraBahia = new Date(
@@ -1357,7 +1367,6 @@ new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
 const hoje = agoraBahia.toISOString().split("T")[0]
-
 const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
@@ -1407,6 +1416,16 @@ text:{body:resposta}
 })
 
 return res.status(200).end()
+
+}
+
+}catch(error){
+
+console.log("ERRO GERAL:",error)
+
+return res.status(200).end()
+
+}
 
 }
 
