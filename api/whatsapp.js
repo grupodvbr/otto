@@ -1146,23 +1146,56 @@ const qtd = Number(i.quantidade || 1)
 return s + (preco * qtd)
 },0)
 
+/* 🔥 GARANTIR DADOS DO CLIENTE */
+
+const nomeFinal =
+pedido.nome ||
+nomeMemoria ||
+memoriaCliente?.nome ||
+"Cliente"
+
+const enderecoFinal =
+pedido.endereco ||
+memoriaCliente?.endereco ||
+""
+
+const bairroFinal =
+pedido.bairro ||
+memoriaCliente?.bairro ||
+""
+
 /* ================= SALVAR ================= */
 
 const { data, error } = await supabase
 .from("pedidos")
 .insert([{
-cliente_nome: pedido.nome,
+cliente_nome: nomeFinal,
 cliente_telefone: cliente,
-cliente_endereco: pedido.endereco || "",
-cliente_bairro: pedido.bairro || "",
+cliente_endereco: enderecoFinal,
+cliente_bairro: bairroFinal,
 itens: pedido.itens || [],
 valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
-observacao: "",
+observacao: pedido.observacao || "",
 status: "novo",
 origem: "whatsapp"
 }])
 .select()
+
+
+
+/* 🔥 SALVAR MEMORIA CLIENTE */
+
+await supabase
+.from("memoria_clientes")
+.upsert({
+telefone: cliente,
+nome: nomeFinal,
+endereco: enderecoFinal,
+bairro: bairroFinal,
+ultima_interacao: new Date().toISOString()
+},{ onConflict:"telefone" })
+  
 
 if(error){
 console.log("❌ ERRO AO SALVAR:", error)
