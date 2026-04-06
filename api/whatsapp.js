@@ -1775,26 +1775,41 @@ if(pediuFotoEspecifica){
 
     return res.status(200).end()
 
-  }else{
+}else{
 
-    console.log("❌ PRATO SEM FOTO")
+  console.log("❌ PRATO SEM FOTO → ENVIANDO VIDEO DO RESTAURANTE")
 
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        messaging_product:"whatsapp",
-        to:cliente,
-        type:"text",
-        text:{ body:"Esse prato ainda não tem foto disponível 😅" }
-      })
+  const videoRestaurante = "https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4"
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"video",
+      video:{
+        link: videoRestaurante,
+        caption:"Olha um pouco do nosso ambiente 😍"
+      }
     })
+  })
 
-    return res.status(200).end()
-  }
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:"[VIDEO DO RESTAURANTE ENVIADO - SEM FOTO]",
+    tipo:"video",
+    media_url: videoRestaurante,
+    role:"assistant"
+  })
+
+  return res.status(200).end()
+}
 
 }
 
