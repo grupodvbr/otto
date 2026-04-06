@@ -1517,8 +1517,7 @@ textoNormalizado.includes("foto") &&
 
 const querEndereco =
 textoNormalizado.includes("onde fica") ||
-textoNormalizado.includes("endereco") ||
-textoNormalizado.includes("endereço") ||
+textoNormalizado.includes("endereco do restaurante") ||
 textoNormalizado.includes("localizacao") ||
 textoNormalizado.includes("localização")
 
