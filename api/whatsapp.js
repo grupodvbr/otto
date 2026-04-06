@@ -1181,28 +1181,33 @@ texto.includes("enviar")
 
 
 
-  
-if(confirmou){
+const { data: pedidoPendente } = await supabase
+.from("pedidos_pendentes")
+.select("*")
+.eq("cliente_telefone", cliente)
+.maybeSingle()
 
-console.log("🧾 REGISTRANDO PEDIDO DIRETO NO SUPABASE")
-
-const valorTotal = pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0)
-
-if(!cliente){
-  console.log("❌ TELEFONE NÃO EXISTE")
-  return res.status(200).end()
-}
 
   
+
+if(confirmou && pedidoPendente){
+
+console.log("🧾 CONFIRMANDO PEDIDO DO BANCO")
+
+const valorTotal = (pedidoPendente.itens || [])
+.reduce((s,i)=>s+(i.preco*i.quantidade),0)
+
 const { data, error } = await supabase
 .from("pedidos")
 .insert([{
-  cliente_nome: pedido.nome || nomeMemoria || "Cliente",
+  cliente_nome: pedidoPendente.cliente_nome || nomeMemoria || "Cliente",
   cliente_telefone: cliente,
-  itens: pedido.itens,
+  cliente_endereco: pedidoPendente.cliente_endereco || "",
+  cliente_bairro: pedidoPendente.cliente_bairro || "",
+  itens: pedidoPendente.itens,
   valor_total: valorTotal,
-  forma_pagamento: pedido.pagamento,
-  observacao: pedido.observacao || "",
+  forma_pagamento: pedidoPendente.forma_pagamento,
+  observacao: pedidoPendente.observacao || "",
   status: "Pendente",
   origem: "whatsapp",
   criado_por: "bot"
@@ -1216,6 +1221,19 @@ if(error){
   console.log("✅ PEDIDO SALVO:", data.id)
 }
 
+/* REMOVE PENDENTE */
+await supabase
+.from("pedidos_pendentes")
+.delete()
+.eq("cliente_telefone", cliente)
+
+/* LIMPA ESTADO */
+await supabase
+.from("estado_conversa")
+.delete()
+.eq("telefone", cliente)
+
+/* CONFIRMA PARA CLIENTE */
 await fetch(url,{
 method:"POST",
 headers:{
@@ -1230,9 +1248,15 @@ text:{ body:`✅ Pedido confirmado!\nNúmero: ${data?.id || "gerado"}` }
 })
 })
 
+return res.status(200).end()
+
 }
 
 
+
+
+
+  
   
 if(pedidoPendente){
 
