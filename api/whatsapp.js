@@ -953,7 +953,7 @@ Você pode falar diretamente com um dos nossos gerentes:
 Dheure França
 📱 77 9 8129-3963
 
-Eles vão te atender com prioridade 👌`
+Eles vão te atender com prioridade`
 
 await fetch(url,{
 method:"POST",
