@@ -520,6 +520,8 @@ console.log("Evento inválido")
 return res.status(200).end()
 }
 
+/* IGNORA EVENTOS DE STATUS */
+
 /* ================= TRATAR STATUS ================= */
 
 if(change.statuses){
@@ -531,7 +533,7 @@ if(change.statuses){
   await supabase
   .from("conversas_whatsapp")
   .update({
-    status: status.status
+    status: status.status // sent, delivered, read
   })
   .eq("message_id", status.id)
 
@@ -1104,71 +1106,29 @@ if(!pedido){
 
 console.log("🔥 TENTANDO INTERPRETAR TEXTO LIVRE")
 
-// 🔥 NÃO redeclarar
-// usar o já existente
-
-/* 🚫 BLOQUEAR CONSULTAS */
-const NAO_PEDIDO = [
-"resumo",
-"pedido que fiz",
-"o que pedi",
-"me mostra",
-"ver pedido",
-"consulta",
-"historico"
-]
-
-const ehConsulta = NAO_PEDIDO.some(p => texto.includes(p))
-
-if(ehConsulta){
-  console.log("🚫 NÃO É PEDIDO — É CONSULTA")
-  pedido = null
-}else{
-
-// 🔥 EXTRAI PRODUTO
-
-
-// 🔥 EXTRAI PRODUTO (REMOVE FRASES COMUNS)
-let produto = texto
-  .replace(/quero|pedir|pra viagem|para viagem|um|uma|o|a|por favor|me manda|gostaria/g,"")
-  .trim()
-
-// remove duplicidade de espaços
-produto = produto.replace(/\s+/g," ")
-
-// capitaliza
-produto = produto
-  .split(" ")
-  .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-  .join(" ")
-
-if(produto.length < 2){
-  console.log("❌ NÃO IDENTIFICOU PRODUTO")
-  pedido = null
-}else{
+if(
+mensagem.toLowerCase().includes("pedido") ||
+mensagem.toLowerCase().includes("pizza") ||
+mensagem.toLowerCase().includes("quero")
+){
 
 pedido = {
-  nome: nomeMemoria || "Cliente",
-  endereco: "",
-  bairro: "",
-  pagamento: "não informado",
-  itens: [
-    {
-      nome: produto,
-      quantidade: 1,
-      preco: 0
-    }
-  ]
+nome: "Cliente",
+endereco: mensagem,
+bairro: "",
+pagamento: "não informado",
+itens: [
+{
+nome: mensagem,
+quantidade: 1,
+preco: 0
 }
-
-console.log("✅ PEDIDO LIMPO:", pedido)
-
-}
-
+]
 }
 
 console.log("⚠️ PEDIDO GERADO VIA TEXTO:", pedido)
 
+}
 
 }
 
@@ -3206,11 +3166,6 @@ Digite:
 2️⃣ Reservas
 3️⃣ Endereço`
 
-}
-
-/* 🔥 GARANTE RESPOSTA MESMO EM ERRO */
-if(!resposta){
-resposta = "Ocorreu um erro, tente novamente."
 }
 
 /* ================= RESERVA SALA VIP ================= */
