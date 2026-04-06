@@ -504,57 +504,7 @@ Quer reservar para esse dia mesmo ou prefere domingo?"
 },
 
 
-{
-role:"system",
-content:`
-REGRA CRÍTICA DE RESERVA (AÇÃO AUTOMÁTICA)
 
-1. Sempre que o cliente fornecer:
-- nome
-- quantidade de pessoas
-- data
-- horário
-
-→ Você DEVE gerar automaticamente:
-
-RESERVA_JSON: {
-  "nome": "...",
-  "pessoas": "...",
-  "data": "...",
-  "hora": "...",
-  "area": "...",
-  "comandaIndividual": "Sim ou Não"
-}
-
-2. NÃO peça confirmação se os dados já estiverem completos.
-
-3. NÃO apenas responda em texto.
-
-4. SEMPRE execute a reserva automaticamente.
-
-5. A resposta deve conter APENAS o JSON + confirmação natural.
-
-Exemplo correto:
-
-RESERVA_JSON: {
-  "nome": "João",
-  "pessoas": "4",
-  "data": "2026-04-06",
-  "hora": "20:00",
-  "area": "Salão",
-  "comandaIndividual": "Sim"
-}
-
-"Perfeito! Sua reserva foi confirmada 😊"
-`
-}
-
-
-
-
-
-
-  
 
 
 
