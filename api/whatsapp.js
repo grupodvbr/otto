@@ -696,36 +696,6 @@ const texto = mensagem.toLowerCase()
 
 
 
-/* ================= DETECÇÃO MUSICA (SUBIR PRIORIDADE) ================= */
-
-const querMusica =
-texto.includes("musica") ||
-texto.includes("música") ||
-texto.includes("cantor") ||
-texto.includes("cantora") ||
-texto.includes("banda") ||
-texto.includes("show") ||
-texto.includes("ao vivo") ||
-texto.includes("dj") ||
-texto.includes("quem canta") ||
-texto.includes("quem vai cantar") ||
-texto.includes("quem vai tocar") ||
-texto.includes("quem toca") ||
-texto.includes("tocando") ||
-texto.includes("quem está tocando") ||
-texto.includes("quem ta tocando") ||
-texto.includes("tem musica") ||
-texto.includes("tem música") ||
-texto.includes("tem banda") ||
-texto.includes("tem show") ||
-texto.includes("vai ter musica") ||
-texto.includes("vai ter música") ||
-texto.includes("amanhã") ||
-texto.includes("hoje") ||
-texto.includes("ontem")
-
-assuntoMusica = querMusica
-
 
 
 
