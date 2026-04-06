@@ -1222,16 +1222,43 @@ function extrairDadosPedido(texto){
     }
 
     // 🔥 ITEM PRINCIPAL
-    if(!item && (
-      lower.includes("quero") ||
-      lower.includes("pedido") ||
-      lower.includes("pizza") ||
-      lower.includes("salmao") ||
-      lower.includes("hamburguer") ||
-      lower.includes("sushi")
-    )){
-      item = linha
+// 🔥 ITEM PRINCIPAL COM MATCH NO CARDÁPIO
+if(!item && (
+  lower.includes("quero") ||
+  lower.includes("pedido") ||
+  lower.includes("pizza") ||
+  lower.includes("salmao") ||
+  lower.includes("hamburguer") ||
+  lower.includes("sushi")
+)){
+
+  // 🔥 BUSCAR CARDÁPIO REAL
+  const cardapio = global.cardapioAtual || []
+
+  let itemEncontrado = null
+
+  for(const p of cardapio){
+
+    const nomeCardapio = normalizar(p.nome)
+    const linhaNormalizada = normalizar(linha)
+
+    if(
+      linhaNormalizada.includes(nomeCardapio) ||
+      nomeCardapio.includes(linhaNormalizada)
+    ){
+      itemEncontrado = p
+      break
     }
+  }
+
+  if(itemEncontrado){
+    item = itemEncontrado.nome
+    preco = Number(itemEncontrado.preco_venda) || 0
+  }else{
+    item = linha
+    preco = 0
+  }
+}
 
   }
 
@@ -1241,15 +1268,16 @@ item = item
   .replace(/\d+/g,"")
   .trim()
 
-  return {
-    nome,
-    endereco: endereco.trim(),
-    bairro,
-    pagamento,
-    troco,
-    item,
-    quantidade,
-    observacao: observacao.trim()
+return {
+  nome,
+  endereco,
+  bairro,
+  pagamento,
+  troco,
+  item,
+  preco,
+  quantidade,
+  observacao
   }
 }
 
@@ -1294,8 +1322,16 @@ cliente_nome: nomeFinal,
 cliente_telefone: cliente,
 cliente_endereco: enderecoFinal,
 cliente_bairro: bairroFinal,
-itens: pedido.itens || [],
-valor_total: valorTotal,
+
+
+  
+itens: (pedido.itens && pedido.itens.length)
+  ? pedido.itens
+  : [{
+      nome: pedido.item,
+      quantidade: pedido.quantidade || 1,
+      preco: pedido.preco || 0
+    }],valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
 observacao: pedido.observacao || "",
 status: "novo",
@@ -1442,8 +1478,15 @@ cliente_telefone: cliente,
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
 tipo: pedido.tipo || "entrega",
-itens: pedido.itens || [],
-valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+itens: (pedido.itens && pedido.itens.length)
+  ? pedido.itens
+  : [{
+      nome: pedido.item,
+      quantidade: pedido.quantidade || 1,
+      preco: pedido.preco || 0
+    }],
+  
+  valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
 forma_pagamento: pedido.pagamento || "",
 observacao: pedido.observacao || "",
 status: "novo"
@@ -3294,8 +3337,22 @@ cliente_nome: pedido.nome,
 cliente_telefone: cliente,
 cliente_endereco: pedido.endereco || "",
 cliente_bairro: pedido.bairro || "",
-itens: pedido.itens || [],
-valor_total: valorTotal,
+
+
+  
+itens: (pedido.itens && pedido.itens.length)
+  ? pedido.itens
+  : [{
+      nome: pedido.item,
+      quantidade: pedido.quantidade || 1,
+      preco: pedido.preco || 0
+    }],
+  
+  
+  
+  
+  
+  valor_total: valorTotal,
 forma_pagamento: pedido.pagamento || "",
 observacao: pedido.observacao || ""
 })
