@@ -520,8 +520,6 @@ console.log("Evento inválido")
 return res.status(200).end()
 }
 
-/* IGNORA EVENTOS DE STATUS */
-
 /* ================= TRATAR STATUS ================= */
 
 if(change.statuses){
@@ -533,7 +531,7 @@ if(change.statuses){
   await supabase
   .from("conversas_whatsapp")
   .update({
-    status: status.status // sent, delivered, read
+    status: status.status
   })
   .eq("message_id", status.id)
 
