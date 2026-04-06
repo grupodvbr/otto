@@ -1487,11 +1487,22 @@ const querVideo =
 textoNormalizado.includes("video") ||
 textoNormalizado.includes("vídeo")
 
-const pediuFotoEspecifica =
+const pediuFotoAmbiente =
 textoNormalizado.includes("foto") &&
 (
-  textoNormalizado.length > 10 // evita "tem foto?"
+  textoNormalizado.includes("sacada") ||
+  textoNormalizado.includes("ambiente") ||
+  textoNormalizado.includes("lugar") ||
+  textoNormalizado.includes("espaco") ||
+  textoNormalizado.includes("espaço") ||
+  textoNormalizado.includes("salão") ||
+  textoNormalizado.includes("sala") ||
+  textoNormalizado.includes("vip")
 )
+
+const pediuFotoPrato =
+textoNormalizado.includes("foto") &&
+!pediuFotoAmbiente
 
 const querEndereco =
 textoNormalizado.includes("onde fica") ||
