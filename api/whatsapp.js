@@ -283,11 +283,14 @@ function encontrarPratoComFoto(cardapio, texto){
 
   for(const item of cardapio){
 
-    if(!item.foto_url) continue // 🔥 IGNORA PRATO SEM FOTO
+    if(!item.foto_url) continue
 
     const nome = normalizar(item.nome)
 
-    if(nome.includes(textoLimpo)){
+    if(
+      nome.includes(textoLimpo) ||
+      textoLimpo.includes(nome)
+    ){
       return item
     }
 
@@ -295,9 +298,6 @@ function encontrarPratoComFoto(cardapio, texto){
 
   return null
 }
-
-
-
 
 
 
@@ -1764,7 +1764,20 @@ if(pediuFotoEspecifica){
 
   const cardapio = await buscarCardapio()
 
-  const prato = encontrarPratoComFoto(cardapio, mensagem)
+  /* 🔥 BUSCAR ÚLTIMO PRATO MENCIONADO */
+  const ultimoPrato = mensagens
+    .reverse()
+    .find(m => m.role === "assistant" || m.role === "user")
+
+  let nomeBusca = ""
+
+  if(ultimoPrato){
+    nomeBusca = ultimoPrato.content
+  }
+
+  console.log("🔎 BUSCANDO FOTO DO PRATO:", nomeBusca)
+
+  const prato = encontrarPratoComFoto(cardapio, nomeBusca)
 
   if(prato){
 
