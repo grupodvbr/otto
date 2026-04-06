@@ -511,8 +511,6 @@ const body=req.body
 
 console.log("Webhook recebido:",JSON.stringify(body,null,2))
 
-try{
-
 const change = body.entry?.[0]?.changes?.[0]?.value
 
 if(!change){
