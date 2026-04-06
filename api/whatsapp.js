@@ -3018,8 +3018,72 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
+const querComprar =
+texto.includes("quero") ||
+texto.includes("me vê") ||
+texto.includes("pedido") ||
+texto.includes("vou querer") ||
+texto.includes("traz") ||
+texto.includes("manda") ||
+texto.includes("adiciona")
 
+if(querComprar){
+
+  console.log("🔥 PEDIDO DETECTADO DIRETO DO CLIENTE")
+
+  const cardapio = await buscarCardapio()
+
+  const item = cardapio.find(p =>
+    normalizar(texto).includes(normalizar(p.nome))
+  )
+
+  if(item){
+
+    console.log("✅ ITEM ENCONTRADO:", item.nome)
+
+    const valorTotal = Number(item.preco_venda || 0)
+
+    const { data, error } = await supabase
+    .from("pedidos")
+    .insert([{
+      cliente_nome: nomeMemoria || "Cliente",
+      cliente_telefone: cliente,
+      itens: [{
+        nome: item.nome,
+        quantidade: 1,
+        preco: valorTotal
+      }],
+      valor_total: valorTotal,
+      status: "novo",
+      origem: "whatsapp"
+    }])
+    .select()
+    .single()
+
+    if(error){
+      console.log("❌ ERRO AO SALVAR PEDIDO:", error)
+    }else{
+      console.log("✅ PEDIDO SALVO COM ID:", data.id)
+    }
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to:cliente,
+        type:"text",
+        text:{ body:`✅ Pedido confirmado!\nNúmero: ${data?.id}` }
+      })
+    })
+
+    return res.status(200).end()
+  }
+
+}
 if(pedidoMatch){
 
 let pedido = null
