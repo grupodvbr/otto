@@ -1220,11 +1220,16 @@ method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
-body:JSON.stringify({
-pedido:{
-...pedido,
-telefone:cliente
-}
+body: JSON.stringify({
+  acao: "criar",
+  dados: {
+    cliente_nome: pedido.nome,
+    cliente_telefone: cliente,
+    itens: pedido.itens,
+    valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+    forma_pagamento: pedido.pagamento,
+    observacao: pedido.observacao || ""
+  }
 })
 })
 
@@ -2132,7 +2137,43 @@ REGRAS CRÍTICAS:
 `
 },
 
+{
+role:"system",
+content:`
 
+INTEGRAÇÃO COM API DE PEDIDOS:
+
+Quando o cliente fizer um pedido, você deve estruturar os dados no seguinte formato JSON:
+
+{
+  "acao": "criar",
+  "dados": {
+    "cliente_nome": "...",
+    "cliente_telefone": "...",
+    "itens": [
+      {
+        "nome": "...",
+        "quantidade": 1,
+        "preco": 0
+      }
+    ],
+    "valor_total": 0,
+    "forma_pagamento": "...",
+    "observacao": "..."
+  }
+}
+
+REGRAS:
+
+- Nunca invente pedidos
+- Sempre use os dados reais do cliente
+- Sempre calcule o valor_total corretamente
+- Sempre use "acao": "criar" para novos pedidos
+- Nunca envie texto junto com JSON
+- O JSON deve ser puro e válido
+
+`
+},
 
   
 
