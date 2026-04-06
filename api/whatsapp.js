@@ -1085,15 +1085,15 @@ Vamos resolver o mais rápido possível. 💛`
 
 const pedidoClienteMatch = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
 
-let pedido = null
-
+let pedidoIA = null
+  
 /* ================= TENTAR JSON ================= */
 
 if(pedidoClienteMatch){
 
 try{
-pedido = JSON.parse(pedidoClienteMatch[1])
-console.log("✅ PEDIDO VIA JSON:", pedido)
+pedidoIA = JSON.parse(pedidoClienteMatch[1])
+  console.log("✅ PEDIDO VIA JSON:", pedido)
 }catch(err){
 console.log("❌ ERRO JSON:", err)
 }
@@ -1219,8 +1219,8 @@ item = item
 
 /* ================= SE NÃO TEM PEDIDO, IGNORA ================= */
 
-if(!pedido){
-console.log("❌ NÃO É PEDIDO")
+if(!pedidoIA){
+  console.log("❌ NÃO É PEDIDO")
 }else{
 
 /* ================= CALCULAR TOTAL ================= */
@@ -1254,16 +1254,14 @@ memoriaCliente?.bairro ||
 const { data, error } = await supabase
 .from("pedidos")
 .insert([{
-cliente_nome: nomeFinal,
+cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
 cliente_telefone: cliente,
-cliente_endereco: enderecoFinal,
-cliente_bairro: bairroFinal,
+cliente_endereco: "",
+cliente_bairro: "",
 itens: pedidoIA.dados.itens || [],
 valor_total: pedidoIA.dados.valor_total || 0,
 forma_pagamento: pedidoIA.dados.forma_pagamento || "",
 observacao: pedidoIA.dados.observacao || "",
-cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
-observacao: pedido.observacao || "",
 status: "novo",
 origem: "whatsapp"
 }])
