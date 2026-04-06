@@ -778,6 +778,24 @@ await supabase
   
 const textoNormalizado = normalizar(texto)
 
+/* ================= DETECTAR AMBIENTE ================= */
+
+const querAmbiente =
+textoNormalizado.includes("sacada") ||
+textoNormalizado.includes("area externa") ||
+textoNormalizado.includes("externa") ||
+textoNormalizado.includes("sala vip") ||
+textoNormalizado.includes("vip") ||
+textoNormalizado.includes("sala") ||
+textoNormalizado.includes("ambiente") ||
+textoNormalizado.includes("lugar") ||
+textoNormalizado.includes("espaço") ||
+textoNormalizado.includes("espaco") ||
+textoNormalizado.includes("restaurante") ||
+textoNormalizado.includes("como é") ||
+textoNormalizado.includes("como e")
+
+  
 /* ================= FORÇAR PROMOÇÕES ================= */
 
 const querPromocao =
@@ -1912,7 +1930,156 @@ if(pediuFotoEspecifica){
 
 }
 
+/* ================= AMBIENTES COM MIDIA ================= */
 
+if(querAmbiente){
+
+console.log("📸 CLIENTE PEDIU AMBIENTE")
+
+let enviou = false
+
+/* ===== SACADA ===== */
+if(textoNormalizado.includes("sacada") || textoNormalizado.includes("externa")){
+
+const fotos = [
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.21.01.jpeg",
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-03-27%20at%2011.24.01.jpeg"
+]
+
+if(fotos.length){
+
+for(const foto of fotos){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:foto,
+caption:"Sacada • Mercatto Delícia"
+}
+})
+})
+
+}
+
+enviou = true
+}
+
+}
+
+/* ===== SALA VIP ===== */
+if(textoNormalizado.includes("vip")){
+
+const fotos = [
+"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Image%202026-04-02%20at%2010.28.26.jpeg"
+]
+
+if(fotos.length){
+
+for(const foto of fotos){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:foto,
+caption:"Sala VIP • Mercatto Delícia"
+}
+})
+})
+
+}
+
+enviou = true
+}
+
+}
+
+/* ===== SALÃO ===== */
+if(textoNormalizado.includes("salao") || textoNormalizado.includes("salão")){
+
+const fotos = [
+"https://link-salao1.jpg"
+]
+
+if(fotos.length){
+
+for(const foto of fotos){
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"image",
+image:{
+link:foto,
+caption:"Salão • Mercatto Delícia"
+}
+})
+})
+
+}
+
+enviou = true
+}
+
+}
+
+/* ===== SE NÃO TEM FOTO → MANDA VIDEO ===== */
+if(!enviou){
+
+console.log("🎥 SEM FOTO → ENVIANDO VIDEO")
+
+await fetch(url,{
+method:"POST",
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+messaging_product:"whatsapp",
+to:cliente,
+type:"video",
+video:{
+link:"https://dxkszikemntfusfyrzos.supabase.co/storage/v1/object/public/MERCATTO/WhatsApp%20Video%202026-03-10%20at%2021.08.40.mp4",
+caption:"Conheça o ambiente do Mercatto Delícia"
+}
+})
+})
+
+}
+
+/* SALVA NO BANCO */
+await supabase
+.from("conversas_whatsapp")
+.insert({
+telefone:cliente,
+mensagem:"[MIDIA AMBIENTE ENVIADA]",
+role:"assistant"
+})
+
+return res.status(200).end()
+
+}
   
 
 
