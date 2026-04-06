@@ -1818,34 +1818,21 @@ if(pediuFotoAmbiente){
 
   console.log("📸 FOTO DE AMBIENTE DETECTADA")
 
-  let comando = ""
-
   if(textoNormalizado.includes("sacada")){
-    comando = "ENVIAR_FOTOS_SACADA"
+    resposta = "ENVIAR_FOTOS_SACADA"
   }
-
   else if(textoNormalizado.includes("vip")){
-    comando = "ENVIAR_FOTOS_VIP1"
+    resposta = "ENVIAR_FOTOS_VIP1"
   }
-
-  else if(textoNormalizado.includes("salão") || textoNormalizado.includes("salao")){
-    comando = "ENVIAR_FOTOS_SALAO"
-  }
-
   else{
-    comando = "ENVIAR_FOTOS_SALAO"
+    resposta = "ENVIAR_FOTOS_SALAO"
   }
 
-  resposta = comando
+  // 🔥 PULA IA
+  console.log("⛔ IGNORANDO OPENAI PARA FOTO")
 
-  /* 🔥 EXECUTA DIRETO SEM IA */
-
-  if(comando === "ENVIAR_FOTOS_SACADA"){
-    // deixa cair no seu bloco de envio lá embaixo
-  }
-
-  return res.status(200).end()
-
+}else{
+  // segue fluxo normal
 }
 
 if(resposta.includes("ENVIAR_FOTOS_")){
