@@ -1187,7 +1187,7 @@ if(temIntencaoPedido && !ehConsulta){
 
 pedido = {
 nome: "Cliente",
-endereco: mensagem,
+endereco: "",
 bairro: "",
 pagamento: "não informado",
 itens: [
