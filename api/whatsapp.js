@@ -1181,82 +1181,28 @@ texto.includes("enviar")
 
 
 
+  
+if(confirmou){
+
+const { data: estado } = await supabase
+.from("estado_conversa")
+.select("*")
+.eq("telefone",cliente)
+.maybeSingle()
+
+if(estado?.tipo === "confirmacao_pedido"){
+
+console.log("CONFIRMAÇÃO DE PEDIDO")
+
 const { data: pedidoPendente } = await supabase
 .from("pedidos_pendentes")
 .select("*")
-.eq("cliente_telefone", cliente)
-.maybeSingle()
-
-
-  
-
-if(confirmou && pedidoPendente){
-
-console.log("🧾 CONFIRMANDO PEDIDO DO BANCO")
-
-const valorTotal = (pedidoPendente.itens || [])
-.reduce((s,i)=>s+(i.preco*i.quantidade),0)
-
-const { data, error } = await supabase
-.from("pedidos")
-.insert([{
-  cliente_nome: pedidoPendente.cliente_nome || nomeMemoria || "Cliente",
-  cliente_telefone: cliente,
-  cliente_endereco: pedidoPendente.cliente_endereco || "",
-  cliente_bairro: pedidoPendente.cliente_bairro || "",
-  itens: pedidoPendente.itens,
-  valor_total: valorTotal,
-  forma_pagamento: pedidoPendente.forma_pagamento,
-  observacao: pedidoPendente.observacao || "",
-  status: "Pendente",
-  origem: "whatsapp",
-  criado_por: "bot"
-}])
-.select()
+.eq("cliente_telefone",cliente)
+.order("created_at",{ascending:false})
+.limit(1)
 .single()
 
-if(error){
-  console.log("❌ ERRO AO SALVAR PEDIDO:", error)
-}else{
-  console.log("✅ PEDIDO SALVO:", data.id)
-}
 
-/* REMOVE PENDENTE */
-await supabase
-.from("pedidos_pendentes")
-.delete()
-.eq("cliente_telefone", cliente)
-
-/* LIMPA ESTADO */
-await supabase
-.from("estado_conversa")
-.delete()
-.eq("telefone", cliente)
-
-/* CONFIRMA PARA CLIENTE */
-await fetch(url,{
-method:"POST",
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-messaging_product:"whatsapp",
-to:cliente,
-type:"text",
-text:{ body:`✅ Pedido confirmado!\nNúmero: ${data?.id || "gerado"}` }
-})
-})
-
-return res.status(200).end()
-
-}
-
-
-
-
-
-  
   
 if(pedidoPendente){
 
