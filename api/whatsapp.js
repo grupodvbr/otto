@@ -1165,98 +1165,83 @@ if(produto && temIntencao){
     pedido = null
   }else{
 
-/* ================= VALIDAÇÃO OBRIGATÓRIA COMPLETA ================= */
+    /* 🚨 CAMPOS OBRIGATÓRIOS */
+    const endereco = memoriaCliente?.endereco || ""
+    const bairro = memoriaCliente?.bairro || ""
+    const pagamento = "não informado"
 
-const nomeFinal = nomeMemoria || memoriaCliente?.nome || ""
-const endereco = memoriaCliente?.endereco || ""
-const bairro = memoriaCliente?.bairro || ""
-const pagamentoDetectado = textoLower.includes("pix") ? "pix"
-  : textoLower.includes("cartao") ? "cartao"
-  : textoLower.includes("dinheiro") ? "dinheiro"
-  : ""
+    const dadosCompletos =
+      produto &&
+      preco > 0 &&
+      endereco &&
+      bairro
 
-/* 🔥 VALIDAÇÕES INDIVIDUAIS */
+    if(!dadosCompletos){
 
-const nomeValido =
-  nomeFinal &&
-  nomeFinal.length > 2
+      console.log("⚠️ FALTAM DADOS PARA GERAR PEDIDO")
 
-const produtoValido =
-  produto &&
-  produto.nome
+      /* NÃO GERA JSON */
+      pedido = null
 
-const precoValido =
-  preco &&
-  preco > 0
+      /* PEDE DADOS PRO CLIENTE */
+      await fetch(url,{
+        method:"POST",
+        headers:{
+          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          messaging_product:"whatsapp",
+          to:cliente,
+          type:"text",
+          text:{ body:`Perfeito! 😊
 
-const enderecoValido =
-  endereco &&
-  endereco.length > 5
+Para finalizar seu pedido de *${produto.nome}*, preciso de:
 
-const bairroValido =
-  bairro &&
-  bairro.length > 2
+📍 Seu endereço completo
+💳 Forma de pagamento
 
-const pagamentoValido =
-  pagamentoDetectado &&
-  pagamentoDetectado !== "não informado"
+Pode me informar?` }
+        })
+      })
 
-/* 🔥 VALIDAÇÃO FINAL */
+      return res.status(200).end()
+    }
 
-const pedidoValido =
-  nomeValido &&
-  produtoValido &&
-  precoValido &&
-  enderecoValido &&
-  bairroValido &&
-  pagamentoValido
+    /* ✅ GERAR PEDIDO CORRETO */
+    pedido = {
+      nome: nomeMemoria || "Cliente",
+      endereco,
+      bairro,
+      pagamento,
+      itens: [
+        {
+          nome: produto.nome,
+          quantidade: 1,
+          preco
+        }
+      ]
+    }
 
-/* ================= SE NÃO FOR VÁLIDO ================= */
+    console.log("✅ PEDIDO VÁLIDO:", pedido)
+  }
 
-if(!pedidoValido){
-
-  console.log("🚫 PEDIDO BLOQUEADO — DADOS INCOMPLETOS")
-
-  let faltando = []
-
-  if(!nomeValido) faltando.push("nome")
-  if(!enderecoValido) faltando.push("endereço")
-  if(!bairroValido) faltando.push("bairro")
-  if(!pagamentoValido) faltando.push("forma de pagamento")
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{
-        body:`Perfeito! 😊
-
-Para finalizar seu pedido, preciso de:
-
-${faltando.map(f => `• ${f}`).join("\n")}
-
-Pode me informar?`
-      }
-    })
-  })
-
+}else{
+  console.log("❌ NÃO É PEDIDO REAL")
   pedido = null
-  return res.status(200).end()
 }
 
 
 
 
+  
 
+console.log("⚠️ PEDIDO GERADO VIA TEXTO:", pedido)
 
+}
 
-    
+}
+
 /* ================= SE NÃO TEM PEDIDO, IGNORA ================= */
 
 if(!pedido){
