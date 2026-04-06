@@ -1102,16 +1102,13 @@ console.log("❌ ERRO JSON:", err)
 
 /* ================= 🔥 NOVO: TEXTO LIVRE ================= */
 
-if(!pedido){
+if(!pedidoIA){
 
 console.log("🔥 TENTANDO INTERPRETAR TEXTO LIVRE")
 
-// ❌ NÃO CRIA PEDIDO POR TEXTO
-// 🔥 FORÇA A IA GERAR JSON CORRETO
-
 console.log("⛔ BLOQUEADO: texto livre não gera pedido")
 
-pedido = null
+pedidoIA = null
 
 }
 
@@ -1225,8 +1222,8 @@ if(!pedidoIA){
 
 /* ================= CALCULAR TOTAL ================= */
 
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
-const preco = Number(i.preco || 0)
+const valorTotal = (pedidoIA?.dados?.itens || []).reduce((s,i)=>{
+  const preco = Number(i.preco || 0)
 const qtd = Number(i.quantidade || 1)
 return s + (preco * qtd)
 },0)
@@ -1234,18 +1231,20 @@ return s + (preco * qtd)
 /* 🔥 GARANTIR DADOS DO CLIENTE */
 
 const nomeFinal =
-pedido.nome ||
+pedidoIA?.dados?.cliente_nome ||
+nomeMemoria ||
+"Cliente"
 nomeMemoria ||
 memoriaCliente?.nome ||
 "Cliente"
 
 const enderecoFinal =
-pedido.endereco ||
+pedidoIA?.dados?.cliente_endereco ||
 memoriaCliente?.endereco ||
 ""
 
 const bairroFinal =
-pedido.bairro ||
+pedidoIA?.dados?.cliente_bairro ||
 memoriaCliente?.bairro ||
 ""
 
@@ -1256,8 +1255,8 @@ const { data, error } = await supabase
 .insert([{
 cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
 cliente_telefone: cliente,
-cliente_endereco: "",
-cliente_bairro: "",
+cliente_endereco: enderecoFinal,
+cliente_bairro: bairroFinal,
 itens: pedidoIA.dados.itens || [],
 valor_total: pedidoIA.dados.valor_total || 0,
 forma_pagamento: pedidoIA.dados.forma_pagamento || "",
@@ -3227,12 +3226,10 @@ console.log("ERRO:", err)
 }
 
 if(pedidoIA){
-console.log("Pedido detectado:",pedido)
-
+console.log("Pedido detectado:",pedidoIA)
 /* CALCULAR TOTAL */
 
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
-
+const valorTotal = (pedidoIA?.dados?.itens || []).reduce((s,i)=>{
 const preco = Number(i.preco || 0)
 const qtd = Number(i.quantidade || 1)
 
