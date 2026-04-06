@@ -1250,22 +1250,64 @@ memoriaCliente?.bairro ||
 
 /* ================= SALVAR ================= */
 
+let pedidoIA = null
+
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
+
+if(pedidoMatch){
+
+let jsonTexto = pedidoMatch[1]
+
+jsonTexto = jsonTexto
+.replace(/,\s*}/g,"}")
+.replace(/,\s*]/g,"]")
+.replace(/\n/g,"")
+.replace(/\t/g,"")
+.trim()
+
+try{
+pedidoIA = JSON.parse(jsonTexto)
+console.log("✅ Pedido detectado:", pedidoIA)
+}catch(err){
+console.log("❌ ERRO JSON:", err)
+}
+
+if(pedidoIA){
+
+const dados = pedidoIA.dados || {}
+
+const valorTotal = (dados.itens || []).reduce((s,i)=>{
+const preco = Number(i.preco || 0)
+const qtd = Number(i.quantidade || 1)
+return s + (preco * qtd)
+},0)
+
+console.log("💰 TOTAL:", valorTotal)
+
 const { data, error } = await supabase
 .from("pedidos")
 .insert([{
-cliente_nome: pedidoIA.dados.cliente_nome || nomeMemoria || "Cliente",
+cliente_nome: dados.cliente_nome || nomeMemoria || "Cliente",
 cliente_telefone: cliente,
-cliente_endereco: enderecoFinal,
-cliente_bairro: bairroFinal,
-itens: pedidoIA.dados.itens || [],
-valor_total: pedidoIA.dados.valor_total || 0,
-forma_pagamento: pedidoIA.dados.forma_pagamento || "",
-observacao: pedidoIA.dados.observacao || "",
+cliente_endereco: dados.cliente_endereco || "",
+cliente_bairro: dados.cliente_bairro || "",
+itens: dados.itens || [],
+valor_total: valorTotal,
+forma_pagamento: dados.forma_pagamento || "",
+observacao: dados.observacao || "",
 status: "novo",
 origem: "whatsapp"
 }])
 .select()
 
+if(error){
+console.log("❌ ERRO AO SALVAR:", error)
+}else{
+console.log("✅ SALVO NO SUPABASE:", data)
+}
+
+}
+}
 
 
 /* 🔥 SALVAR MEMORIA CLIENTE */
@@ -3193,11 +3235,11 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
+let pedidoIA = null
+
 const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
 
 if(pedidoMatch){
-
-let pedidoIA = null
 
 let jsonTexto = pedidoMatch[1]
 
