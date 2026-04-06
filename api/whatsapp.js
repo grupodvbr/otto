@@ -1750,9 +1750,8 @@ if(pediuFotoAmbiente){
 
   console.log("📸 FOTO DE AMBIENTE DETECTADA")
 
-  let resposta = "Claro! Vou te mostrar 😊 "
+  resposta = "Claro! Vou te mostrar 😊 "
 
-  /* 🔥 DETECTAR QUAL AMBIENTE */
   if(textoNormalizado.includes("sacada")){
     resposta += "ENVIAR_FOTOS_SACADA"
   }
@@ -1767,17 +1766,16 @@ if(pediuFotoAmbiente){
 
   else if(
     textoNormalizado.includes("salão") ||
-    textoNormalizado.includes("salao") ||
-    textoNormalizado.includes("interno")
+    textoNormalizado.includes("salao")
   ){
     resposta += "ENVIAR_FOTOS_SALAO"
   }
 
-  /* 🔥 SE NÃO IDENTIFICAR → MANDA VÍDEO */
   else{
     resposta += "ENVIAR_VIDEO_RESTAURANTE"
   }
 
+}
   await fetch(url,{
     method:"POST",
     headers:{
