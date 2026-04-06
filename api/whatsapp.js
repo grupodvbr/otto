@@ -1816,9 +1816,30 @@ return res.status(200).end()
 }
   
 
+/* ================= FOTO AMBIENTE OU PRATO ================= */
+
+if(pediuFotoAmbiente(textoNormalizado)){
+
+  console.log("📸 AMBIENTE DETECTADO")
+
+  if(textoNormalizado.includes("sacada")){
+    resposta = "ENVIAR_FOTOS_SACADA"
+  }
+  else if(textoNormalizado.includes("vip")){
+    resposta = "ENVIAR_FOTOS_VIP2"
+  }
+  else if(textoNormalizado.includes("salão") || textoNormalizado.includes("salao")){
+    resposta = "ENVIAR_FOTOS_SALAO"
+  }
+  else{
+    resposta = "ENVIAR_VIDEO"
+  }
+
+}
+
 /* ================= FOTO DE PRATO ================= */
 
-if(pediuFotoEspecifica){
+else if(pediuFotoEspecifica){
 
   console.log("📸 CLIENTE PEDIU FOTO")
 
@@ -1877,8 +1898,6 @@ if(pediuFotoEspecifica){
   }
 
 }
-
-
   
 
 
