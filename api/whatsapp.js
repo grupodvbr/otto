@@ -698,32 +698,6 @@ const texto = mensagem.toLowerCase()
 
 
 
-/* ================= SALVAR PEDIDO PENDENTE ================= */
-
-if(pedidoJSON){
-
-  const dados = pedidoJSON.dados
-
-  await supabase
-    .from("pedidos_pendentes")
-    .insert({
-      cliente_nome: dados.cliente_nome || "Cliente",
-      cliente_telefone: cliente,
-      cliente_endereco: dados.cliente_endereco || "",
-      cliente_bairro: dados.cliente_bairro || "",
-      itens: dados.itens,
-      valor_total: dados.valor_total,
-      forma_pagamento: dados.forma_pagamento,
-      observacao: dados.observacao,
-      origem: "whatsapp"
-    })
-
-  console.log("✅ PEDIDO PENDENTE SALVO CORRETAMENTE")
-
-  return res.status(200).end()
-}
-
-
 
 
   
@@ -2108,8 +2082,32 @@ REGRAS:
 - Sempre calcule o valor_total corretamente
 - Sempre use "acao": "criar" para novos pedidos
 - Nunca envie texto junto com JSON
-- O JSON deve ser puro e válido
+REGRAS CRÍTICAS DE PEDIDO:
 
+- Sempre que for um pedido real, você DEVE responder EXATAMENTE assim:
+
+PEDIDO_DELIVERY_JSON:
+{
+  "acao": "criar",
+  "dados": {
+    "cliente_nome": "...",
+    "cliente_telefone": "...",
+    "itens": [
+      {
+        "nome": "...",
+        "quantidade": 1,
+        "preco": 0
+      }
+    ],
+    "valor_total": 0,
+    "forma_pagamento": "...",
+    "observacao": "..."
+  }
+}
+
+- Não escreva nada antes
+- Não escreva nada depois
+- Se não for pedido REAL → NÃO gere JSON
 `
 },
 
