@@ -693,6 +693,75 @@ return res.status(200).end()
 }
 
 const texto = mensagem.toLowerCase()
+
+
+
+/* ================= CONFIRMAÇÃO DE PEDIDO ================= */
+
+const confirmouPedido =
+  texto === "sim" ||
+  texto.includes("confirmar") ||
+  texto.includes("pode confirmar") ||
+  texto.includes("ok pode pedir") ||
+  texto.includes("fechar pedido")
+
+if(confirmouPedido){
+
+  console.log("🛒 CONFIRMAÇÃO DE PEDIDO DETECTADA")
+
+  /* 🔥 BUSCAR ÚLTIMO PEDIDO GERADO */
+  const { data: ultimoPedido } = await supabase
+    .from("pedidos_pendentes")
+    .select("*")
+    .eq("cliente_telefone", cliente)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if(!ultimoPedido){
+    console.log("❌ NÃO EXISTE PEDIDO PARA CONFIRMAR")
+    return res.status(200).end()
+  }
+
+  /* 🔥 SALVAR PEDIDO FINAL */
+  const { error } = await supabase
+    .from("pedidos")
+    .insert({
+      status: "novo",
+      cliente_nome: nomeMemoria || "Cliente",
+      cliente_telefone: cliente,
+      cliente_endereco: ultimoPedido.cliente_endereco,
+      cliente_bairro: ultimoPedido.cliente_bairro,
+      itens: ultimoPedido.itens,
+      valor_total: ultimoPedido.valor_total,
+      forma_pagamento: ultimoPedido.forma_pagamento,
+      observacao: ultimoPedido.observacao,
+      origem: "whatsapp"
+    })
+
+  if(error){
+    console.log("❌ ERRO AO SALVAR PEDIDO:", error)
+  }else{
+    console.log("✅ PEDIDO SALVO COM SUCESSO")
+  }
+
+  /* 🔥 LIMPAR PENDENTE */
+  await supabase
+    .from("pedidos_pendentes")
+    .delete()
+    .eq("id", ultimoPedido.id)
+
+  return res.status(200).end()
+}
+
+
+
+
+
+
+
+
+  
 /* ================= ADMIN RESPONDENDO CLIENTE ================= */
 
 if(isAdmin){
