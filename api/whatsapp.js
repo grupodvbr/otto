@@ -519,7 +519,6 @@ if(!change){
 console.log("Evento inválido")
 return res.status(200).end()
 }
-
 /* IGNORA EVENTOS DE STATUS */
 
 /* ================= TRATAR STATUS ================= */
@@ -1205,7 +1204,12 @@ await supabase
 .delete()
 .eq("telefone",cliente)
 
-}
+}catch(e){
+
+console.log("❌ ERRO NO WEBHOOK:", e)
+
+return res.status(200).end()
+
 }
 /* ================= RELATORIO ADMIN ================= */
 
