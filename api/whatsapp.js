@@ -1281,6 +1281,46 @@ if(match){
     ]
   }
 
+
+
+
+
+// 🔥 SALVAR PEDIDO PENDENTE (AQUI É O PONTO CRÍTICO)
+
+await supabase
+.from("pedidos_pendentes")
+.delete()
+.eq("cliente_telefone", cliente)
+
+await supabase
+.from("pedidos_pendentes")
+.insert({
+  cliente_nome: nomeMemoria || "Cliente",
+  cliente_telefone: cliente,
+  cliente_endereco: memoriaCliente?.endereco || "",
+  cliente_bairro: memoriaCliente?.bairro || "",
+  itens: pedido.itens,
+  valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+  forma_pagamento: "",
+  observacao: ""
+})
+
+// 🔥 MARCAR ESTADO
+await supabase
+.from("estado_conversa")
+.upsert({
+  telefone: cliente,
+  tipo: "confirmacao_pedido"
+})
+
+
+
+
+
+
+
+
+  
   console.log("✅ PEDIDO CORRETO:", pedido)
 
 }else{
