@@ -694,8 +694,58 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
+/* ================= PEGAR JSON DO PEDIDO ================= */
+
+let pedidoJSON = null
+
+if(mensagem.includes("PEDIDO_DELIVERY_JSON:")){
+
+  try{
+
+    const jsonString = mensagem.split("PEDIDO_DELIVERY_JSON:")[1].trim()
+
+    pedidoJSON = JSON.parse(jsonString)
+
+    console.log("🧾 PEDIDO JSON DETECTADO:", pedidoJSON)
+
+  }catch(err){
+    console.log("❌ ERRO AO PARSEAR JSON:", err)
+  }
+
+}
 
 
+
+
+/* ================= SALVAR PEDIDO PENDENTE ================= */
+
+if(pedidoJSON){
+
+  const dados = pedidoJSON.dados
+
+  await supabase
+    .from("pedidos_pendentes")
+    .insert({
+      cliente_nome: dados.cliente_nome || "Cliente",
+      cliente_telefone: cliente,
+      cliente_endereco: dados.cliente_endereco || "",
+      cliente_bairro: dados.cliente_bairro || "",
+      itens: dados.itens,
+      valor_total: dados.valor_total,
+      forma_pagamento: dados.forma_pagamento,
+      observacao: dados.observacao,
+      origem: "whatsapp"
+    })
+
+  console.log("✅ PEDIDO PENDENTE SALVO CORRETAMENTE")
+
+}
+
+
+
+
+
+  
 /* ================= CONFIRMAÇÃO DE PEDIDO ================= */
 
 /* 🔥 VERIFICAR SE EXISTE PEDIDO PENDENTE PRIMEIRO */
