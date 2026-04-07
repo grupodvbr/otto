@@ -707,7 +707,7 @@ const texto = mensagem.toLowerCase()
 /* ================= CONFIRMAÇÃO DE PEDIDO ================= */
 
 /* 🔥 VERIFICAR SE EXISTE PEDIDO PENDENTE PRIMEIRO */
-const { data: ultimoPedido } = await supabase
+const { data: pedidoConfirmacao } = await supabase
   .from("pedidos_pendentes")
   .select("*")
   .eq("cliente_telefone", cliente)
@@ -716,7 +716,7 @@ const { data: ultimoPedido } = await supabase
   .maybeSingle()
 
 const confirmouPedido =
-  ultimoPedido && (
+  pedidoConfirmacao && (
     texto === "sim" ||
     texto.includes("confirmar") ||
     texto.includes("pode confirmar") ||
@@ -2122,11 +2122,11 @@ resposta = completion.choices[0].message.content
 
 // ================= PRE-PEDIDO (ANTES DO ENVIO) =================
 
-if(
-  resposta.toLowerCase().includes("você quer") ||
-  resposta.toLowerCase().includes("so para confirmar") ||
-  resposta.toLowerCase().includes("só para confirmar")
-){
+const temPedidoJSON = resposta.includes("PEDIDO_DELIVERY_JSON")
+
+if(temPedidoJSON){
+  console.log("🧾 DETECTADO PEDIDO REAL DA IA")
+}{
 
   console.log("🧾 SALVANDO PRE-PEDIDO DA IA")
 
@@ -2291,8 +2291,18 @@ console.log("RESPOSTA IA COMPLETA:", resposta)
 
 /* ================= SALVAR SOMENTE JSON DA IA ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*})/)
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*([\s\S]*?\})/)
 
+if(!pedidoMatch){
+  console.log("❌ NÃO VEIO JSON DE PEDIDO")
+}else{
+  console.log("✅ JSON DETECTADO")
+}
+
+
+
+
+  
 if(pedidoMatch){
 
   try{
