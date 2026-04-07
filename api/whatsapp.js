@@ -694,25 +694,7 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
-/* ================= PEGAR JSON DO PEDIDO ================= */
 
-let pedidoJSON = null
-
-if(mensagem.includes("PEDIDO_DELIVERY_JSON:")){
-
-  try{
-
-    const jsonString = mensagem.split("PEDIDO_DELIVERY_JSON:")[1].trim()
-
-    pedidoJSON = JSON.parse(jsonString)
-
-    console.log("🧾 PEDIDO JSON DETECTADO:", pedidoJSON)
-
-  }catch(err){
-    console.log("❌ ERRO AO PARSEAR JSON:", err)
-  }
-
-}
 
 
 
@@ -2408,18 +2390,36 @@ ${resumo}
   
 console.log("RESPOSTA IA COMPLETA:", resposta)
 
-if(resposta.includes("PEDIDO_DELIVERY_JSON:")){
+
+
+
+
+/* ================= SALVAR SOMENTE JSON DA IA ================= */
+
+const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*})/)
+
+if(pedidoMatch){
 
   try{
 
-    const jsonString = resposta.split("PEDIDO_DELIVERY_JSON:")[1].trim()
+    let jsonTexto = pedidoMatch[1]
+      .replace(/,\s*}/g,"}")
+      .replace(/,\s*]/g,"]")
+      .trim()
 
-    const pedidoJSON = JSON.parse(jsonString)
+    const pedidoJSON = JSON.parse(jsonTexto)
 
-    console.log("🧾 SALVANDO PEDIDO DIRETO DA IA:", pedidoJSON)
+    console.log("🧾 PEDIDO FINAL DA IA:", pedidoJSON)
 
     const dados = pedidoJSON.dados
 
+    // 🔥 LIMPA QUALQUER PEDIDO ANTERIOR
+    await supabase
+      .from("pedidos_pendentes")
+      .delete()
+      .eq("cliente_telefone", cliente)
+
+    // 🔥 SALVA EXATAMENTE O JSON
     await supabase
       .from("pedidos_pendentes")
       .insert({
@@ -2434,13 +2434,23 @@ if(resposta.includes("PEDIDO_DELIVERY_JSON:")){
         origem: "whatsapp"
       })
 
-    console.log("✅ PEDIDO SALVO DIRETO DA IA")
+    console.log("✅ PEDIDO SALVO PERFEITO")
 
   }catch(err){
-    console.log("❌ ERRO AO PEGAR JSON DA IA:", err)
+    console.log("❌ ERRO JSON FINAL:", err)
   }
 
 }
+
+
+
+
+
+
+
+
+
+  
 
   
 /* ================= DETECTAR MIDIA ================= */
@@ -3143,119 +3153,7 @@ resposta = resposta.replace(/ENVIAR_FOTO_PRATO\s+(.+)/,"").trim()
 }
 console.log("Resposta IA:",resposta)
 
-/* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*?})/)
-
-if(pedidoMatch){
-
-let pedido = null
-
-let jsonTexto = pedidoMatch[1]
-
-console.log("JSON EXTRAIDO:", jsonTexto)
-
-/* LIMPAR JSON */
-
-jsonTexto = jsonTexto
-.replace(/,\s*}/g,"}")
-.replace(/,\s*]/g,"]")
-.replace(/\n/g,"")
-.replace(/\t/g,"")
-.trim()
-
-try{
-
-pedido = JSON.parse(jsonTexto)
-
-console.log("JSON DO PEDIDO OK:", pedido)
-
-}catch(err){
-
-console.log("ERRO AO PARSEAR JSON DO PEDIDO")
-console.log("JSON RECEBIDO:", jsonTexto)
-console.log("ERRO:", err)
-
-}
-
-if(pedido){
-
-console.log("Pedido detectado:",pedido)
-
-/* CALCULAR TOTAL */
-
-const valorTotal = (pedido.itens || []).reduce((s,i)=>{
-
-const preco = Number(i.preco || 0)
-const qtd = Number(i.quantidade || 1)
-
-return s + (preco * qtd)
-
-},0)
-
-console.log("TOTAL PEDIDO:",valorTotal)
-
-/* SALVAR PEDIDO PENDENTE */
-
-console.log("SALVANDO EM pedidos_pendentes")
-
-await supabase
-.from("pedidos_pendentes")
-.delete()
-.eq("cliente_telefone",cliente)
-
-const {data,error} = await supabase
-.from("pedidos_pendentes")
-.insert({
-cliente_nome: pedido.nome,
-cliente_telefone: cliente,
-cliente_endereco: pedido.endereco || "",
-cliente_bairro: pedido.bairro || "",
-
-
-  
-itens: (pedido.itens && pedido.itens.length)
-  ? pedido.itens
-  : [{
-      nome: pedido.item,
-      quantidade: pedido.quantidade || 1,
-      preco: pedido.preco || 0
-    }],
-  
-  
-  
-  
-  
-  valor_total: valorTotal,
-forma_pagamento: pedido.pagamento || "",
-observacao: pedido.observacao || ""
-})
-.select()
-
-if(error){
-console.log("ERRO AO SALVAR PEDIDO:",error)
-}else{
-console.log("PEDIDO SALVO COM SUCESSO:",data)
-}
-
-/* MARCAR ESTADO */
-
-await supabase
-.from("estado_conversa")
-.upsert({
-telefone:cliente,
-tipo:"confirmacao_pedido"
-})
-
-resposta = `🧾 *Resumo do seu pedido*
-
-${(pedido.itens || []).map(i=>`• ${i.quantidade}x ${i.nome}`).join("\n")}
-
-💰 Total: R$ ${valorTotal.toFixed(2)}
-
-Deseja confirmar o pedido?`
-
-}
 
 }
 
