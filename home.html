@@ -1,559 +1,1189 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<link rel="manifest" href="manifest.json">
 
-<meta name="theme-color" content="#020617">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Prompts IA">
-
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta charset="UTF-8">
-<title>GRUPO DV - MERCATTO DELÍCIA</title>
+<title>SUA EMPRESA • Analytics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#f8fafc;
-  --bg-2:#f1f5f9;
+/* BASE */
+--bg:#f8fafc;
+--panel:#ffffff;
+--line:#e5e7eb;
 
-  --primary:#2563eb;
-  --primary-soft:#e0e7ff;
+/* TEXTOS */
+--text:#0f172a;
+--muted:#64748b;
 
-  --text:#0f172a;
-  --text-muted:#64748b;
+/* CORES SISTEMA */
+--accent:#2563eb;
+--green:#16a34a;
+--yellow:#f59e0b;
+--red:#dc2626;
 
-  --border:#e5e7eb;
-
-  --sidebar:#ffffff;
-  --header:#ffffff;
-
-  --shadow:0 8px 25px rgba(0,0,0,.08);
+/* SOMBRAS */
+--shadow:0 6px 18px rgba(0,0,0,0.08);
 }
 
-/* RESET */
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:"Inter",sans-serif;
-}
+*{box-sizing:border-box}
 
 body{
-  min-height:100vh;
-  background:var(--bg);
-  overflow:auto;
+margin:0;
+font-family:Inter;
+background:var(--bg);
+color:var(--text);
 }
 
 .app{
-  display:flex;
-  height:100vh;
-  width:100vw;
-}
-
-/* ===================== SIDEBAR ===================== */
-.nav-hover-zone{
-  position:fixed;
-  left:0;
-  top:0;
-  width:14px;
-  height:100vh;
-  z-index:50;
+display:flex;
+min-height:100vh;
+width:100%;
 }
 
 .sidebar{
-  position:fixed;
-  left:0;
-  top:0;
-  width:260px;
-  height:100vh;
+background:#020617;
+border-right:1px solid var(--line);
+padding:20px;
+}
+/* BOTÕES DE PAINEL */
 
-  background:var(--sidebar);
+.painelTabs{
+display:flex;
+gap:8px;
+margin:8px 0 12px 0;
+flex-wrap:wrap;
 
-  border-right:1px solid var(--border);
+position:sticky;
+top:38px;
 
-  display:flex;
-  flex-direction:column;
+background:var(--bg);
 
-  transform:translateX(-260px);
-  transition:.25s ease;
-  z-index:60;
+z-index:1999;
+
+padding-bottom:8px;
 }
 
-
-
-/* MOBILE */
-.sidebar{
-  transform:translateX(-260px);
-  transition:.25s ease;
+.tabBtn{
+background:#ffffff;
+border:1px solid var(--line);
+color:#0f172a;
+padding:10px 18px;
+border-radius:30px;
+font-weight:600;
+cursor:pointer;
+transition:0.2s;
 }
 
-.sidebar.open{
-  transform:translateX(0);
+.tabBtn:hover{
+background:#f1f5f9;
 }
 
-/* MOBILE */
-@media(max-width:768px){
-  .nav-hover-zone{display:none}
-  .sidebar{transform:translateX(-100%)}
+.tabBtn.active{
+background:var(--accent);
+border-color:var(--accent);
+color:#fff;
+box-shadow:0 6px 16px rgba(37,99,235,.35);
+}
+.logo{
+color:#ffffff;
+font-size:20px;
+font-weight:800;
+margin-bottom:30px;
+letter-spacing:.5px;
 }
 
-/* ===================== LOGO ===================== */
-.logo-area{
-  padding:20px;
-  text-align:center;
-  border-bottom:1px solid var(--border);
-}
-
-.logo-area img{
-  width:150px;
-}
-
-/* ===================== MENU ===================== */
 .menu{
-  padding:12px;
-  overflow-y:auto;
+display:flex;
+flex-direction:column;
+gap:10px;
 }
 
-.menu-item{
-  display:flex;
-  align-items:center;
-  gap:12px;
-
-  padding:12px 14px;
-  margin:6px 0;
-
-  font-size:14px;
-  color:var(--text);
-
-  border-radius:10px;
-  cursor:pointer;
-  transition:.15s;
+.menu div{
+padding:12px 14px;
+border-radius:10px;
+cursor:pointer;
+font-weight:500;
+transition:0.2s;
 }
 
-.menu-item img{
-  width:18px;
-  opacity:.6;
+.menu div:hover{
+background:rgba(255,255,255,0.15);
+transform:translateX(3px);
 }
 
-.menu-item:hover{
-  background:var(--primary-soft);
-  color:var(--primary);
+.menu div.active{
+background:rgba(255,255,255,0.25);
 }
 
-.menu-item.active{
-  background:var(--primary-soft);
-  border-left:4px solid var(--primary);
-  color:var(--primary);
-  font-weight:700;
+.menu div:hover{
+background:#0f172a;
 }
 
-/* SUBMENU */
-.submenu{
-  display:none;
-  margin:6px 0 12px 48px;
-}
-
-.submenu a{
-  display:block;
-  padding:8px 10px;
-  font-size:13px;
-  color:var(--text-muted);
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.submenu a:hover{
-  background:#f1f5f9;
-  color:var(--primary);
-}
-
-.submenu a.active-sub{
-  background:#eef2ff;
-  color:var(--primary);
-  font-weight:600;
-}
-
-/* ===================== MAIN ===================== */
 .main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  height:100vh;
+margin-left:260px;
+display:flex;
+flex-direction:column;
+height:100vh;
+overflow-y:auto;
+
+width:calc(100% - 260px);
+
+/* 🔥 RESPIRO */
+padding:20px 24px;
+gap:16px;
+
+background:var(--bg);
 }
 
-/* ===================== HEADER ===================== */
+ 
 .header{
-  height:60px;
-  background:var(--header);
-  border-bottom:1px solid var(--border);
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:4px 0;
+margin-bottom:4px;
+border-bottom:1px solid var(--line);
 
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+position:sticky;
+top:0;
 
-  padding:0 20px;
+background:var(--bg);
 
-  box-shadow:var(--shadow);
+z-index:2000;
 }
 
-.logo-title{
-  font-size:18px;
-  font-weight:800;
-  color:var(--primary);
-  letter-spacing:1px;
+.filters{
+display:flex;
+gap:10px;
 }
 
-.user-area{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  font-size:13px;
-  color:var(--text-muted);
+input,button{
+background:#ffffff;
+border:1px solid var(--line);
+color:#0f172a;
 }
 
-.logout{
-  cursor:pointer;
-  font-weight:700;
-  color:var(--primary);
+button{
+background:var(--accent);
+color:#fff;
+border:none;
 }
 
-.logout:hover{
-  opacity:.8;
+button:hover{
+background:#1e40af;
 }
 
-/* MOBILE BUTTON */
-.menu-mobile-btn{
-  display:none;
-  font-size:22px;
-  cursor:pointer;
-  color:var(--primary);
+button{cursor:pointer}
+
+.content{
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:20px;
 }
 
-@media(max-width:768px){
-  .menu-mobile-btn{
-    display:block;
-  }
+.kpis{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+margin-bottom:10px;
 }
 
-/* ===================== IFRAME ===================== */
-iframe{
-  border:none;
-  width:100%;
-  height:calc(100vh - 60px);
-  background:var(--bg);
+.card{
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:12px;
+padding:22px;
+box-shadow:0 4px 14px rgba(0,0,0,0.25);
 }
 
-/* ===================== SCROLL ===================== */
-.menu::-webkit-scrollbar{
-  width:6px;
+.card h3{
+margin:0;
+font-size:12px;
+color:var(--muted);
 }
 
-.menu::-webkit-scrollbar-thumb{
-  background:#cbd5f5;
-  border-radius:10px;
+.kpi{
+font-size:26px;
+font-weight:800;
+margin-top:5px;
+}
+
+.gridCharts{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+gap:24px;
+margin-top:10px;
+}
+.gridCharts2{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:24px;
+margin-top:10px;
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+}
+
+.day{
+background:#ffffff;
+border:1px solid var(--line);
+border-radius:8px;
+padding:6px;
+min-height:60px;
+cursor:pointer;
+position:relative;
+transition:.2s;
+}
+
+.day:hover{
+background:#f1f5f9;
+}
+
+.dayCount{
+color:var(--accent);
+}
+
+.reservas{
+max-height:350px;
+overflow:auto;
+}
+
+.res{
+border-bottom:1px solid var(--line);
+padding:10px 0;
+font-size:13px;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+background:rgba(0,0,0,.85);
+
+display:none;
+align-items:center;
+justify-content:center;
+
+z-index:99999; /* garante ficar acima de tudo */
+}
+
+.modalBox{
+background:var(--panel);
+border-radius:12px;
+padding:22px;
+
+width:650px;
+max-height:80vh;
+overflow:auto;
+
+border:1px solid var(--line);
+
+box-shadow:0 20px 60px rgba(0,0,0,.7);
+
+z-index:100000;
+}
+
+canvas{
+width:100% !important;
+height:auto !important;
+max-height:260px;
+}
+ 
+ iframe{
+width:100%;
+height:100%;
+border:none;
+background:#020617;
 }
 
 
 
 
-
-
-.logo-text{
-  font-size:20px;
-  font-weight:900;
-  letter-spacing:.5px;
-
-  color:var(--primary);
-
-  text-align:center;
-  line-height:1.2;
+.frameArea{
+width:100%;
 }
 
-.
-.menu-indicator:hover{
-  background:#1d4ed8;
-}
-
-.sidebar.open + .menu-indicator{
-  background: rgba(37, 99, 235, 0.9);
+.frameArea iframe{
+width:100%;
+height:100%;
+border:none;
 }
 
 
+.sidebar{
+position:fixed;
+top:0;
+left:0;
 
+width:260px;
+height:100vh;
 
-.btn-voltar{
-  width:36px;
-  height:36px;
+background:linear-gradient(180deg,#2563eb,#1e40af);
+color:#ffffff;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+padding:20px;
 
-  border-radius:10px;
+overflow-y:auto;
+z-index:1000;
 
-  background:var(--primary-soft);
-  color:var(--primary);
-
-  font-size:18px;
-  font-weight:800;
-
-  cursor:pointer;
-  transition:.2s;
+/* 🔥 AQUI ESTÁ O SEGREDO */
+box-shadow:6px 0 30px rgba(0,0,0,0.25);
 }
 
-.btn-voltar:hover{
-  background:var(--primary);
-  color:#fff;
+
+.header h2{
+margin:0;
+font-size:18px;
+font-weight:700;
+}
+.card{
+background:var(--panel);
+border:1px solid var(--line);
+padding:22px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+border-radius:14px;
+
+ 
+position:relative;
+z-index:1;
+}
+.logo{
+color:#ffffff;
 }
 
-.menu-mobile-btn{
-  width:40px;
-  height:40px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:10px;
-
-  background:#ffffff;
-  color:#000;
-
-  font-size:22px;
-
-  cursor:pointer;
-  transition:.2s;
-
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
+.menu div{
+color:#e0e7ff;
 }
 
-.menu-mobile-btn:hover{
-  transform:scale(1.05);
-  background:#f1f5f9;
+.menu div:hover{
+background:rgba(255,255,255,0.15);
+color:#ffffff;
+}
+.menu div.active{
+background:rgba(255,255,255,0.2);
+border-radius:8px;
 }
 
-.overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
 
-  background:rgba(0,0,0,.35);
-  backdrop-filter:blur(3px);
-
-  opacity:0;
-  pointer-events:none;
-  transition:.25s;
-
-  z-index:55;
+.sidebar::after{
+content:"";
+position:absolute;
+top:0;
+right:0;
+width:1px;
+height:100%;
+background:rgba(255,255,255,0.15);
 }
 
-.overlay.active{
-  opacity:1;
-  pointer-events:auto;
-}
+
+ 
 </style>
 </head>
 
 <body>
+
 <div class="app">
 
-  <div class="nav-hover-zone"></div>
+<div class="sidebar">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="logo-area">
-      <div class="logo-text">
-        MERCATTO DELÍCIA
-      </div>
-    </div>
+<div class="logo">SUA EMPRESA</div>
 
 <div class="menu">
 
-  <!-- DASHBOARD -->
-  <div class="menu-item" onclick="openPage('inicio/dashboard.html')" data-page="inicio/dashboard.html">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/dashboard-line.svg">
-    Dashboard
-  </div>
-
-     
-  <!-- Operacional -->
-  <div class="menu-item" onclick="toggleSub('sub_encontrar')">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/settings-3-line.svg">
-    Operacional
-  </div>
-
-  <div class="submenu" id="sub_encontrar">
-    <a onclick="openPage('restaurante/administracao/requisicoesrecebidas.html')" data-page="buscar.html">Requisições de mercadorias</a>
-    <a onclick="openPage('ferramentas/apresentacoes/links.html')" data-page="ferramentas/apresentacoes/links.html">Links</a>
-    <a onclick="openPage('ferramentas/producao/analisedepercas.html')" data-page="ferramentas/apresentacoes/links.html">Trocas</a>
-    <a onclick="openPage('ferramentas/producao/analisebuffet.html')" data-page="ferramentas/producao/analisebuffet.html">Buffet</a>
-  </div>
-
-  <!-- WHATSAPP -->
-  <div class="menu-item" onclick="openPage('otto/whatsapp.html')" data-page="otto/whatsapp.html">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Logos/whatsapp-line.svg">
-    WhatsApp
-  </div>
-
-  <!-- FICHA TECNICA -->
-  <div class="menu-item" onclick="toggleSub('sub_ficha')">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Document/book-open-line.svg">
-    Ficha técnica
-  </div>
-
-  <div class="submenu" id="sub_ficha">
-    <a onclick="openPage('restaurante/fichas.html')" data-page="restaurante/fichas.html">Fichas</a>
-    <a onclick="openPage('relatórios/caderno.html')" data-page="relatórios/caderno.html">Livro de receitas</a>
-    <a onclick="openPage('relatórios/historico.html')" data-page="relatórios/historico.html">Histórico</a>
-    <a onclick="openPage('restaurante/relatorios/homerelatorios.html')" data-page="restaurante/relatorios/homerelatorios.html">Relatórios</a>
-  </div>
-
-  <!-- RESTAURANTE -->
-<div class="menu-item" onclick="toggleSub('sub_monitorar')">
-  <i class="ri-restaurant-line"></i>
-  Restaurante
+<div onclick="abrirPagina('dashboard.html','Dashboard')">
+Dashboard
 </div>
 
-  <div class="submenu" id="sub_monitorar">
-    <a onclick="openPage('restaurante/reservas.html')" data-page="restaurante/reservas.html">Reservas de mesas</a>
-    <a onclick="openPage('restaurante/agendacantores.html')" data-page="restaurante/agendacantores.html">Agenda de cantores</a>
-  </div>
-
-  <!-- AGENTE -->
-<div class="menu-item" onclick="openPage('otto/agente.html')" data-page="otto/agente.html">
-  <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Device/cpu-line.svg">
-  Agente de IA
+<div onclick="abrirPagina('restaurante/reservas.html','Reservas')">
+Reservas
 </div>
-     
-  <!-- APP / SISTEMA -->
-  <div class="menu-item" onclick="openPage('ferramentas/aplicativos.html')" data-page="ferramentas/aplicativos.html">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/apps-2-line.svg">
-    Aplicativos
-  </div>
-     
-  <!-- CONFIG -->
-  <div class="menu-item" onclick="openPage('sistema/configuracoes.html')" data-page="sistema/configuracoes.html">
-    <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/System/settings-4-line.svg">
-    Configurações
-  </div>
+
+<div onclick="abrirPagina('otto/whatsapp.html','Conversas')">
+Chatbot com IA
+</div>
+
+<div onclick="abrirPagina('restaurante/fichas.html','Conversas')">
+Fichas Técnicas
+</div>
+
+
+ <div onclick="abrirPagina('ferramentas/aplicativos.html','Conversas')">
+Aplicativos
+</div>
+
+
+<div onclick="abrirPagina('relatórios/geral.html','Conversas')">
+Relatórios
+</div>
+ 
+</div>
 
 </div>
-  </div>
 
-<div class="overlay" onclick="toggleMobileMenu()"></div>
 
-  <!-- MAIN -->
-  <div class="main">
+<div class="main">
 
 <div class="header">
 
-  <div style="display:flex;align-items:center;gap:10px">
+<h2 id="tituloPagina">Analytics Operacional</h2>
 
-    <!-- MENU (AGORA PRIMEIRO) -->
-<div class="menu-mobile-btn" onclick="toggleMobileMenu()">
-  <i class="ri-arrow-right-line"></i>
+<div style="display:flex;align-items:center;gap:12px">
+
+<div class="filters">
+<input type="date" id="inicio">
+<input type="date" id="fim">
+<button onclick="carregar()">Atualizar</button>
 </div>
 
-    <!-- VOLTAR
-    <div class="btn-voltar" onclick="voltarPagina()">
-      ←
-    </div>
--->
-  </div>
-
-  <div class="user-area">
-    <span id="userMail"></span>
-    <span class="logout" onclick="logout()">SAIR</span>
-  </div>
+<!-- PERFIL -->
+<div id="btnPerfil" onclick="abrirPerfil()" style="
+width:40px;
+height:40px;
+border-radius:50%;
+overflow:hidden;
+cursor:pointer;
+border:2px solid #e2e8f0;
+box-shadow:0 4px 12px rgba(0,0,0,.15);
+">
+<img id="perfilLogo" style="width:100%;height:100%;object-fit:cover">
+</div>
 
 </div>
 
-<iframe id="frame" src="inicio/dashboard.html"></iframe>
+</div>
+<!-- BOTÕES DE TROCA DE PAINEL -->
+
+<div class="painelTabs">
+
+<button class="tabBtn active"
+onclick="abrirGeral(this)">
+Reservas
+</button>
+
+<button class="tabBtn"
+onclick="abrirPainel('delivery.html',this)">
+Delivery
+</button>
+
+<button class="tabBtn"
+onclick="abrirPainel('bar.html',this)">
+Bar
+</button>
+
+<button class="tabBtn"
+onclick="abrirPainel('buffet.html',this)">
+Buffet
+</button>
+
+
+</div>
+ 
+<div id="kpisGeral">
+
+<div class="kpis">
+
+<div class="card"><h3>Conversas únicas</h3><div id="convUnicas" class="kpi">0</div></div>
+<div class="card"><h3>Total mensagens</h3><div id="mensagens" class="kpi">0</div></div>
+<div class="card"><h3>Mensagens cliente</h3><div id="msgClientes" class="kpi">0</div></div>
+<div class="card"><h3>Mensagens bot</h3><div id="msgBot" class="kpi">0</div></div>
+<div class="card"><h3>Conversas pausadas</h3><div id="pausadas" class="kpi">0</div></div>
+<div class="card"><h3>Conversão reserva</h3><div id="taxaReserva" class="kpi">0%</div></div>
+
+</div>
+
+<div class="kpis">
+
+<div class="card"><h3>Total reservas</h3><div id="totalReservas" class="kpi">0</div></div>
+<div class="card"><h3>Pessoas reservadas</h3><div id="pessoas" class="kpi">0</div></div>
+<div class="card"><h3>Ticket médio</h3><div id="ticket" class="kpi">0</div></div>
+<div class="card"><h3>Valor estimado</h3><div id="estimado" class="kpi">0</div></div>
+<div class="card"><h3>Valor antecipado</h3><div id="antecipado" class="kpi">0</div></div>
+<div class="card"><h3>Valor pago</h3><div id="finalPago" class="kpi">0</div></div>
+
+</div>
+
+</div>
+
+<div id="painelConteudo">
+
+<div class="gridCharts">
+
+<div class="card">
+<h3>Mensagens por hora</h3>
+<canvas id="graficoPico"></canvas>
+</div>
+
+<div class="card">
+<h3>Status reservas</h3>
+<canvas id="graficoStatus"></canvas>
+</div>
+
+</div>
+
+
+<div class="gridCharts2">
+
+<div class="card">
+<h3>Reservas por setor</h3>
+<canvas id="graficoSetor"></canvas>
+</div>
+
+<div class="card">
+<h3>Reservas por dia</h3>
+<canvas id="graficoDias"></canvas>
+</div>
+
+<div class="card">
+<h3>Top clientes</h3>
+<canvas id="graficoClientes"></canvas>
+</div>
+
+</div>
+
+
+<div class="gridCharts">
+
+<div class="card">
+<h3>Calendário reservas</h3>
+<div id="calendar" class="calendar"></div>
+</div>
+
+<div class="card">
+<h3>Reservas no período</h3>
+<div id="lista" class="reservas"></div>
+</div>
+
+</div>
+
+</div>
+
+</div>
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div id="modal" class="modal">
+<div class="modalBox">
+<h2 id="modalTitle"></h2>
+<div id="modalLista"></div>
+</div>
+</div>
+
+
+
 <script>
-const supabaseClient=supabase.createClient(
-"https://mblvyircwsaxaslklzky.supabase.co",
-"sb_publishable_oN2CuBzXHaUF7NHYS_M7aw_tBqVeD-x"
-);
 
-function toggleSub(id){
-const el=document.getElementById(id);
-el.style.display=el.style.display==="block"?"none":"block";
+let db = null
+
+async function iniciarSistema(){
+
+  const SUPABASE_URL = localStorage.getItem("SUPABASE_URL")
+  const SUPABASE_KEY = localStorage.getItem("SUPABASE_KEY")
+
+  // 🔒 valida se tem credenciais
+  if(!SUPABASE_URL || !SUPABASE_KEY){
+    window.location.href = "index.html"
+    return
+  }
+
+  // 🔐 cliente do AUTH (banco master)
+  const supabaseAuth = supabase.createClient(
+    "https://fcehmjmtxqmrjkuqlkay.supabase.co",
+    "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
+  )
+
+  // 🔍 verifica sessão real
+  const { data } = await supabaseAuth.auth.getSession()
+
+
+const { data: { user } } = await supabaseAuth.auth.getUser()
+
+if(user){
+  localStorage.setItem("USER_EMAIL", user.email)
 }
 
-function toggleMobileMenu(){
-  const sidebar = document.querySelector(".sidebar");
-  const overlay = document.querySelector(".overlay");
 
-  sidebar.classList.toggle("open");
-  overlay.classList.toggle("active");
+ 
+  if(!data.session){
+    localStorage.clear()
+    window.location.href = "index.html"
+    return
+  }
 
-  localStorage.setItem("menuAberto", sidebar.classList.contains("open"));
+  // ✅ cria conexão com banco da empresa
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  // 🚀 inicia sistema
+  defaultDates()
+  carregar()
+ carregarPerfilHeader()
+}
+
+iniciarSistema()
+
+let charts={}
+
+function normalizar(t){return (t||"").replace(/\D/g,"")}
+function dataReserva(data){
+if(!data) return null
+return new Date(data)
+}
+function money(v){return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+
+function set(id,v){
+const el=document.getElementById(id)
+if(el) el.innerText=v
+}
+
+function destroyChart(id){
+if(charts[id]) charts[id].destroy()
+}
+
+function defaultDates(){
+
+const hoje=new Date()
+
+const inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1)
+const fim=new Date(hoje.getFullYear(),hoje.getMonth()+1,0)
+
+document.getElementById("inicio").value=inicio.toISOString().slice(0,10)
+document.getElementById("fim").value=fim.toISOString().slice(0,10)
+
+}
+
+async function carregar(){
+
+const inicio=new Date(document.getElementById("inicio").value)
+const fim=new Date(document.getElementById("fim").value)
+fim.setHours(23,59,59,999)
+
+const {data:conversas}=await db.from("conversas_whatsapp").select("*")
+const {data:reservas}=await db.from("reservas_mercatto").select("*")
+const {data:controle}=await db.from("controle_bot").select("*")
+
+const conv=(conversas || []).filter(c=>{
+ const d=new Date(c.created_at)
+return d>=inicio && d<=fim
+})
+
+set("mensagens",conv.length)
+set("msgClientes",conv.filter(c=>c.role==="user").length)
+set("msgBot",conv.filter(c=>c.role==="assistant").length)
+
+const telefones=new Set()
+conv.forEach(c=>telefones.add(normalizar(c.telefone)))
+set("convUnicas",telefones.size)
+
+let pausadas=(controle || []).filter(c=>c.pausado).length
+ set("pausadas",pausadas)
+
+const res=(reservas || []).filter(r=>{
+ const d=new Date(r.datahora)
+return d>=inicio && d<=fim
+})
+
+set("totalReservas",res.length)
+
+let pessoas=res.reduce((a,r)=>a+Number(r.pessoas||0),0)
+set("pessoas",pessoas)
+
+let estimado=0
+let antecipado=0
+let pago=0
+
+res.forEach(r=>{
+
+estimado+=Number(r.valorEstimado||0)
+
+let extra=
+Number(r.pagamentoExtra1||0)+
+Number(r.pagamentoExtra2||0)+
+Number(r.pagamentoExtra3||0)+
+Number(r.pagamentoExtra4||0)+
+Number(r.pagamentoExtra5||0)
+
+antecipado+=Number(r.pagamentoAntecipado||0)+extra
+
+pago+=Number(r.valorFinalPago||0)
+
+})
+
+set("estimado",money(estimado))
+set("antecipado",money(antecipado))
+set("finalPago",money(pago))
+set("ticket",money(res.length?estimado/res.length:0))
+
+const clientesReserva=new Set()
+res.forEach(r=>clientesReserva.add(normalizar(r.telefone)))
+
+let taxa=telefones.size?((clientesReserva.size/telefones.size)*100).toFixed(1):0
+set("taxaReserva",taxa+"%")
+
+/* GRÁFICO HORAS */
+
+let horas=Array(24).fill(0)
+conv.forEach(c=>horas[new Date(c.created_at).getHours()]++)
+
+destroyChart("pico")
+
+charts["pico"]=new Chart(
+document.getElementById("graficoPico"),
+{
+type:"bar",
+data:{labels:[...Array(24).keys()].map(h=>h+"h"),
+datasets:[{data:horas,backgroundColor:"#3b82f6"}]},
+options:{plugins:{legend:{display:false}}}
+})
+
+/* STATUS */
+
+let status={}
+res.forEach(r=>status[r.status]=(status[r.status]||0)+1)
+
+destroyChart("status")
+
+charts["status"]=new Chart(
+document.getElementById("graficoStatus"),
+{
+type:"doughnut",
+
+data:{
+labels:Object.keys(status),
+datasets:[{data:Object.values(status)}]
+},
+
+options:{
+onClick:(evt,elements)=>{
+
+if(!elements.length) return
+
+const index = elements[0].index
+const statusSelecionado = Object.keys(status)[index]
+
+abrirStatus(statusSelecionado,res)
+
+}
+}
+
+})
+
+/* SETORES */
+
+let setores={}
+res.forEach(r=>setores[r.mesa]=(setores[r.mesa]||0)+1)
+
+destroyChart("setor")
+
+charts["setor"]=new Chart(
+document.getElementById("graficoSetor"),
+{
+type:"pie",
+data:{labels:Object.keys(setores),
+datasets:[{data:Object.values(setores)}]}
+})
+
+/* RESERVAS POR DIA */
+
+let dias={}
+
+res.forEach(r=>{
+let d=new Date(r.datahora).toLocaleDateString("pt-BR")
+dias[d]=(dias[d]||0)+1
+})
+
+destroyChart("dias")
+
+charts["dias"]=new Chart(
+document.getElementById("graficoDias"),
+{
+type:"line",
+data:{labels:Object.keys(dias),
+datasets:[{data:Object.values(dias),borderColor:"#3b82f6"}]}
+})
+
+/* TOP CLIENTES */
+
+let clientes={}
+res.forEach(r=>{
+clientes[r.nome]=(clientes[r.nome]||0)+1
+})
+
+destroyChart("clientes")
+
+charts["clientes"]=new Chart(
+document.getElementById("graficoClientes"),
+{
+type:"bar",
+data:{labels:Object.keys(clientes).slice(0,5),
+datasets:[{data:Object.values(clientes).slice(0,5)}]}
+})
+gerarCalendario(res,inicio,fim)
+ listarReservas(res)
+}
+
+function gerarCalendario(reservas,inicio,fim){
+
+const cal=document.getElementById("calendar")
+cal.innerHTML=""
+
+let dataAtual = new Date(inicio)
+
+while(dataAtual <= fim){
+
+const i = dataAtual.getDate()
+const mes = dataAtual.getMonth()
+const ano = dataAtual.getFullYear()
+
+let count = reservas.filter(r=>{
+
+if(!r.datahora) return false
+
+const d = new Date(r.datahora)
+
+return (
+d.getDate() === i &&
+d.getMonth() === mes &&
+d.getFullYear() === ano
+)
+
+}).length
+
+const div=document.createElement("div")
+div.className="day"
+
+const hoje=new Date()
+
+let destaque=""
+
+if(
+i===hoje.getDate() &&
+mes===hoje.getMonth() &&
+ano===hoje.getFullYear()
+){
+destaque='style="border:2px solid #3b82f6"'
+}
+
+div.innerHTML=`
+<div ${destaque}>${i}</div>
+<div class="dayCount">${count}</div>
+`
+
+div.onclick=()=>abrirDia(i,reservas,mes,ano)
+
+cal.appendChild(div)
+
+/* 👇 AQUI fica o avanço do dia */
+
+dataAtual.setDate(dataAtual.getDate()+1)
+
+}
+
+}
+function abrirDia(dia,reservas,mes,ano){
+
+const lista=reservas.filter(r=>{
+const d=dataReserva(r.datahora)
+ return d.getDate()==dia &&
+d.getMonth()==mes &&
+d.getFullYear()==ano
+})
+
+const box=document.getElementById("modalLista")
+box.innerHTML=""
+
+lista.forEach(r=>{
+
+const div=document.createElement("div")
+
+div.className="res"
+
+div.innerHTML=`
+<b>${r.nome}</b><br>
+${new Date(r.datahora).toLocaleTimeString("pt-BR")}
+ • ${r.telefone}
+ • ${r.mesa}
+ • ${r.pessoas} pessoas
+ • ${r.status}
+`
+
+box.appendChild(div)
+
+})
+
+document.getElementById("modalTitle").innerText="Reservas dia "+dia
+document.getElementById("modal").style.display="flex"
+
+}
+
+const modal = document.getElementById("modal")
+
+modal.addEventListener("click",(e)=>{
+if(e.target === modal){
+modal.style.display="none"
+}
+})
+
+
+function abrirStatus(statusSelecionado,reservas){
+
+const lista = reservas.filter(r=> r.status === statusSelecionado)
+
+const box=document.getElementById("modalLista")
+box.innerHTML=""
+
+lista.forEach(r=>{
+
+const div=document.createElement("div")
+
+div.className="res"
+
+div.innerHTML=`
+<b>${r.nome}</b><br>
+${new Date(r.datahora).toLocaleString("pt-BR")}
+ • ${r.telefone}
+ • ${r.mesa}
+ • ${r.pessoas} pessoas
+ • ${r.status}
+`
+
+box.appendChild(div)
+
+})
+
+document.getElementById("modalTitle").innerText="Reservas "+statusSelecionado
+
+document.getElementById("modal").style.display="flex"
+
 }
 
 
-function openPage(page){
-  document.getElementById("frame").src = page;
 
-  localStorage.setItem("paginaAtual", page);
+ 
 
-  highlightMenu(page);
 
-  // 🔥 FECHA SEMPRE (desktop + mobile)
-  document.querySelector(".sidebar").classList.remove("open");
-  document.querySelector(".overlay").classList.remove("active");
+function listarReservas(res){
+
+const lista=document.getElementById("lista")
+lista.innerHTML=""
+
+res.sort((a,b)=>new Date(a.datahora)-new Date(b.datahora)) 
+res.forEach(r=>{
+
+const div=document.createElement("div")
+div.className="res"
+
+div.innerHTML=`
+<b>${r.nome}</b><br>
+${new Date(r.datahora).toLocaleString("pt-BR")}
+ • ${r.mesa}
+ • ${r.pessoas} pessoas
+ • ${r.status}
+`
+
+lista.appendChild(div)
+
+})
+
 }
 
-function highlightMenu(page){
-document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
-document.querySelectorAll(".submenu a").forEach(i=>i.classList.remove("active-sub"));
-const sub=document.querySelector(`a[data-page="${page}"]`);
-if(sub){
-sub.classList.add("active-sub");
-sub.closest(".submenu").previousElementSibling.classList.add("active");
-sub.closest(".submenu").style.display="block";
-}
+
+function abrirPagina(pagina,titulo){
+
+if(pagina==="dashboard.html"){
+location.href="home.html"
+return
 }
 
-function logout(){
-localStorage.removeItem("usuarioEmail");
-location.href="login.html";
+location.href=pagina
+
 }
 
-window.onload = function(){
 
-  const paginaSalva = localStorage.getItem("paginaAtual");
+ let conteudoOriginal = ""
 
-  if(paginaSalva){
-    document.getElementById("frame").src = paginaSalva;
-    highlightMenu(paginaSalva);
+window.addEventListener("DOMContentLoaded",()=>{
+
+conteudoOriginal = document.getElementById("painelConteudo").innerHTML
+
+})
+
+
+function abrirGeral(botao){
+
+document.querySelectorAll(".tabBtn")
+.forEach(b=>b.classList.remove("active"))
+
+botao.classList.add("active")
+
+/* mostrar kpis novamente */
+
+document.getElementById("kpisGeral").style.display="block"
+
+/* destruir gráficos */
+
+Object.keys(charts).forEach(k=>{
+try{ charts[k].destroy() }catch(e){}
+})
+
+charts={}
+
+document.getElementById("painelConteudo").innerHTML = conteudoOriginal
+
+setTimeout(()=>carregar(),50)
+
+}
+
+function abrirPainel(pagina,botao){
+
+if(botao.classList.contains("active")) return
+
+document.querySelectorAll(".tabBtn")
+.forEach(b=>b.classList.remove("active"))
+
+botao.classList.add("active")
+
+/* esconder kpis */
+
+document.getElementById("kpisGeral").style.display="none"
+
+fetch(pagina)
+.then(res=>res.text())
+.then(html=>{
+
+const area = document.getElementById("painelConteudo")
+
+area.innerHTML = html
+
+area.querySelectorAll("script").forEach(oldScript => {
+
+const newScript = document.createElement("script")
+
+if(oldScript.src){
+newScript.src = oldScript.src
+}else{
+newScript.textContent = oldScript.textContent
+}
+
+document.body.appendChild(newScript)
+
+})
+
+})
+
+}
+ async function carregarPerfilHeader(){
+
+  const supabaseAuth = supabase.createClient(
+    "https://fcehmjmtxqmrjkuqlkay.supabase.co",
+    "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
+  )
+
+  const { data: { user } } = await supabaseAuth.auth.getUser()
+
+  if(!user) return
+
+  const { data: empresa } = await supabaseAuth
+    .from("empresas")
+    .select("logo_url, nome_fantasia")
+    .eq("email", user.email)
+    .single()
+
+  if(empresa){
+
+    const logo = document.getElementById("perfilLogo")
+
+logo.src = empresa.logo_url 
+  ? empresa.logo_url 
+  : "https://ui-avatars.com/api/?name=" + encodeURIComponent(empresa.nome_fantasia) + "&background=2563eb&color=fff"
+   
   }
 
 }
 
 
-function voltarPagina(){
-  const frame = document.getElementById("frame");
-  frame.contentWindow.history.back();
+
+
+
+function abrirPerfil(){
+  document.getElementById("perfilModal").style.display = "flex"
 }
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("SW registrado"))
-    .catch(err => console.log("Erro SW", err));
+
+function fecharPerfil(){
+  document.getElementById("perfilModal").style.display = "none"
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const perfilModal = document.getElementById("perfilModal")
+
+  if(perfilModal){
+    perfilModal.addEventListener("click",(e)=>{
+      if(e.target === perfilModal){
+        fecharPerfil()
+      }
+    })
+  }
+
+})
+
+
+ 
 </script>
+<div id="perfilModal" style="
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.75);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999999;
+">
+
+<div style="
+width:700px;
+max-width:95%;
+height:85%;
+background:#fff;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 30px 80px rgba(0,0,0,.4);
+position:relative;
+">
+
+<!-- BOTÃO FECHAR -->
+<div onclick="fecharPerfil()" style="
+position:absolute;
+top:12px;
+right:16px;
+font-size:22px;
+cursor:pointer;
+z-index:10;
+color:#64748b;
+">
+✕
+</div>
+
+<iframe src="perfil.html"></iframe>
+
+</div>
+
+</div>
 </body>
 </html>
