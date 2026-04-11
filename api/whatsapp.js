@@ -4371,39 +4371,6 @@ if(reserva.observacoes && reserva.observacoes.trim() !== ""){
 resposta =
 `✅ *Reserva confirmada!*
 
-
-
-/* ================= ALERTA ADMIN RESERVA NORMAL ================= */
-
-const alertaReserva = `
-📅 *NOVA RESERVA*
-
-👤 Nome: ${reserva.nome}
-📱 Telefone: ${cliente}
-👥 Pessoas: ${reserva.pessoas}
-🏠 Área: ${mesa}
-⏰ Data: ${dataClienteReserva}
-🕒 Hora: ${reserva.hora}
-`
-
-for(const admin of ADMINS){
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to: admin,
-      type:"text",
-      text:{ body: alertaReserva }
-    })
-  })
-}
-
-
-
 Nome: ${reserva.nome}
 Pessoas: ${reserva.pessoas}
 Data: ${dataClienteReserva}
