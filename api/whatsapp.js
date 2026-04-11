@@ -397,6 +397,93 @@ return publicUrl
 
 
 module.exports = async function handler(req,res){
+
+
+
+
+
+
+
+
+// 🔥 MODO PROCESSAR FILA
+if(req.query.processar === "true"){
+
+  console.log("🚀 PROCESSANDO FILA")
+
+  const limiteTempo = new Date(Date.now() - 5000).toISOString()
+
+  const { data: mensagens } = await supabase
+  .from("fila_mensagens")
+  .select("*")
+  .eq("processado", false)
+  .lte("created_at", limiteTempo)
+  .order("created_at",{ ascending:true })
+
+  if(!mensagens || !mensagens.length){
+    console.log("⚠️ FILA VAZIA")
+    return res.json({ ok:true })
+  }
+
+  const grupos = {}
+
+  for(const m of mensagens){
+    if(!grupos[m.telefone]){
+      grupos[m.telefone] = []
+    }
+    grupos[m.telefone].push(m)
+  }
+
+  const url = `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`
+
+  for(const telefone in grupos){
+
+    const lista = grupos[telefone]
+
+    const textoFinal = lista.map(m => m.mensagem).join("\n")
+
+    console.log("📦 AGRUPADO:", textoFinal)
+
+    // 🔥 AQUI VOCÊ PODE CHAMAR SUA LÓGICA ATUAL OU GPT
+    const resposta = `Perfeito! Recebi tudo 👍\n\n${textoFinal}`
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to: telefone,
+        type:"text",
+        text:{ body: resposta }
+      })
+    })
+
+    await supabase
+    .from("fila_mensagens")
+    .update({ processado:true })
+    .in("id", lista.map(m => m.id))
+
+  }
+
+  return res.json({ ok:true })
+}
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
 let resposta = ""
 
 
@@ -696,6 +783,18 @@ const texto = mensagem.toLowerCase()
 
 
 
+// 🔥 NOVO BLOCO (FILA - COLAR AQUI)
+await supabase
+.from("fila_mensagens")
+.insert({
+  telefone: cliente,
+  mensagem: mensagem
+})
+
+console.log("📥 SALVO NA FILA:", mensagem)
+
+// 🚫 PARA TUDO AQUI (NÃO RESPONDE MAIS DIRETO)
+return res.status(200).end()
 
 
 
