@@ -639,6 +639,49 @@ break
 const cliente = mensagensRecebidas[0]?.from
   const isAdmin = ADMINS.includes(cliente)
 const message_id = mensagensRecebidas[0]?.id
+
+
+
+
+
+
+
+
+/* ================= BLOQUEIO DUPLICIDADE (CORRETO) ================= */
+
+const { data: jaProcessada } = await supabase
+  .from("mensagens_processadas")
+  .select("*")
+  .eq("message_id", message_id)
+  .maybeSingle()
+
+if(jaProcessada){
+  console.log("⛔ DUPLICADA:", message_id)
+  return res.status(200).end()
+}
+
+await supabase
+  .from("mensagens_processadas")
+  .insert({ message_id })
+
+console.log("✅ MENSAGEM NOVA LIBERADA")
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
 /* ================= VERIFICAR PAUSA BOT ================= */
 
 const { data: pausaBot } = await supabase
@@ -1260,21 +1303,7 @@ if(
     tipo: tipoMensagem
   })
 
-  /* 🔥 NOVO — SALVAR COMO CONVERSA NORMAL */
-  await supabase
-  .from("conversas_whatsapp")
-  .insert({
-    telefone:cliente,
-    mensagem:
-      mensagem ||
-      (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
-    tipo,
-    media_url,
-    nome_arquivo,
-    role:"user",
-    message_id: message_id,
-    status: "received"
-  })
+
 
   /* RESPOSTA AUTOMÁTICA PARA CLIENTE */
   resposta = `🙏 Sentimos muito por isso, ${nomeCliente}.
@@ -2094,22 +2123,6 @@ assuntoMusica = querMusica
 if(querMusica){
 console.log("FORÇANDO ASSUNTO MUSICA")
 }
-/* ================= BLOQUEAR DUPLICIDADE ================= */
-
-const { data: jaProcessada } = await supabase
-.from("mensagens_processadas")
-.select("*")
-.eq("message_id", message_id)
-.maybeSingle()
-
-if(jaProcessada){
-console.log("Mensagem duplicada ignorada")
-return res.status(200).end()
-}
-
-await supabase
-.from("mensagens_processadas")
-.insert({ message_id })
 
 /* ================= SALVAR MENSAGEM CLIENTE ================= */
 
