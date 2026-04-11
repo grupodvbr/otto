@@ -1,8 +1,18 @@
 {
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
       "path": "/api/webhook?cron=relatorio",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/webhook?processar=true",
+      "schedule": "*/1 * * * *"
     }
   ]
 }
