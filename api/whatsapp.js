@@ -737,8 +737,7 @@ if(querCancelar){
 
   console.log("❌ CANCELAMENTO DETECTADO")
 
-  const hoje = new Date().toISOString()
-
+const hoje = getHojeBahia() + "T00:00:00"
   const { data: reservas, error } = await supabase
   .from("reservas_mercatto")
   .select("*")
@@ -1263,7 +1262,44 @@ if(nomeDetectado && nomeValido(nomeDetectado)){
   }
 }
 
+// 🚨 PRIORIDADE TOTAL — CANCELAMENTO (ANTES DA IA)
+if(
+texto.includes("desmarcar") ||
+texto.includes("não vou mais") ||
+texto.includes("nao vou mais") ||
+texto.includes("cancelar reserva")
+){
+  console.log("🔥 FORÇANDO CANCELAMENTO DIRETO")
 
+  const hoje = getHojeBahia() + "T00:00:00"
+
+  const { data: reservas } = await supabase
+    .from("reservas_mercatto")
+    .select("*")
+    .eq("telefone", cliente)
+    .in("status", ["Pendente","Confirmada"])
+    .gte("datahora", hoje)
+    .order("datahora",{ ascending:true })
+
+  console.log("📋 RESERVAS ENCONTRADAS:", reservas)
+
+  // 🔥 pega a mais próxima
+  const reserva = reservas?.[0]
+
+  if(!reserva){
+    console.log("❌ NENHUMA RESERVA FUTURA")
+    return res.status(200).end()
+  }
+
+  await supabase
+    .from("reservas_mercatto")
+    .update({ status:"Cancelada" })
+    .eq("id", reserva.id)
+
+  console.log("✅ RESERVA CANCELADA:", reserva.id)
+
+  return res.status(200).end()
+}
   
 
 
