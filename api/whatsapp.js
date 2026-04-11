@@ -2024,7 +2024,6 @@ textoNormalizado.includes("cardap") ||
 textoNormalizado.includes("menu") ||
 textoNormalizado.includes("pratos")
 
-/* 🔥 BUFFET INTELIGENTE */
 // 🔥 SOMENTE BUFFET
 const querBuffet =
 textoNormalizado.includes("buffet") ||
@@ -2037,10 +2036,11 @@ textoNormalizado.includes("comida")
   
 // 🔥 PERGUNTA GENÉRICA (VAI PRA IA)
 const querHoje =
-textoNormalizado.includes("tem o que") ||
+textoNormalizado.includes("o que tem hoje") ||
 textoNormalizado.includes("tem hoje") ||
-textoNormalizado.includes("o que tem") ||
-textoNormalizado.startsWith("tem ")
+textoNormalizado.includes("vai ter o que hoje") ||
+textoNormalizado === "tem hoje" ||
+textoNormalizado === "o que tem hoje"
 
 
   
@@ -2664,7 +2664,9 @@ Regras:
 
 - Esses são os itens reais do buffet de hoje
 - Não invente itens
-- Se o cliente perguntar "o que tem hoje", liste os itens
+- Se o cliente perguntar especificamente sobre buffet, liste os itens
+- Nunca responda promoções junto com buffet
+- Perguntas como "o que tem hoje" são gerais e não significam buffet
 - Se perguntar "tem X", verifique nessa lista
 - Organize de forma bonita
 `
