@@ -702,20 +702,6 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
-// 🔥 SALVAR MENSAGEM DO CLIENTE (ANTES DE QUALQUER LÓGICA)
-await supabase
-.from("conversas_whatsapp")
-.insert({
-  telefone:cliente,
-  mensagem:mensagem,
-  tipo,
-  media_url,
-  nome_arquivo,
-  role:"user",
-  message_id,
-  status:"received"
-})
-
 
 
 
