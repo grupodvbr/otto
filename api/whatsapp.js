@@ -694,6 +694,85 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
+
+
+
+
+
+
+
+  // ================= DETECTAR RESERVA =================
+
+const querReservar =
+texto.includes("reserva") ||
+texto.includes("reservar") ||
+texto.includes("mesa") ||
+texto.includes("quero reservar")
+
+if(querReservar){
+
+  console.log("📅 INTENÇÃO DE RESERVA DETECTADA")
+
+  const nome = nomeMemoria || "Cliente"
+  const telefone = cliente
+  const pessoas = 2 // depois você pode melhorar isso
+  const datahora = new Date().toISOString()
+  const mesa = "Não definida"
+
+  // 🔥 SALVA NO BANCO
+  await supabase
+  .from("reservas_mercatto")
+  .insert({
+    nome,
+    telefone,
+    pessoas,
+    datahora,
+    mesa,
+    status: "Pendente"
+  })
+
+  // 🔥 ENVIA PARA ADM
+  const msgAdmin = `
+📅 *NOVA RESERVA*
+
+👤 Nome: ${nome}
+📱 Telefone: ${telefone}
+👥 Pessoas: ${pessoas}
+⏰ Data: ${datahora}
+🍽️ Mesa: ${mesa}
+`
+
+  for(const admin of ADMINS){
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to: admin,
+        type:"text",
+        text:{ body: msgAdmin }
+      })
+    })
+
+  }
+
+  console.log("📤 RESERVA ENVIADA PARA ADM")
+
+  return res.status(200).end()
+}
+
+
+
+
+
+
+
+
+  
 /* ================= PEGAR JSON DO PEDIDO ================= */
 
 let pedidoJSON = null
