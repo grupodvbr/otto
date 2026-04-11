@@ -686,8 +686,15 @@ const { data: memoriaCliente } = await supabase
 
 let nomeMemoria = memoriaCliente?.nome || null
 const ADMIN_NUMERO = "557798253249"
-const phone_number_id = change.metadata.phone_number_id
-const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
+const phone_number_id = change?.metadata?.phone_number_id
+
+if(!phone_number_id){
+  console.log("❌ phone_number_id não encontrado")
+  return res.status(200).end()
+}
+  
+  
+  const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 if(!mensagem){
 console.log("Mensagem vazia")
 return res.status(200).end()
@@ -695,6 +702,19 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
+// 🔥 SALVAR MENSAGEM DO CLIENTE (ANTES DE QUALQUER LÓGICA)
+await supabase
+.from("conversas_whatsapp")
+.insert({
+  telefone:cliente,
+  mensagem:mensagem,
+  tipo,
+  media_url,
+  nome_arquivo,
+  role:"user",
+  message_id,
+  status:"received"
+})
 
 
 
@@ -1141,11 +1161,23 @@ return res.status(200).end()
 
 /* ================= CONTINUA NORMAL ================= */
 
-if(
-  tipoMensagem === "reclamacao" ||
-  tipoMensagem === "feedback"
-){
+const textoReclamacao = mensagem.toLowerCase()
 
+const ehReclamacao =
+textoReclamacao.includes("ruim") ||
+textoReclamacao.includes("horrivel") ||
+textoReclamacao.includes("péssimo") ||
+textoReclamacao.includes("pessimo") ||
+textoReclamacao.includes("demorou") ||
+textoReclamacao.includes("atraso") ||
+textoReclamacao.includes("frio") ||
+textoReclamacao.includes("errado") ||
+textoReclamacao.includes("reclamar")
+
+if(ehReclamacao || tipoMensagem.includes("reclam")){
+
+
+  
   console.log("🚨 RECLAMAÇÃO OU FEEDBACK DETECTADO")
 
   /* BUSCAR NOME */
