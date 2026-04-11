@@ -637,6 +637,19 @@ break
 
 
 const cliente = mensagensRecebidas[0]?.from
+const { data: estadoHoje } = await supabase
+.from("estado_conversa")
+.select("*")
+.eq("telefone", cliente)
+.eq("tipo", "respondeu_hoje")
+.maybeSingle()
+
+
+
+
+
+
+  
   const isAdmin = ADMINS.includes(cliente)
 const message_id = mensagensRecebidas[0]?.id
 
@@ -740,14 +753,15 @@ texto.includes("o que tem")
 
 /* ================= RESPOSTA DIRETA (SEM GPT) ================= */
 
-if(querHoje){
-
+if(querHoje && !estadoHoje){
+  
   const hoje = getHojeBahia()
   const data = new Date(hoje + "T00:00:00")
   const dia = data.getDay()
 
-  let resposta = "Hoje no Mercatto Delícia temos:\n\n"
+let resposta = "Hoje temos o seguinte por aqui:\n\n"
 
+  
   resposta += "🍹 Happy Hour\nDas 17h às 20h\n\n"
 
   if(dia === 4){
@@ -778,6 +792,17 @@ if(querHoje){
     })
   })
 
+
+
+await supabase
+.from("estado_conversa")
+.upsert({
+  telefone: cliente,
+  tipo: "respondeu_hoje"
+})
+
+
+  
   return res.status(200).end()
 }
 
