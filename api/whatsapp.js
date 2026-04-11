@@ -2034,16 +2034,6 @@ textoNormalizado.includes("comida")
 
 
   
-// 🔥 PERGUNTA GENÉRICA (VAI PRA IA)
-const querHoje =
-textoNormalizado.includes("o que tem hoje") ||
-textoNormalizado.includes("tem hoje") ||
-textoNormalizado.includes("vai ter o que hoje") ||
-textoNormalizado === "tem hoje" ||
-textoNormalizado === "o que tem hoje"
-
-
-  
 
 const querVideo =
 textoNormalizado.includes("video") ||
