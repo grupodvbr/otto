@@ -704,7 +704,75 @@ const texto = mensagem.toLowerCase()
 
 
 
+/* ================= CANCELAMENTO DE RESERVA ================= */
 
+const querCancelar =
+texto.includes("desmarcar") ||
+texto.includes("não vou mais") ||
+texto.includes("nao vou mais") ||
+texto.includes("cancelar reserva")
+
+if(querCancelar){
+
+  console.log("❌ CANCELAMENTO DETECTADO")
+
+  const { data: reserva } = await supabase
+  .from("reservas_mercatto")
+  .select("*")
+  .eq("telefone", cliente)
+  .order("datahora",{ ascending:false })
+  .limit(1)
+  .maybeSingle()
+
+  if(!reserva){
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to: cliente,
+        type:"text",
+        text:{ body:"Não encontrei nenhuma reserva ativa para cancelar" }
+      })
+    })
+
+    return res.status(200).end()
+  }
+
+  await supabase
+  .from("reservas_mercatto")
+  .update({ status:"Cancelada" })
+  .eq("id", reserva.id)
+
+  const resumo = `
+❌ *Reserva cancelada com sucesso*
+
+👤 Nome: ${reserva.nome}
+📅 Data: ${reserva.datahora?.split("T")[0]}
+⏰ Hora: ${reserva.datahora?.split("T")[1]?.substring(0,5)}
+👥 Pessoas: ${reserva.pessoas}
+`
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"text",
+      text:{ body: resumo }
+    })
+  })
+
+  return res.status(200).end()
+}
 
 
 
