@@ -1160,34 +1160,42 @@ textoReclamacao.includes("frio") ||
 textoReclamacao.includes("errado") ||
 textoReclamacao.includes("reclamar")
 
+
+
+
 if(ehReclamacao || tipoMensagem.includes("reclam")){
 
+  console.log("🚨 RECLAMAÇÃO DETECTADA")
 
-  
-  console.log("🚨 RECLAMAÇÃO OU FEEDBACK DETECTADO")
+  const nomeCliente = nomeMemoria || "Cliente"
 
-  /* BUSCAR NOME */
-  const nomeCliente = nomeMemoria || nomeDetectado || "Não identificado"
+  // 🔥 1. SALVA MENSAGEM DO CLIENTE
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:mensagem,
+    tipo,
+    media_url,
+    nome_arquivo,
+    role:"user",
+    message_id,
+    status:"received"
+  })
 
-  /* MENSAGEM PARA ADMIN */
+  // 🔥 2. ENVIA ALERTA PARA ADM
   const alertaAdmin = `
-🚨 *ALERTA DE CLIENTE*
+🚨 *RECLAMAÇÃO DE CLIENTE*
 
-📱 Telefone: ${cliente}
 👤 Nome: ${nomeCliente}
-
-📝 Tipo: ${tipoMensagem.toUpperCase()}
+📱 Telefone: ${cliente}
 
 💬 Mensagem:
 "${mensagem}"
 `
 
- /* ENVIAR PARA ADMINS */
   for(const admin of ADMINS){
-
-    console.log("ENVIANDO PARA ADMIN:", admin)
-
-    const resp = await fetch(url,{
+    await fetch(url,{
       method:"POST",
       headers:{
         Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
@@ -1200,63 +1208,10 @@ if(ehReclamacao || tipoMensagem.includes("reclam")){
         text:{ body: alertaAdmin }
       })
     })
-
-    const data = await resp.json()
-    console.log("RESPOSTA WHATSAPP:", data)
-
   }
 
-  /* SALVAR NO BANCO (FEEDBACK) */
-  await supabase
-  .from("feedback_clientes")
-  .insert({
-    telefone: cliente,
-    nome: nomeCliente,
-    mensagem: mensagem,
-    tipo: tipoMensagem
-  })
-
-  /* 🔥 NOVO — SALVAR COMO CONVERSA NORMAL */
-  await supabase
-  .from("conversas_whatsapp")
-  .insert({
-    telefone:cliente,
-    mensagem:
-      mensagem ||
-      (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
-    tipo,
-    media_url,
-    nome_arquivo,
-    role:"user",
-    message_id: message_id,
-    status: "received"
-  })
-
-  /* RESPOSTA AUTOMÁTICA PARA CLIENTE */
-  resposta = `🙏 Sentimos muito por isso, ${nomeCliente}.
-
-Seu feedback é muito importante para nós e já foi encaminhado para nossa equipe.
-
-Vamos resolver o mais rápido possível. 💛`
-
-  /* ENVIA RESPOSTA */
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to: cliente,
-      type:"text",
-      text:{ body: resposta }
-    })
-  })
-
-  return res.status(200).end()
+  // 🔥 3. NÃO RESPONDE AQUI → deixa a IA responder
 }
-
 
 
 // 🔥 GARANTE CARDÁPIO CARREGADO
