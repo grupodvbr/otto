@@ -2901,25 +2901,23 @@ if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
   .select()
   .single()
 
-  const alerta = `
+const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
-🆔
-${novaDuvida.id}
 📱 Telefone: ${cliente}
 
 💬 Pergunta:
 "${mensagem}"
 
-
 📄 Histórico:
 ${resumo}
 `
 
- for(const admin of ADMINS){
+for(const admin of ADMINS){
 
   console.log("📤 ENVIANDO PARA ADM:", admin)
 
+  // 🔥 1ª mensagem → DÚVIDA (SEM ID)
   const resp = await fetch(url,{
     method:"POST",
     headers:{
@@ -2930,13 +2928,28 @@ ${resumo}
       messaging_product:"whatsapp",
       to: admin,
       type:"text",
-      text:{ body: alertaAdmin }
+      text:{ body: alerta }
     })
   })
 
   const data = await resp.json()
 
   console.log("📩 RESPOSTA WHATSAPP ADM:", data)
+
+  // 🔥 2ª mensagem → SOMENTE O ID
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: admin,
+      type:"text",
+      text:{ body: novaDuvida.id }
+    })
+  })
 
 }
 
