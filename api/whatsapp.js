@@ -1194,21 +1194,29 @@ if(ehReclamacao || tipoMensagem.includes("reclam")){
 "${mensagem}"
 `
 
-  for(const admin of ADMINS){
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        messaging_product:"whatsapp",
-        to: admin,
-        type:"text",
-        text:{ body: alertaAdmin }
-      })
+for(const admin of ADMINS){
+
+  console.log("📤 ENVIANDO PARA ADM:", admin)
+
+  const resp = await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: admin,
+      type:"text",
+      text:{ body: alertaAdmin }
     })
-  }
+  })
+
+  const data = await resp.json()
+
+  console.log("📩 RESPOSTA WHATSAPP ADM:", data)
+
+}
 
   // 🔥 3. NÃO RESPONDE AQUI → deixa a IA responder
 }
@@ -2853,21 +2861,29 @@ if(resposta.includes("🚨 DÚVIDA DO CLIENTE")){
 ${resumo}
 `
 
-  for(const admin of ADMINS){
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        messaging_product:"whatsapp",
-        to: admin,
-        type:"text",
-        text:{ body: alerta }
-      })
+ for(const admin of ADMINS){
+
+  console.log("📤 ENVIANDO PARA ADM:", admin)
+
+  const resp = await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: admin,
+      type:"text",
+      text:{ body: alertaAdmin }
     })
-  }
+  })
+
+  const data = await resp.json()
+
+  console.log("📩 RESPOSTA WHATSAPP ADM:", data)
+
+}
 
   /* 🚫 BLOQUEIA ENVIO PARA CLIENTE */
   return res.status(200).end()
@@ -2914,21 +2930,29 @@ const alerta = `
 ${resumo}
 `
 
-  for(const admin of ADMINS){
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        messaging_product:"whatsapp",
-        to: admin,
-        type:"text",
-        text:{ body: alerta }
-      })
+ for(const admin of ADMINS){
+
+  console.log("📤 ENVIANDO PARA ADM:", admin)
+
+  const resp = await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: admin,
+      type:"text",
+      text:{ body: alertaAdmin }
     })
-  }
+  })
+
+  const data = await resp.json()
+
+  console.log("📩 RESPOSTA WHATSAPP ADM:", data)
+
+}
 
   /* 🔥 NÃO RESPONDE O CLIENTE */
   return res.status(200).end()
