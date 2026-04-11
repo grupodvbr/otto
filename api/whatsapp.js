@@ -914,6 +914,18 @@ if(!match){
       })
     })
 
+
+
+
+    
+// ✅ SANVA NAS CONVERSAS A RESPOSTA DOS ADMS
+await supabase
+.from("conversas_whatsapp")
+.insert({
+  telefone: telefoneCliente,
+  mensagem: respostaAdmin,
+  role: "assistant"
+})
     await supabase
     .from("duvidas_pendentes")
     .delete()
