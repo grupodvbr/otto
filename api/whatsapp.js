@@ -2942,23 +2942,42 @@ resposta.toLowerCase().includes("não sei") ||
 resposta.toLowerCase().includes("não tenho") ||
 resposta.toLowerCase().includes("não encontrei")
 
-if(naoSabe){
-/* 🔥 SALVAR DÚVIDA */
-const { data: novaDuvida } = await supabase
-.from("duvidas_pendentes")
-.insert({
-  telefone: cliente,
-  pergunta: mensagem
-})
-.select()
-.single()
-  console.log("🚨 IA NÃO SABE → ESCALANDO")
+const respostaLower = (resposta || "").toLowerCase()
 
-const resumo = mensagens
-  .map(m => `${m.role}: ${m.content}`)
-  .join("\n")
+const precisaEscalar =
+!resposta ||
+resposta.length < 5 ||
 
-const alerta = `
+respostaLower.includes("não sei") ||
+respostaLower.includes("nao sei") ||
+respostaLower.includes("não temos") ||
+respostaLower.includes("nao temos") ||
+respostaLower.includes("não encontrei") ||
+respostaLower.includes("nao encontrei") ||
+respostaLower.includes("não possuo") ||
+respostaLower.includes("nao possuo") ||
+respostaLower.includes("sem informação") ||
+respostaLower.includes("no momento")
+
+if(precisaEscalar){
+
+  console.log("🚨 ESCALANDO PARA ADM")
+
+  // 🔥 SALVA DÚVIDA
+  const { data: novaDuvida } = await supabase
+  .from("duvidas_pendentes")
+  .insert({
+    telefone: cliente,
+    pergunta: mensagem
+  })
+  .select()
+  .single()
+
+  const resumo = mensagens
+    .map(m => `${m.role}: ${m.content}`)
+    .join("\n")
+
+  const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
 🆔 ID: ${novaDuvida.id}
@@ -2972,28 +2991,28 @@ const alerta = `
 ${resumo}
 `
 
-for(const admin of ADMINS){
+  // 🔥 ENVIA PARA TODOS ADM
+  for(const admin of ADMINS){
 
-  const resp = await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      messaging_product:"whatsapp",
-      to: admin,
-      type:"text",
-      text:{ body: alerta }
+    const resp = await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        messaging_product:"whatsapp",
+        to: admin,
+        type:"text",
+        text:{ body: alerta }
+      })
     })
-  })
 
-  const data = await resp.json()
-  console.log("📩 ENVIO ADM:", admin, data)
+    const data = await resp.json()
+    console.log("📩 ENVIO ADM:", admin, data)
+  }
 
-}
-
-  /* 🔥 NÃO RESPONDE O CLIENTE */
+  // 🚫 NÃO RESPONDE O CLIENTE
   return res.status(200).end()
 }
 
