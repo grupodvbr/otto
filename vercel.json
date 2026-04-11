@@ -8,7 +8,7 @@
   "crons": [
     {
       "path": "/api/webhook?cron=relatorio",
-      "schedule": "0 10 * * *"
+      "schedule": "0 30 * * *"
     },
     {
       "path": "/api/webhook?processar=true",
