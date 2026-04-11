@@ -737,15 +737,36 @@ if(querCancelar){
 
   console.log("❌ CANCELAMENTO DETECTADO")
 
-const hoje = getHojeBahia() + "T00:00:00"
-  const { data: reservas, error } = await supabase
+const telefoneLimpo = cliente.replace(/\D/g, "")
+const agoraISO = new Date().toISOString()
+
+let { data: reservas, error } = await supabase
   .from("reservas_mercatto")
   .select("*")
-  .eq("telefone", cliente)
+  .eq("telefone", telefoneLimpo)
   .in("status", ["Pendente","Confirmada"])
-  .gte("datahora", hoje)
+  .gte("datahora", agoraISO)
   .order("datahora",{ ascending:true })
   .limit(20)
+
+// 🔥 FALLBACK POR NOME (SE NÃO ENCONTRAR POR TELEFONE)
+if((!reservas || !reservas.length) && nomeMemoria){
+
+  console.log("⚠️ NÃO ACHOU POR TELEFONE, TENTANDO NOME")
+
+  const nomeBusca = nomeMemoria.toLowerCase()
+
+  const { data: reservasPorNome } = await supabase
+    .from("reservas_mercatto")
+    .select("*")
+    .ilike("nome", `%${nomeBusca}%`)
+    .in("status", ["Pendente","Confirmada"])
+    .gte("datahora", agoraISO)
+    .order("datahora",{ ascending:true })
+    .limit(20)
+
+  reservas = reservasPorNome
+}
 
   if(error){
     console.log("❌ ERRO AO BUSCAR RESERVAS:", error)
