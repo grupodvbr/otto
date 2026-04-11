@@ -877,8 +877,51 @@ if(isAdmin){
 const match = mensagem.match(/^([a-z0-9\-]+)\s+([\s\S]+)/i)
 
 if(!match){
-  console.log("❌ ADMIN NÃO INFORMOU ID")
-  return res.status(200).end()
+  console.log("⚠️ ADMIN SEM ID → CONTINUANDO NORMAL")
+}else{
+
+  const id = match[1]
+  const respostaAdmin = match[2]
+
+  const { data: duvida } = await supabase
+  .from("duvidas_pendentes")
+  .select("*")
+  .eq("id", id)
+  .maybeSingle()
+
+  if(duvida){
+
+    const telefoneCliente = duvida.telefone
+
+    await supabase
+    .from("aprendizado_bot")
+    .insert({
+      pergunta: duvida.pergunta,
+      resposta: respostaAdmin
+    })
+
+    await fetch(url,{
+      method:"POST",
+      headers:{
+        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to: telefoneCliente,
+        type:"text",
+        text:{ body: respostaAdmin }
+      })
+    })
+
+    await supabase
+    .from("duvidas_pendentes")
+    .delete()
+    .eq("id", id)
+
+    return res.status(200).end()
+  }
+
 }
 
 const id = match[1]
