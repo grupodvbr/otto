@@ -2973,21 +2973,27 @@ if(precisaEscalar){
   .select()
   .single()
 
-  const resumo = mensagens
-    .map(m => `${m.role}: ${m.content}`)
-    .join("\n")
+const resumo = mensagens
+  .slice(-5)
+  .map(m => `${m.role === "user" ? "👤" : "🤖"} ${m.content}`)
+  .join("\n")
 
-  const alerta = `
+const alerta = `
 🚨 *DÚVIDA DO CLIENTE*
 
-🆔 ID: ${novaDuvida.id}
+🆔 *COPIAR ID:*
+${novaDuvida.id}
 
-📱 Telefone: ${cliente}
+📱 Cliente:
+${cliente}
 
 💬 Pergunta:
-"${mensagem}"
+${mensagem}
 
-📄 Histórico:
+✍️ *RESPONDA ASSIM:*
+${novaDuvida.id} sua resposta aqui
+
+📄 Últimas mensagens:
 ${resumo}
 `
 
