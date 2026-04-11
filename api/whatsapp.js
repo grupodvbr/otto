@@ -2170,6 +2170,117 @@ return res.status(200).end()
 }
   
 
+
+
+
+
+
+
+
+
+
+/* ================= O QUE TEM HOJE (COM RODÍZIO ORGANIZADO) ================= */
+
+if(querHoje){
+
+  console.log("📅 RESPOSTA DIRETA → O QUE TEM HOJE")
+
+  const hoje = getHojeBahia()
+  const data = new Date(hoje + "T00:00:00")
+  const dia = data.getDay()
+
+  // 🔥 BUSCAR AGENDA REAL
+  const agendaHoje = await buscarAgendaDoDia(hoje)
+  const couvertHoje = calcularCouvert(agendaHoje)
+
+  // 🔥 BUSCAR BUFFET REAL
+  const buffetHoje = await buscarBuffetHoje()
+
+  let resposta = "Hoje no Mercatto Delícia temos:\n\n"
+
+  /* ================= MUSICA ================= */
+
+  if(agendaHoje.length){
+
+    resposta += "🎶 Música ao vivo:\n\n"
+
+    agendaHoje.forEach(m=>{
+      resposta += `🎤 ${m.cantor}\n`
+      resposta += `🕒 ${m.hora}\n`
+      resposta += `🎵 ${m.estilo}\n\n`
+    })
+
+    resposta += `💰 Couvert artístico: R$ ${couvertHoje.toFixed(2)}\n\n`
+  }
+
+  /* ================= RODÍZIOS (BLOCO SEPARADO) ================= */
+
+  let rodizioTexto = ""
+
+  if(dia === 4){ // quinta
+    rodizioTexto += "🍝 Rodízio Italiano a partir das 19h\n"
+  }
+
+  if(dia === 0){ // domingo
+    rodizioTexto += "🍣 Rodízio Oriental a partir das 19h\n"
+  }
+
+  if(rodizioTexto){
+    resposta += "🍽️ Rodízios do dia:\n"
+    resposta += rodizioTexto + "\n"
+  }
+
+  /* ================= BUFFET ================= */
+
+  if(buffetHoje.length){
+
+    resposta += "🍛 Buffet disponível das 11h às 15h com opções como:\n"
+
+    buffetHoje.slice(0,5).forEach(item=>{
+      resposta += `• ${item.produto_nome}\n`
+    })
+
+    resposta += "\n"
+  }
+
+  resposta += "Será um prazer receber você 😊"
+
+  // 🔥 ENVIA
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"text",
+      text:{body:resposta}
+    })
+  })
+
+  // 🔥 SALVA
+  await supabase.from("conversas_whatsapp").insert({
+    telefone:cliente,
+    mensagem:resposta,
+    role:"assistant"
+  })
+
+  return res.status(200).end()
+}
+
+
+
+
+
+
+
+
+
+
+
+  
 /* ================= MUSICA AO VIVO ================= */
 
 if(querMusica){
