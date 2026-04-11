@@ -17,11 +17,18 @@ const ADMINS = [
 ]
 
 
+
+
+
 const TEMPLATES_PERMITIDOS = [
 "confirmao_de_reserva",
 "reserva_especial",
 "hello_world"
 ]
+
+
+
+
 
 
 
@@ -637,64 +644,8 @@ break
 
 
 const cliente = mensagensRecebidas[0]?.from
-const { data: estadoHoje } = await supabase
-.from("estado_conversa")
-.select("*")
-.eq("telefone", cliente)
-.eq("tipo", "respondeu_hoje")
-.maybeSingle()
-
-
-
-
-
-
-  
   const isAdmin = ADMINS.includes(cliente)
 const message_id = mensagensRecebidas[0]?.id
-
-
-
-
-
-
-
-
-/* ================= BLOQUEIO DUPLICIDADE (CORRETO) ================= */
-
-const { data: jaProcessada } = await supabase
-  .from("mensagens_processadas")
-  .select("*")
-  .eq("message_id", message_id)
-  .maybeSingle()
-
-if(jaProcessada){
-  console.log("⛔ DUPLICADA:", message_id)
-  return res.status(200).end()
-}
-
-await supabase
-  .from("mensagens_processadas")
-  .insert({ message_id })
-
-console.log("✅ MENSAGEM NOVA LIBERADA")
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-  
 /* ================= VERIFICAR PAUSA BOT ================= */
 
 const { data: pausaBot } = await supabase
@@ -743,81 +694,8 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
-/* ================= DETECTAR "HOJE" ================= */
-
-const querHoje =
-texto.includes("hoje") ||
-texto.includes("hj") ||
-texto.includes("tem oq") ||
-texto.includes("o que tem")
-
-/* ================= RESPOSTA DIRETA (SEM GPT) ================= */
-
-if(querHoje && !estadoHoje){
-  
-  const hoje = getHojeBahia()
-  const data = new Date(hoje + "T00:00:00")
-  const dia = data.getDay()
-
-let resposta = "Hoje temos o seguinte por aqui:\n\n"
-
-  
-  resposta += "🍹 Happy Hour\nDas 17h às 20h\n\n"
-
-  if(dia === 4){
-    resposta += "🍝 Rodízio Italiano a partir das 19h\n\n"
-  }
-
-  if(dia === 0){
-    resposta += "🍣 Rodízio Oriental a partir das 19h\n\n"
-  }
-
-  if(dia !== 4 && dia !== 0){
-    resposta += "Hoje não temos rodízio especial.\n\n"
-  }
-
-  resposta += "Vai ser um prazer receber você 😊"
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ body:resposta }
-    })
-  })
 
 
-
-await supabase
-.from("estado_conversa")
-.upsert({
-  telefone: cliente,
-  tipo: "respondeu_hoje"
-})
-
-
-  
-  return res.status(200).end()
-}
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 
 
@@ -1112,7 +990,6 @@ const textoNormalizado = normalizar(texto)
 /* ================= FORÇAR PROMOÇÕES ================= */
 
 const querPromocao =
-!querHoje && (
 textoNormalizado.includes("promo") ||
 textoNormalizado.includes("oferta") ||
 textoNormalizado.includes("rodizio") ||
@@ -1120,8 +997,13 @@ textoNormalizado.includes("rodízio") ||
 textoNormalizado.includes("desconto") ||
 textoNormalizado.includes("oriental") ||
 textoNormalizado.includes("italiano") ||
-textoNormalizado.includes("happy")
-)
+textoNormalizado.includes("happy") ||
+textoNormalizado.includes("tem rodizio") ||
+textoNormalizado.includes("tem rodízio") ||
+textoNormalizado.includes("tem promoção") ||
+textoNormalizado.includes("tem promocao") ||
+textoNormalizado.includes("vende oriental") ||
+textoNormalizado.includes("todo dia")
 
 const hojeInicio = getHojeBahia() + "T00:00"
 const hojeFim = getHojeBahia() + "T23:59"
@@ -1149,12 +1031,6 @@ const jaEnviouPromoHoje = !!controlePromo
   
 const bloqueiaPromo = false
 
-
-
-
-
-
-  
 /* ================= DETECTAR NOME INTELIGENTE ================= */
 
 let nomeDetectado = null
@@ -1391,7 +1267,21 @@ if(
     tipo: tipoMensagem
   })
 
-
+  /* 🔥 NOVO — SALVAR COMO CONVERSA NORMAL */
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:
+      mensagem ||
+      (tipo !== "texto" ? `[${tipo.toUpperCase()} RECEBIDO]` : ""),
+    tipo,
+    media_url,
+    nome_arquivo,
+    role:"user",
+    message_id: message_id,
+    status: "received"
+  })
 
   /* RESPOSTA AUTOMÁTICA PARA CLIENTE */
   resposta = `🙏 Sentimos muito por isso, ${nomeCliente}.
@@ -2211,6 +2101,22 @@ assuntoMusica = querMusica
 if(querMusica){
 console.log("FORÇANDO ASSUNTO MUSICA")
 }
+/* ================= BLOQUEAR DUPLICIDADE ================= */
+
+const { data: jaProcessada } = await supabase
+.from("mensagens_processadas")
+.select("*")
+.eq("message_id", message_id)
+.maybeSingle()
+
+if(jaProcessada){
+console.log("Mensagem duplicada ignorada")
+return res.status(200).end()
+}
+
+await supabase
+.from("mensagens_processadas")
+.insert({ message_id })
 
 /* ================= SALVAR MENSAGEM CLIENTE ================= */
 
