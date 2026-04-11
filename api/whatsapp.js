@@ -756,15 +756,17 @@ if(querCancelar){
 
   if(reservas && reservas.length){
 
-    reserva = reservas.find(r => {
-      const nomeBanco = (r.nome || "").toLowerCase()
-      const nomeCliente = (nomeMemoria || "").toLowerCase()
+const nomeDigitado = mensagem.toLowerCase()
 
-      return (
-        nomeBanco.includes(nomeCliente) ||
-        nomeCliente.includes(nomeBanco)
-      )
-    }) || reservas[0]
+reserva = reservas.find(r => {
+  const nomeBanco = (r.nome || "").toLowerCase()
+
+  return (
+    nomeBanco.includes(nomeDigitado) ||
+    nomeDigitado.includes(nomeBanco) ||
+    nomeBanco.includes(nomeMemoria?.toLowerCase() || "")
+  )
+}) || reservas[0]
   }
 
   // 🚫 SE NÃO EXISTE
