@@ -2201,7 +2201,7 @@ if(querHoje){
   /* ================= MUSICA ================= */
 
   if(agendaHoje.length){
-
+resposta += "🍹 Happy Hour todos os dias das 17h às 20h\n\n"
     resposta += "🎶 Música ao vivo:\n\n"
 
     agendaHoje.forEach(m=>{
@@ -2215,20 +2215,23 @@ if(querHoje){
 
   /* ================= RODÍZIOS (BLOCO SEPARADO) ================= */
 
-  let rodizioTexto = ""
 
-  if(dia === 4){ // quinta
-    rodizioTexto += "🍝 Rodízio Italiano a partir das 19h\n"
-  }
+  
+let rodizioTexto = ""
 
-  if(dia === 0){ // domingo
-    rodizioTexto += "🍣 Rodízio Oriental a partir das 19h\n"
-  }
+// ❌ SÓ MOSTRA SE FOR O DIA CERTO
+if(dia === 4){ // quinta
+  rodizioTexto = "🍝 Rodízio Italiano a partir das 19h\n"
+}
+else if(dia === 0){ // domingo
+  rodizioTexto = "🍣 Rodízio Oriental a partir das 19h\n"
+}
 
-  if(rodizioTexto){
-    resposta += "🍽️ Rodízios do dia:\n"
-    resposta += rodizioTexto + "\n"
-  }
+// ✅ SE NÃO FOR DIA → NÃO MOSTRA NADA
+if(rodizioTexto){
+  resposta += "🍽️ Rodízio do dia:\n"
+  resposta += rodizioTexto + "\n"
+}
 
   /* ================= BUFFET ================= */
 
