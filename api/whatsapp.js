@@ -1501,14 +1501,9 @@ if(querGerente){
 
 console.log("🚨 PRIORIDADE TOTAL → CONTATO HUMANO")
 
-const resposta = `Claro! 😊
+const resposta = `Eles são gerentes do restaurante
 
-Você pode falar diretamente com um dos nossos gerentes:
-
-Dheure França
-📱 77 9 8129-3963
-
-Eles vão te atender com prioridade`
+Pode falaro com o Dheure França Dheure França 77 9 8129-3963 `
 
 await fetch(url,{
 method:"POST",
