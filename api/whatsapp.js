@@ -1182,16 +1182,6 @@ forma_pagamento: dados.forma_pagamento,
 
 
 
-  
-
-  /* 🔥 BUSCAR ÚLTIMO PEDIDO GERADO */
-  const { data: ultimoPedido } = await supabase
-    .from("pedidos_pendentes")
-    .select("*")
-    .eq("cliente_telefone", cliente)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()
 
 if(!ultimoPedido){
   console.log("❌ CONFIRMOU MAS NÃO TEM PEDIDO")
