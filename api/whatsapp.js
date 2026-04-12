@@ -16,8 +16,6 @@ const ADMINS = [
   "557781293963",
   "5577981291635"
 ]
-
-// 🔥 BUFFER DE MENSAGENS (AGRUPAR WHATSAPP)
 const bufferMensagens = {}
 
 
@@ -4162,32 +4160,30 @@ if(!jsonTexto.endsWith("}}")){
   jsonTexto = jsonTexto + "}}"
 }
 
-try{
+try {
 
-pedido = JSON.parse(jsonTexto)
+  pedido = JSON.parse(jsonTexto)
 
-console.log("✅ JSON OK:", pedido)
+  console.log("✅ JSON OK:", pedido)
 
-}catch(err){
+} catch (err) {
 
-console.log("❌ ERRO JSON:", err)
-console.log("❌ JSON FINAL:", jsonTexto)
+  console.log("❌ ERRO JSON:", err)
+  console.log("❌ JSON QUEBROU:", jsonTexto)
 
-/* 🔥 SEGUNDA TENTATIVA (FORÇA BRUTA) */
+  try {
 
-try{
+    const corrigido = jsonTexto + "}"
+    pedido = JSON.parse(corrigido)
 
-  const corrigido = jsonTexto + "}"
-  pedido = JSON.parse(corrigido)
+    console.log("✅ JSON RECUPERADO")
 
-  console.log("✅ JSON RECUPERADO:", pedido)
+  } catch (e2) {
 
-}catch(e2){
+    console.log("❌ FALHA TOTAL JSON")
+    return res.status(200).end()
 
-  console.log("❌ FALHA TOTAL JSON")
-
-  return res.status(200).end()
-}
+  }
 
 }
 
