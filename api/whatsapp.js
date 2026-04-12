@@ -1055,8 +1055,21 @@ await supabase
   .insert({
     cliente_nome: dados.cliente_nome || "Cliente",
     cliente_telefone: cliente,
-    cliente_endereco: dados.cliente_endereco || "",
-    cliente_bairro: dados.cliente_bairro || "",
+
+
+    
+cliente_endereco:
+  dados.cliente_endereco ||
+  dados.endereco ||
+  dados.entrega ||
+  "",
+
+cliente_bairro:
+  dados.cliente_bairro ||
+  dados.bairro ||
+  "",
+
+    
     itens: itensTratados, // ✅ CORRIGIDO
     valor_total: dados.valor_total,
     forma_pagamento: dados.forma_pagamento,
@@ -1135,8 +1148,15 @@ if(!ultimoPedido){
       status: "novo",
       cliente_nome: nomeMemoria || "Cliente",
       cliente_telefone: cliente,
-      cliente_endereco: ultimoPedido.cliente_endereco,
-      cliente_bairro: ultimoPedido.cliente_bairro,
+cliente_endereco:
+  ultimoPedido.cliente_endereco ||
+  memoriaCliente?.endereco ||
+  "",
+
+cliente_bairro:
+  ultimoPedido.cliente_bairro ||
+  memoriaCliente?.bairro ||
+  "",
       itens: ultimoPedido.itens,
       valor_total: ultimoPedido.valor_total,
       forma_pagamento: ultimoPedido.forma_pagamento,
@@ -1709,22 +1729,30 @@ if(match){
 
 
 
-// 🔥 SALVAR PEDIDO PENDENTE (AQUI É O PONTO CRÍTICO)
-
-await supabase
-.from("pedidos_pendentes")
-.delete()
-.eq("cliente_telefone", cliente)
+// 🔥 EXTRAI DADOS DO TEXTO (LINHA NOVA)
+const dadosExtraidos = extrairDadosPedido(mensagem)
 
 await supabase
 .from("pedidos_pendentes")
 .insert({
   cliente_nome: nomeMemoria || "Cliente",
   cliente_telefone: cliente,
-  cliente_endereco: memoriaCliente?.endereco || "",
-  cliente_bairro: memoriaCliente?.bairro || "",
+
+  // 🔥 CORREÇÃO PRINCIPAL
+  cliente_endereco:
+    dadosExtraidos.endereco ||
+    memoriaCliente?.endereco ||
+    "",
+
+  cliente_bairro:
+    dadosExtraidos.bairro ||
+    memoriaCliente?.bairro ||
+    "",
+
   itens: pedido.itens,
+
   valor_total: pedido.itens.reduce((s,i)=>s+(i.preco*i.quantidade),0),
+
   forma_pagamento: "",
   observacao: ""
 })
@@ -1955,11 +1983,14 @@ origem: "whatsapp"
 await supabase
 .from("memoria_clientes")
 .upsert({
-telefone: cliente,
-nome: nomeFinal,
-endereco: enderecoFinal,
-bairro: bairroFinal,
-ultima_interacao: new Date().toISOString()
+  telefone: cliente,
+  nome: nomeFinal,
+
+  // 🔥 AGORA SALVA ENDEREÇO
+  endereco: enderecoFinal,
+  bairro: bairroFinal,
+
+  ultima_interacao: new Date().toISOString()
 },{ onConflict:"telefone" })
   
 
