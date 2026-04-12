@@ -658,8 +658,9 @@ if(!bufferMensagens[telefone]){
 }
 
 // adiciona mensagem
-bufferMensagens[telefone].mensagens.push(msg.text.body)
-
+bufferMensagens[telefone].mensagens.push(
+  msg.text?.body || mensagem || ""
+)
 // limpa timeout anterior (ESSENCIAL)
 if(bufferMensagens[telefone].timeout){
   clearTimeout(bufferMensagens[telefone].timeout)
@@ -687,6 +688,32 @@ await new Promise(resolve => {
 const cliente = mensagensRecebidas[0]?.from
   const isAdmin = ADMINS.includes(cliente)
 const message_id = mensagensRecebidas[0]?.id
+
+
+
+
+
+// 🔥 SALVAR MENSAGEM RECEBIDA (LOCAL EXATO)
+await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone: cliente,
+    mensagem: mensagem,
+    tipo: tipo,
+    media_url: media_url,
+    nome_arquivo: nome_arquivo,
+    role: "user",
+    message_id: message_id,
+    status: "received"
+  })
+
+
+
+
+
+
+
+  
 /* ================= VERIFICAR PAUSA BOT ================= */
 
 const { data: pausaBot } = await supabase
