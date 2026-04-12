@@ -769,6 +769,63 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
+  // 🔥 PRIORIDADE MÁXIMA — CONFIRMAÇÃO DE PEDIDO
+
+const { data: ultimoPedido } = await supabase
+  .from("pedidos_pendentes")
+  .select("*")
+  .eq("cliente_telefone", cliente)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle()
+
+const confirmouPedido =
+  ultimoPedido && (
+    texto === "sim" ||
+    texto === "ok" ||
+    texto.includes("confirmar") ||
+    texto.includes("pode confirmar") ||
+    texto.includes("fechar pedido")
+  )
+
+if(confirmouPedido){
+
+  console.log("🛒 CONFIRMAÇÃO DE PEDIDO (PRIORIDADE TOTAL)")
+
+  // 🔥 SALVAR PEDIDO FINAL
+  const { error } = await supabase
+    .from("pedidos")
+    .insert({
+      status: "novo",
+      cliente_nome: nomeMemoria || "Cliente",
+      cliente_telefone: cliente,
+      cliente_endereco: ultimoPedido.cliente_endereco || "",
+      cliente_bairro: ultimoPedido.cliente_bairro || "",
+      itens: ultimoPedido.itens,
+      valor_total: ultimoPedido.valor_total,
+      forma_pagamento: ultimoPedido.forma_pagamento,
+      observacao: ultimoPedido.observacao,
+      origem: "whatsapp"
+    })
+
+  if(error){
+    console.log("❌ ERRO AO SALVAR PEDIDO:", error)
+  }else{
+    console.log("✅ PEDIDO CONFIRMADO")
+  }
+
+  // 🔥 LIMPAR PENDENTE
+  await supabase
+    .from("pedidos_pendentes")
+    .delete()
+    .eq("id", ultimoPedido.id)
+
+  return res.status(200).end()
+}
+
+
+
+  
 /* ================= 🔥 BUSCAR APRENDIZADO ================= */
 
 const { data: aprendizadoContexto } = await supabase
