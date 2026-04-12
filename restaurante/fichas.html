@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<head>
-<meta charset="UTF-8">
+
 <title>Fichas Técnicas</title>
 
 <link rel="icon" href="logo.png">
@@ -56,8 +55,6 @@ body{
 
 body.modal-open{
   overflow:hidden;
-  position:fixed;
-  width:100%;
 }
 
 
@@ -159,7 +156,7 @@ body.modal-open{
   max-width:1440px;
   max-height:92vh;
   border-radius:26px;
-  overflow:hidden;
+  overflow:visible;
   display:flex;
   flex-direction:column;
   box-shadow:var(--shadow-lg);
@@ -186,18 +183,17 @@ body.modal-open{
 .modal-left{
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,.35);
-  background:#000;
-
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+  background:#ffffff;
   display:flex;
   flex-direction:column;
 }
 
 .modal-img{
   width:100%;
-  height:220px;
+  height:320px; /* 👈 AQUI */
   object-fit:cover;
-  background:#000;
+  background:#ffffff;
   display:block;
 }
 
@@ -209,7 +205,9 @@ body.modal-open{
   flex-direction:column;
   gap:18px;
   padding:10px 6px 18px;
-  overflow:hidden;
+  overflow:visible;
+  position:relative;
+  z-index:2;
 }
 
 .modal-main h2{
@@ -924,15 +922,15 @@ background:#0f172a;
   height:34px;
 
   border-radius:8px;
-  border:1px solid #334155;
+  border:1px solid 000000;
 
   padding:0 10px;
 
   font-size:12px;
   font-weight:600;
 
-  background:#1e293b;
-  color:#fff;
+  background:#ffffff;
+  color:#000000;
 
   outline:none;
 }
@@ -947,15 +945,15 @@ background:#0f172a;
   height:34px;
 
   border-radius:8px;
-  border:1px solid #334155;
+  border:1px solid #000000;
 
   padding:0 8px;
 
   font-size:12px;
   font-weight:600;
 
-  background:#1e293b;
-  color:#fff;
+  background:#ffffff;
+  color:#000000;
 
   outline:none;
 }
@@ -1139,15 +1137,15 @@ border:none;
 
 
 #historicoBox{
-background:#000;
-color:#fff;
-padding:12px;
+  background:#ffffff;
+  color:#0f172a;
+  padding:12px;
 
-max-height:220px;   /* altura da área */
-overflow-y:auto;    /* ativa scroll */
+  max-height:220px;
+  overflow-y:auto;
 
-font-size:12px;
-border-top:1px solid rgba(255,255,255,.1);
+  font-size:12px;
+  border-top:1px solid var(--border);
 }
 
 #historicoBox::-webkit-scrollbar{
@@ -1155,7 +1153,7 @@ width:6px;
 }
 
 #historicoBox::-webkit-scrollbar-thumb{
-background:#22c55e;
+  background:#14c8a8;
 border-radius:6px;
 }
 
@@ -1174,7 +1172,9 @@ margin-top:2px;
 }
 
 .h-restore{
-background:#16a34a;
+background:#14c8a8;
+color:#fff;
+font-weight:800;
 border:none;
 color:#fff;
 font-size:10px;
@@ -1341,12 +1341,41 @@ cursor:pointer;
   grid-template-columns:1fr 1fr 1fr;
   gap:12px;
 }
+.grid-4{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:12px;
+}
+#resultadoIngredientes{
+  z-index:50;
+}
 
-  
+.item-busca{
+  padding:10px;
+  cursor:pointer;
+  font-weight:700;
+  border-bottom:1px solid #eee;
+}
+
+.item-busca:hover{
+  background:#ecfeff;
+} 
 
 
-  
-  
+  .modal-body{
+  position:relative;
+  z-index:1;
+  overflow-y:auto;
+}
+
+.modal{
+  z-index:999;
+}
+
+.modal-box{
+  position:relative;
+  z-index:1000;
+}
 </style>
 </head>
 
@@ -1401,13 +1430,7 @@ cursor:pointer;
 <option value="gt40">CMV > 40%</option>
 </select>
 
-<select id="filtroMargem">
-<option value="">Margem (todas as faixas)</option>
-<option value="lt25">Margem < 25%</option>
-<option value="25_30">Margem 25–30%</option>
-<option value="30_40">Margem 30–40%</option>
-<option value="gt40">Margem > 40%</option>
-</select>
+
 
 <select id="filtroSort">
 <option value="recent">Ordenar: Mais recente</option>
@@ -1536,12 +1559,51 @@ sb.auth.onAuthStateChange((_event, session) => {
 });
 
 
+
 /* =====================================================
    UTIL
 ===================================================== */
 const moeda = v =>
-  "R$ " + Number(v || 0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+  "R$ " + Number(v || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 
+function formatPeso(valor, unidade){
+  const v = Number(valor || 0);
+
+  if(unidade === "KG"){
+    if(v < 1){
+      return (v * 1000).toLocaleString("pt-BR", {
+        maximumFractionDigits: 0
+      }) + " g";
+    }
+
+    return v.toLocaleString("pt-BR", {
+      maximumFractionDigits: 3
+    }) + " kg";
+  }
+
+  if(unidade === "L"){
+    if(v < 1){
+      return (v * 1000).toLocaleString("pt-BR", {
+        maximumFractionDigits: 0
+      }) + " ml";
+    }
+
+    return v.toLocaleString("pt-BR", {
+      maximumFractionDigits: 3
+    }) + " L";
+  }
+
+  return v.toLocaleString("pt-BR");
+}
+
+
+
+
+
+  
 /* =====================================================
    STATE
 ===================================================== */
@@ -1712,7 +1774,6 @@ function aplicarFiltros() {
 
   const statusFiltro = (window.filtroStatus?.value || "");
   const cmvFaixa = (window.filtroCMV?.value || "");
-  const margemFaixa = (window.filtroMargem?.value || "");
   const sort = (window.filtroSort?.value || "recent");
 
   // 1) filtra e já calcula métricas pra usar em faixa + sort
@@ -1734,9 +1795,7 @@ function aplicarFiltros() {
     const m = calcMetricsForList(p);
 
     const cmvOk = inRangeCMV(m.cmvPerc, cmvFaixa);
-    const margemOk = inRangeMargem(m.margem, margemFaixa);
-
-    if(!cmvOk || !margemOk) continue;
+if(!cmvOk) continue;
 
     base.push({ p, m });
   }
@@ -1857,6 +1916,7 @@ c.addEventListener("click", async () => {
       ${p.foto_url ? `<img src="${p.foto_url}">` : ``}
       <div class="card-body">
         <h3>${p.nome}</h3>
+        ${p.tempo_preparo ? `<div class="badge">⏱ ${p.tempo_preparo} min</div>` : ""}
         <p class="desc-card">${p.descricao || ""}</p>
         <div class="card-stats">
           <div class="stat blue">📦 Tipo<b>${p.tipo || "—"}</b></div>
@@ -1889,7 +1949,6 @@ filtroTipo.addEventListener("change", () => {
 });
 filtroStatus.addEventListener("change", aplicarFiltros);
 filtroCMV.addEventListener("change", aplicarFiltros);
-filtroMargem.addEventListener("change", aplicarFiltros);
 filtroSort.addEventListener("change", aplicarFiltros);
 
 
@@ -2034,35 +2093,32 @@ mBody.innerHTML = `
 
 
 
-<div class="grid-3" style="margin:14px 0">
+<div class="grid-4" style="margin:14px 0">
 
   <div>
-    <label style="font-weight:800;font-size:13px">
-      STATUS DO PRATO
-    </label>
-
-    <select id="statusPrato" style="margin-top:6px">
+    <label>STATUS DO PRATO</label>
+    <select id="statusPrato">
       <option value="true">ATIVO</option>
-      <option value="false">DESATIVADO</option>
+      <option value="false">INATIVO</option>
     </select>
   </div>
 
   <div>
-    <label style="font-weight:800;font-size:13px">
-      TIPO DO PRATO
-    </label>
+    <label>TIPO DO PRATO</label>
+    <select id="tipoPrato"></select>
+  </div>
 
-    <select id="tipoPrato" style="margin-top:6px">
-      <option value="">SELECIONE</option>
+  <div>
+    <label>CARDÁPIO MESA/ONLINE</label>
+    <select id="cardapioPrato">
+      <option value="true">SIM</option>
+      <option value="false">NÃO</option>
     </select>
   </div>
 
   <div>
-    <label style="font-weight:800;font-size:13px">
-      NO CARDÁPIO
-    </label>
-
-    <select id="cardapioPrato" style="margin-top:6px">
+    <label>PARA DELIVERY</label>
+    <select id="deliveryPrato">
       <option value="true">SIM</option>
       <option value="false">NÃO</option>
     </select>
@@ -2070,8 +2126,19 @@ mBody.innerHTML = `
 
 </div>
 
-<hr>
+<!-- 🔥 TEMPO VAI PRA LINHA DE BAIXO -->
+<div class="grid-2" style="margin-top:10px">
+  <div>
+    <label>⏱ TEMPO (MIN)</label>
+    <input id="tempoPreparo" type="number" placeholder="Ex: 25">
+  </div>
+</div>
 
+
+
+
+
+<hr>
 <hr>
 
 <div class="resumo">
@@ -2185,19 +2252,22 @@ ${precoVenda ? `
   <tbody>
 ${listaItens.map(i=>`
 <tr>
-        <td><b>${i.nome}</b></td>
-        <td>${i.quantidade}</td>
-        <td>${i.unidade_uso}</td>
-        <td>${moeda(i.custo_unitario)}</td>
-        <td><b>${moeda(i.custo_calculado)}</b></td>
-        <td class="acoes">
-          <button class="btn-icon btn-edit"
-            onclick="editarIngrediente('${i.id}')">✏️</button>
-          <button class="btn-icon btn-delete"
-            onclick="excluirIngrediente('${i.id}')">🗑️</button>
-        </td>
-      </tr>
-    `).join("")}
+  <td><b>${i.nome}</b></td>
+
+<td>${formatPeso(i.quantidade, i.unidade_uso)}</td>
+
+  <td>${i.unidade_uso}</td>
+  <td>${moeda(i.custo_unitario)}</td>
+  <td><b>${moeda(i.custo_calculado)}</b></td>
+
+  <td class="acoes">
+    <button class="btn-icon btn-edit"
+      onclick="editarIngrediente('${i.id}')">✏️</button>
+    <button class="btn-icon btn-delete"
+      onclick="excluirIngrediente('${i.id}')">🗑️</button>
+  </td>
+</tr>
+`).join("")}
   </tbody>
 </table>
 
@@ -2457,6 +2527,41 @@ aplicarFiltros();
   };
 
 },0);
+
+
+
+
+setTimeout(() => {
+  const deliverySelect = document.getElementById("deliveryPrato");
+  if (!deliverySelect) return;
+
+  deliverySelect.value = p.delivery === true ? "true" : "false";
+
+  deliverySelect.onchange = async () => {
+
+    const delivery = deliverySelect.value === "true";
+
+    await sb
+      .from("buffet")
+      .update({ delivery })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+
+}, 0);
+
+
+
+
+
+
+  
+
+
+
+  
 setTimeout(() => {
   const mp = document.getElementById("modoPreparo");
   if (!mp) return;
@@ -2479,11 +2584,58 @@ setTimeout(() => {
 
 setTimeout(() => {
   const desc = document.getElementById("descricaoPrato");
+
+  setTimeout(() => {
+  const tempo = document.getElementById("tempoPreparo");
+  if (!tempo) return;
+
+  const valorInicial = Number(pratoAtual.tempo_preparo || 0);
+
+  tempo.value = valorInicial || "";
+
+  tempo.onblur = async () => {
+    const novo = Number(tempo.value || 0);
+
+    if (novo === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ tempo_preparo: novo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+}, 0);
   if (!desc) return;
 
   const valorInicial = (p.descricao || "").trim();
 
   desc.onblur = async () => {
+setTimeout(() => {
+  const tempo = document.getElementById("tempoPreparo");
+  if (!tempo) return;
+
+  const valorInicial = Number(p.tempo_preparo || 0);
+
+  tempo.value = valorInicial || "";
+
+  tempo.onblur = async () => {
+    const novo = Number(tempo.value || 0);
+
+    if (novo === valorInicial) return;
+
+    await sb
+      .from("buffet")
+      .update({ tempo_preparo: novo })
+      .eq("id", pratoAtual.id);
+
+    await carregarPratos();
+    aplicarFiltros();
+  };
+}, 0);
+
+    
     const textoAtual = desc.value.trim();
     if (textoAtual === valorInicial) return;
 
@@ -2621,6 +2773,63 @@ setTimeout(() => {
   if (draftPreco.preco  !== null) precoInput.value = draftPreco.preco;
 
 }, 50);
+
+
+
+setTimeout(() => {
+
+  const buscaInput = document.getElementById("ingBusca");
+  const resultadoBox = document.getElementById("resultadoIngredientes");
+
+  if (!buscaInput || !resultadoBox) return;
+
+  buscaInput.addEventListener("input", () => {
+
+    const termo = buscaInput.value.toLowerCase();
+
+    if (!termo) {
+      resultadoBox.style.display = "none";
+      return;
+    }
+
+    const filtrados = ingredientesBase
+      .filter(i => (i.nome || "").toLowerCase().includes(termo))
+      .slice(0, 20);
+
+    resultadoBox.innerHTML = filtrados.map(i => `
+      <div class="item-busca" data-id="${i.id}">
+        ${i.nome}
+      </div>
+    `).join("");
+
+    resultadoBox.style.display = "block";
+
+resultadoBox.querySelectorAll(".item-busca").forEach(el => {
+  el.onclick = () => {
+
+        const id = el.dataset.id;
+        const selecionado = ingredientesBase.find(i => i.id == id);
+
+        ingredienteSelecionado = selecionado;
+
+        buscaInput.value = selecionado.nome;
+        document.getElementById("ingUnidade").value =
+          selecionado.unidade_medida || "";
+
+        resultadoBox.style.display = "none";
+      };
+    });
+
+  });
+
+}, 200);
+
+
+
+
+
+
+  
 } // ✅ FECHA abrirModal(p)
 
 
@@ -3167,88 +3376,14 @@ const { data: pratoNovo } = await sb
 abrirModal(pratoNovo);
 
 }
-document.addEventListener("input", e => {
-
-  if(e.target.id !== "ingBusca") return;
-
-  const termo = e.target.value.toLowerCase().trim();
-  const box = document.getElementById("resultadoIngredientes");
-
-  if(!termo){
-    box.style.display="none";
-    return;
-  }
-
-  const resultados = ingredientesBase.filter(i =>
-    i.nome.toLowerCase().includes(termo)
-  );
-
-  if(resultados.length === 0){
-    box.innerHTML = `<div style="padding:10px;font-size:12px">Nenhum ingrediente</div>`;
-    box.style.display="block";
-    return;
-  }
-
-  box.innerHTML = resultados.map(i=>`
-
-    <div
-      class="itemIngrediente"
-      data-id="${i.id}"
-      style="
-        padding:10px;
-        cursor:pointer;
-        border-bottom:1px solid #f1f5f9;
-        font-size:13px;
-      "
-    >
-      ${i.nome}
-    </div>
-
-  `).join("");
-
-  box.style.display="block";
-
-});
-
-document.addEventListener("click", e => {
-
-  const item = e.target.closest(".itemIngrediente");
-  if(!item) return;
-
-  e.stopPropagation();
-
-  const id = item.dataset.id;
-
-  const prod = ingredientesBase.find(p => p.id == id);
-
-  if(!prod){
-    console.warn("Ingrediente não encontrado:", id);
-    return;
-  }
-
-  ingredienteSelecionado = prod;
-
-  document.getElementById("ingBusca").value = prod.nome;
-  document.getElementById("ingUnidade").value = prod.unidade_medida || "";
-
-  document.getElementById("resultadoIngredientes").style.display = "none";
-
-});
 
 
 
-document.addEventListener("click", e => {
 
-  const busca = document.getElementById("ingBusca");
-  const box = document.getElementById("resultadoIngredientes");
 
-  if(!busca || !box) return;
 
-  if(!busca.contains(e.target) && !box.contains(e.target)){
-    box.style.display = "none";
-  }
 
-});
+
 </script>
 
 <button id="btnTop" onclick="scrollToTop()">↑</button>
