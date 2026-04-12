@@ -1060,9 +1060,6 @@ const itensTratados = (dados.itens || []).map(item => {
     total: preco * quantidade,
     foto: produto?.foto_url || "https://via.placeholder.com/300"
   }
-
-})
-
 })
 
 await supabase
