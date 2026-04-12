@@ -2911,17 +2911,18 @@ console.log("📅 DATA RESERVAS:", dataAtualISO)
 
 
   
-/* ================= BUSCAR RESERVAS DO DIA ================= */
+/* ================= BUSCAR RESERVAS FUTURAS ================= */
 
-let reservasHojeTexto = "SEM RESERVAS"
+let reservasHojeTexto = "SEM RESERVAS FUTURAS"
 
 try {
 
   const { data: reservasHoje } = await supabase
     .from("reservas_mercatto")
     .select("*")
-    .gte("datahora", dataAtualISO + "T00:00")
-    .lte("datahora", dataAtualISO + "T23:59")
+    .in("status", ["Pendente","Confirmada"])
+    .gte("datahora", dataAtualISO + "T00:00") // 🔥 HOJE PRA FRENTE
+    .order("datahora",{ ascending:true })
 
   console.log("📊 RESERVAS DO DIA:", reservasHoje)
 
