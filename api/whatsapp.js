@@ -1006,9 +1006,11 @@ if(mensagem.includes("PEDIDO_DELIVERY_JSON:")){
 
   try{
 
-    const jsonString = mensagem.split("PEDIDO_DELIVERY_JSON:")[1].trim()
+    const match = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*({[\s\S]*})/)
 
-    pedidoJSON = JSON.parse(jsonString)
+    if(match){
+      pedidoJSON = JSON.parse(match[1])
+    }
 
     console.log("🧾 PEDIDO JSON DETECTADO:", pedidoJSON)
 
@@ -1025,8 +1027,21 @@ if(mensagem.includes("PEDIDO_DELIVERY_JSON:")){
 
 if(pedidoJSON){
 
-const dados = pedidoJSON.dados
+const dados = pedidoJSON?.dados || {}
 
+dados.cliente_nome = dados.cliente_nome || "Cliente"
+dados.cliente_telefone = cliente
+dados.cliente_endereco = dados.cliente_endereco || ""
+dados.cliente_bairro = dados.cliente_bairro || ""
+dados.forma_pagamento = dados.forma_pagamento || "Não informado"
+dados.observacao = dados.observacao || ""
+
+if(!Array.isArray(dados.itens)){
+  dados.itens = []
+}
+
+
+  
 // 🔥 AQUI É O LUGAR EXATO (ANTES DO INSERT)
 const cardapio = await buscarCardapio()
 
@@ -1040,12 +1055,21 @@ const itensTratados = (dados.itens || []).map(item => {
     nome: produto?.nome || item.nome,
     preco: Number(produto?.preco_venda || item.preco) || 0,
     quantidade: (() => {
-  const q = parseInt(String(item.quantidade).replace(/\D/g, ""))
-  return q && q > 0 ? q : 1
-})()
-    
-    ,
-foto: produto?.foto_url || "https://via.placeholder.com/300"
+const itensTratados = (dados.itens || []).map(item => {
+
+  const produto = cardapio.find(p =>
+    normalizar(p.nome).includes(normalizar(item.nome))
+  )
+
+  const quantidade = parseInt(String(item.quantidade).replace(/\D/g,"")) || 1
+  const preco = Number(produto?.preco_venda || item.preco) || 0
+
+  return {
+    nome: produto?.nome || item.nome || "Item",
+    preco,
+    quantidade,
+    total: preco * quantidade,
+    foto: produto?.foto_url || "https://via.placeholder.com/300"
   }
 
 })
