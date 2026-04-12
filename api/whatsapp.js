@@ -1231,8 +1231,9 @@ if(isAdmin){
 
   console.log("👨‍💼 MENSAGEM DO ADMIN DETECTADA")
 
-  const match = mensagem.match(/^([a-z0-9\-.]+)\s+([\s\S]+)/i)
-
+const match = mensagem.match(
+  /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\.com)?\s+([\s\S]+)/i
+)
   // Admin mandou mensagem comum, sem ID
   if(!match){
     console.log("⚠️ ADMIN SEM ID → CONTINUANDO FLUXO NORMAL")
