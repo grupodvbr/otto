@@ -1025,21 +1025,39 @@ if(mensagem.includes("PEDIDO_DELIVERY_JSON:")){
 
 if(pedidoJSON){
 
-  const dados = pedidoJSON.dados
+const dados = pedidoJSON.dados
 
-  await supabase
-    .from("pedidos_pendentes")
-    .insert({
-      cliente_nome: dados.cliente_nome || "Cliente",
-      cliente_telefone: cliente,
-      cliente_endereco: dados.cliente_endereco || "",
-      cliente_bairro: dados.cliente_bairro || "",
-      itens: dados.itens,
-      valor_total: dados.valor_total,
-      forma_pagamento: dados.forma_pagamento,
-      observacao: dados.observacao,
-      origem: "whatsapp"
-    })
+// 🔥 AQUI É O LUGAR EXATO (ANTES DO INSERT)
+const cardapio = await buscarCardapio()
+
+const itensTratados = (dados.itens || []).map(item => {
+
+  const produto = cardapio.find(p =>
+    normalizar(p.nome).includes(normalizar(item.nome))
+  )
+
+  return {
+    nome: produto?.nome || item.nome,
+    preco: Number(produto?.preco_venda || item.preco) || 0,
+    quantidade: Math.max(1, Number(item.quantidade) || 1),
+    foto: produto?.foto_url || null
+  }
+
+})
+
+await supabase
+  .from("pedidos_pendentes")
+  .insert({
+    cliente_nome: dados.cliente_nome || "Cliente",
+    cliente_telefone: cliente,
+    cliente_endereco: dados.cliente_endereco || "",
+    cliente_bairro: dados.cliente_bairro || "",
+    itens: itensTratados, // ✅ CORRIGIDO
+    valor_total: dados.valor_total,
+    forma_pagamento: dados.forma_pagamento,
+    observacao: dados.observacao,
+    origem: "whatsapp"
+  })
 
   console.log("✅ PEDIDO PENDENTE SALVO CORRETAMENTE")
 
