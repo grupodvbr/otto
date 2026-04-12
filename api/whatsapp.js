@@ -791,29 +791,30 @@ if(reservas && reservas.length){
 
   const texto = mensagem.toLowerCase()
 
-  // 🔥 EXTRAIR DIA (ex: 16)
-  const matchDia = texto.match(/\b(\d{1,2})\b/)
-  const diaDesejado = matchDia ? matchDia[1].padStart(2,"0") : null
+// 🔥 DIA
+const matchDia = texto.match(/\b(\d{1,2})\b/)
+const diaDesejado = matchDia ? matchDia[1].padStart(2,"0") : null
 
-  // 🔥 EXTRAIR POSSÍVEL NOME
-  const palavras = texto.split(" ")
-  const nomePossivel = palavras.find(p => p.length > 3)
+// 🔥 NOME (memória + mensagem)
+const nomeBusca = (nomeMemoria || "").toLowerCase()
 
-  reserva = reservas.find(r => {
+reserva = reservas.find(r => {
 
-    const dataReserva = r.datahora?.split("T")[0] || ""
-    const diaReserva = dataReserva.split("-")[2]
+  const dataReserva = r.datahora?.split("T")[0] || ""
+  const diaReserva = dataReserva.split("-")[2]
 
-    const nomeBanco = (r.nome || "").toLowerCase()
+  const nomeBanco = (r.nome || "").toLowerCase()
 
-    const bateDia = !diaDesejado || diaReserva === diaDesejado
-    const bateNome =
-      !nomePossivel ||
-      nomeBanco.includes(nomePossivel)
+  const bateDia = !diaDesejado || diaReserva === diaDesejado
 
-    return bateDia && bateNome
+  const bateNome =
+    nomeBanco.includes(nomeBusca) ||
+    texto.includes(nomeBanco) ||
+    nomeBanco.includes(texto)
 
-  })
+  return bateDia && bateNome
+
+})
 
   // 🔥 fallback seguro (mais próxima)
   if(!reserva){
