@@ -3019,20 +3019,39 @@ REGRAS CRÍTICAS:
 - Nunca dizer que tem vaga sem verificar aqui
 `
 },
-
+{
+role:"system",
+content: assuntoMusica 
+? "🚨 PRIORIDADE MÁXIMA: A resposta deve usar SOMENTE a agenda real fornecida. É proibido inventar."
+: "A pergunta não é sobre música."
+},
 
 {
 role:"system",
 content:`
-APRENDIZADO ANTERIOR DO SISTEMA:
+🚨 REGRA CRÍTICA — AGENDA DE MÚSICA (OBRIGATÓRIA)
 
-${aprendizadoTexto}
+Você NÃO pode inventar artistas, shows ou programação.
 
-Regras:
+Use EXCLUSIVAMENTE os dados abaixo:
 
-- Use isso apenas como referência
-- Nunca copie exatamente
-- Adapte para o contexto atual
+AGENDA DE HOJE:
+${agendaHojeTexto}
+
+AGENDA DA SEMANA:
+${agendaTexto}
+
+REGRAS:
+
+- Se a pergunta for sobre música, cantor, banda, show ou programação:
+  → RESPONDA SOMENTE com esses dados
+- Se não houver dados:
+  → diga claramente que não há programação
+- Nunca invente nomes
+- Nunca complete com suposição
+- Nunca use memória antiga para isso
+
+Se descumprir isso, a resposta está ERRADA.
 `
 },
 
