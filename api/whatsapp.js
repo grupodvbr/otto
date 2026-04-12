@@ -1297,56 +1297,58 @@ if(isAdmin){
       textoAdmin === "cancelar" ||
       textoAdmin === "ignorar"
 
-    if(confirmou){
+   if(confirmou){
 
-      const { data: duvida } = await supabase
-        .from("duvidas_pendentes")
-        .select("*")
-        .eq("id", estadoAdmin.referencia_id)
-        .maybeSingle()
+  const { data: duvida } = await supabase
+    .from("duvidas_pendentes")
+    .select("*")
+    .eq("id", estadoAdmin.referencia_id)
+    .maybeSingle()
 
-      if(!duvida){
-        console.log("❌ DÚVIDA NÃO ENCONTRADA PARA CONFIRMAÇÃO")
+  if(!duvida){
+    console.log("❌ DÚVIDA NÃO ENCONTRADA PARA CONFIRMAÇÃO")
 
-        await supabase
-          .from("estado_conversa")
-          .delete()
-          .eq("telefone", cliente)
+    await supabase
+      .from("estado_conversa")
+      .delete()
+      .eq("telefone", cliente)
 
-        return res.status(200).end()
-      }
+    return res.status(200).end()
+  }
 
-      await supabase
-        .from("estado_conversa")
-        .upsert({
-          telefone: cliente,
-          tipo: "aguardando_resposta_aprendizado",
-          referencia_id: duvida.id
-        }, { onConflict: "telefone" })
+  await supabase
+    .from("estado_conversa")
+    .upsert({
+      telefone: cliente,
+      tipo: "aguardando_resposta_aprendizado",
+      referencia_id: duvida.id
+    }, { onConflict: "telefone" })
 
-      const textoPergunta = `Perfeito 👍
+  const textoPergunta = `Perfeito 👍
 
-Qual deve ser a resposta para esta dúvida?
+Digite em apenas uma mensagem a resposta para essa pergunta.
 
-❓ Pergunta:
+Essa resposta será usada com seus clientes.
+
+REGISTRO DE INFRORMAÇÃO:
 ${duvida.pergunta}`
 
-      await fetch(url,{
-        method:"POST",
-        headers:{
-          Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-          messaging_product:"whatsapp",
-          to: cliente,
-          type:"text",
-          text:{ body: textoPergunta }
-        })
-      })
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"text",
+      text:{ body: textoPergunta }
+    })
+  })
 
-      return res.status(200).end()
-    }
+  return res.status(200).end()
+}
 
     if(recusou){
 
