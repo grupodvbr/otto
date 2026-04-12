@@ -1,4 +1,5 @@
 
+
 const OpenAI = require("openai")
 const { createClient } = require("@supabase/supabase-js")
 
@@ -693,6 +694,22 @@ const message_id = mensagensRecebidas[0]?.id
 
 
 
+// 🔥 SALVAR MENSAGEM RECEBIDA (LOCAL EXATO)
+await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone: cliente,
+    mensagem: mensagem,
+    tipo: tipo,
+    media_url: media_url,
+    nome_arquivo: nome_arquivo,
+    role: "user",
+    message_id: message_id,
+    status: "received"
+  })
+
+
+
 
 
 
@@ -913,7 +930,7 @@ let { data: reservas, error } = await supabase
   .from("reservas_mercatto")
   .select("*")
   .in("status", ["Pendente","Confirmada"])
-  .gte("datahora", inicio)
+  .gte("datahora", agoraISO)
   .order("datahora",{ ascending:true })
   .limit(50)
 
@@ -1129,25 +1146,29 @@ const itensTratados = (dados.itens || []).map(item => {
   }
 })
 
-const valor_total = itensTratados.reduce((s,i)=>s+i.total,0)
-
 await supabase
   .from("pedidos_pendentes")
   .insert({
     cliente_nome: dados.cliente_nome || "Cliente",
     cliente_telefone: cliente,
-    cliente_endereco:
-      dados.cliente_endereco ||
-      dados.endereco ||
-      dados.entrega ||
-      "",
-    cliente_bairro:
-      dados.cliente_bairro ||
-      dados.bairro ||
-      "",
-    itens: itensTratados,
-    valor_total: valor_total,
-    forma_pagamento: dados.forma_pagamento,
+
+
+    
+cliente_endereco:
+  dados.cliente_endereco ||
+  dados.endereco ||
+  dados.entrega ||
+  "",
+
+cliente_bairro:
+  dados.cliente_bairro ||
+  dados.bairro ||
+  "",
+
+    
+itens: itensTratados,
+valor_total: valor_total,
+forma_pagamento: dados.forma_pagamento,
     observacao: dados.observacao,
     origem: "whatsapp"
   })
@@ -1162,6 +1183,39 @@ await supabase
 
 
 
+  
+/* ================= CONFIRMAÇÃO DE PEDIDO ================= */
+
+/* 🔥 VERIFICAR SE EXISTE PEDIDO PENDENTE PRIMEIRO */
+const { data: ultimoPedido } = await supabase
+  .from("pedidos_pendentes")
+  .select("*")
+  .eq("cliente_telefone", cliente)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .maybeSingle()
+
+const confirmouPedido =
+  ultimoPedido && (
+    texto === "sim" ||
+    texto.includes("confirmar") ||
+    texto.includes("pode confirmar") ||
+    texto.includes("ok pode pedir") ||
+    texto.includes("fechar pedido")
+  )
+
+if(confirmouPedido){
+
+  console.log("🛒 CONFIRMAÇÃO DE PEDIDO DETECTADA")
+
+  /* 🔥 BUSCAR ÚLTIMO PEDIDO GERADO */
+  const { data: ultimoPedido } = await supabase
+    .from("pedidos_pendentes")
+    .select("*")
+    .eq("cliente_telefone", cliente)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
 if(!ultimoPedido){
   console.log("❌ CONFIRMOU MAS NÃO TEM PEDIDO")
@@ -1300,18 +1354,14 @@ await supabase
 
 }
 
-if(match){
+const id = match[1]
+const respostaAdmin = match[2]
 
-  const id = match[1]
-  const respostaAdmin = match[2]
-
-  const { data: duvida } = await supabase
-  .from("duvidas_pendentes")
-  .select("*")
-  .eq("id", id)
-  .maybeSingle()
-
-}
+const { data: duvida } = await supabase
+.from("duvidas_pendentes")
+.select("*")
+.eq("id", id)
+.maybeSingle()
 
 if(!duvida){
   console.log("❌ DÚVIDA NÃO ENCONTRADA")
