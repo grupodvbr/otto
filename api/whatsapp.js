@@ -822,14 +822,7 @@ const { data: aprendizadoContexto } = await supabase
 .select("*")
 .limit(50)
 
-let aprendizadoTexto = ""
-let respostaAprendida = null
-
-if(aprendizadoContexto && aprendizadoContexto.length){
-
-  const melhorAprendizado = buscarRespostaAprendida(texto, aprendizadoContexto)
-
- let melhorAprendizado = null
+let melhorAprendizado = null
 let aprendizadoTexto = ""
 
 if(aprendizadoContexto && aprendizadoContexto.length){
