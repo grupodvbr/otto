@@ -3100,10 +3100,10 @@ OBSERVACOES: ${r.observacoes || "-"}
 
 try{
 
-const agora = new Date()
+const agoraSistema = new Date()
 
 const agoraBahia = new Date(
-agora.toLocaleString("en-US", { timeZone: "America/Bahia" })
+  agoraSistema.toLocaleString("en-US", { timeZone: "America/Bahia" })
 )
 
 const dataAtual = agoraBahia.toLocaleDateString("pt-BR")
