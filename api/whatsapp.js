@@ -2617,8 +2617,7 @@ if(rodizioTexto){
 
   /* ================= BUFFET ================= */
 
-  if(buffetHoje.length){
-
+if(buffetValido.length){
     resposta += "🍛 Buffet disponível das 11h às 15h com opções como:\n"
 
     buffetHoje.slice(0,5).forEach(item=>{
