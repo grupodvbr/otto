@@ -3687,6 +3687,7 @@ const precisaEscalar =
   respostaLower.includes("não possuo") ||
   respostaLower.includes("nao possuo") ||
   respostaLower.includes("sem informação")
+)
 
 if(precisaEscalar && !ehAcaoDireta){
   console.log("🚨 ESCALANDO PARA ADM")
