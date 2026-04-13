@@ -2969,7 +2969,6 @@ const buffet = await buscarBuffetHoje()
 let buffetTexto = ""
 
 const hora = agoraAtual.getHours()
-const hora = agoraAtual.getHours()
 const minutos = agoraAtual.getMinutes()
 
 const dentroHorario =
