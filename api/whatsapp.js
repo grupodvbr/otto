@@ -2937,8 +2937,25 @@ FOTO: ${p.foto_url || "sem"}
 
 })
 
-/* ================= BUSCAR BUFFET ================= */
+// ================= CONTROLE GLOBAL DE BUFFET =================
 
+const agora = agoraBahia()
+
+const horaAtual = agora.getHours()
+const minutosAtual = agora.getMinutes()
+
+const depoisDas15 =
+  horaAtual > 15 ||
+  (horaAtual === 15 && minutosAtual >= 0)
+
+// 🔥 BUSCA REAL
+const buffetHoje = await buscarBuffetHoje()
+
+// 🔥 CONTROLE FINAL
+const buffetValido = depoisDas15 ? [] : buffetHoje
+
+
+  
 const buffet = buffetValido
 let buffetTexto = ""
 
