@@ -2549,10 +2549,10 @@ textoNormalizado.includes("video") ||
 textoNormalizado.includes("vídeo")
 
 const pediuFotoEspecifica =
-textoNormalizado.includes("foto") &&
-(
-  textoNormalizado.length > 10 // evita "tem foto?"
-)
+  textoNormalizado.includes("foto") &&
+  cardapio.some(p =>
+    textoNormalizado.includes(normalizar(p.nome))
+  )
 
 const querEndereco =
 textoNormalizado.includes("onde fica") ||
