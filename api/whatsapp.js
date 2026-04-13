@@ -444,6 +444,7 @@ return publicUrl
 
 
 module.exports = async function handler(req,res){
+  const agora = agoraBahia()
 let resposta = ""
 
 
@@ -781,7 +782,6 @@ return res.status(200).end()
 }
 
 // pausa temporária
-const agora = agoraBahia()
   const pausaAte = new Date(pausaBot.pausado_ate)
 
 if(agora < pausaAte){
