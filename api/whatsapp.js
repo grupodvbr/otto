@@ -54,6 +54,10 @@ const {data:reservas} = await supabase
 .gte("datahora", hoje+"T00:00") // 🔥 daqui pra frente
 .order("datahora",{ascending:true})
 
+
+  
+.order("datahora",{ascending:true})
+
 let resposta = "📊 *Relatório automático de reservas (Hoje)*\n\n"
 
 if(!reservas || !reservas.length){
@@ -166,6 +170,9 @@ const { data, error } = await supabase
 .select("id,nome,tipo,descricao,preco_venda,foto_url,delivery")
 .eq("ativo", true)
 .eq("cardapio", true)
+.eq("delivery", true) // 🔥 OBRIGATÓRIO
+.order("tipo", { ascending: true })
+.order("nome", { ascending: true })
 
 if(error){
 console.log("Erro cardápio:",error)
@@ -323,6 +330,11 @@ function encontrarPratoComFoto(cardapio, texto){
     const nome = normalizar(item.nome)
 
 if(nome.includes(textoLimpo)){
+
+  if(!item.delivery){
+    return { erro: "SEM_DELIVERY" }
+  }
+
   return item
 }
 
@@ -1764,56 +1776,9 @@ if(temIntencaoPedido){
 
   const textoNormalizado = normalizar(mensagem)
 
-let itemEncontrado = null
+  let itemEncontrado = null
 
-for(const p of global.cardapioAtual){
-
-
-
-/* 🚨 COLOCA EXATAMENTE AQUI 👇 */
-
-// 🔥 VALIDAÇÃO CORRETA
-if(!itemEncontrado){
-  console.log("❌ PRODUTO NÃO ENCONTRADO")
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ body:"Não consegui identificar o item 😕\nPode me informar o nome do prato?" }
-    })
-  })
-
-  return res.status(200).end()
-}
-
-// 🔥 AQUI É O PONTO PERFEITO PRA VALIDAÇÃO DELIVERY
-if(!itemEncontrado.delivery){
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to:cliente,
-      type:"text",
-      text:{ 
-        body:"Esse prato está disponível apenas para consumo no local 😊" 
-      }
-    })
-  })
-
-  return res.status(200).end() // ✅ CORRETO
-}
+  for(const p of global.cardapioAtual){
 
     const nomeCardapio = normalizar(p.nome)
 
@@ -2954,6 +2919,8 @@ if(pediuFotoEspecifica){
 
 const prato = encontrarPratoComFoto(cardapio, mensagem)
 
+// 🔥 BLOQUEIO DELIVERY (OBRIGATÓRIO)
+if(prato?.erro === "SEM_DELIVERY"){
 
   await fetch(url,{
     method:"POST",
@@ -4806,14 +4773,9 @@ Nossa equipe entrará em contato para finalizar a reserva da sala VIP.`
 }
 
 }
-
 try{
-
 const alterarMatch = resposta.match(/ALTERAR_RESERVA_JSON:\s*({[\s\S]*?})/)
 
-} catch(e){
-  console.log("Erro alteração:", e)
-}
 if(alterarMatch){
 
 let reserva
