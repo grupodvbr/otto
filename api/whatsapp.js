@@ -1342,8 +1342,9 @@ textoNormalizado.includes("promo") ||
 textoNormalizado.includes("oferta") ||
 textoNormalizado.includes("desconto")
 
-const hojeInicio = getHojeBahia() + "T00:00"
-const hojeFim = getHojeBahia() + "T23:59"
+
+const hojeInicioPromo = getHojeBahia() + "T00:00"
+const hojeFimPromo = getHojeBahia() + "T23:59"
 
 const { data: promosHoje } = await supabase
 .from("conversas_whatsapp")
@@ -1352,6 +1353,7 @@ const { data: promosHoje } = await supabase
 .eq("role", "assistant")
 .gte("created_at", hojeInicioPromo)
 .lte("created_at", hojeFimPromo)
+  
 .ilike("mensagem", "%PROMO%")
 
 const { data: controlePromo } = await supabase
