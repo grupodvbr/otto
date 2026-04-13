@@ -2885,15 +2885,78 @@ const buffet = await buscarBuffetHoje()
 
 let buffetTexto = ""
 
-if(!buffet.length){
-  buffetTexto = "SEM ITENS NO BUFFET HOJE"
-}else{
-  buffet.forEach(item => {
-    buffetTexto += `
-ITEM: ${item.produto_nome}
-CATEGORIA: ${item.tipo || "geral"}
+const agora = agoraBahia()
+const hora = agora.getHours()
+const minutos = agora.getMinutes()
+
+const dentroHorario =
+  (hora > 11 || (hora === 11 && minutos >= 0)) &&
+  (hora < 15)
+
+const pertoEncerrando = hora === 14
+
+// 🔥 CONTROLE: já enviou buffet hoje?
+const hojeInicio = getHojeBahia() + "T00:00"
+const hojeFim = getHojeBahia() + "T23:59"
+
+const { data: buffetJaEnviado } = await supabase
+.from("conversas_whatsapp")
+.select("id")
+.eq("telefone", cliente)
+.eq("role", "assistant")
+.gte("created_at", hojeInicio)
+.lte("created_at", hojeFim)
+.ilike("mensagem", "%🍛 Buffet%")
+.limit(1)
+
+let buffetTexto = ""
+
+/* 🚫 FORA DO HORÁRIO */
+if(!dentroHorario){
+
+  buffetTexto = `
+BUFFET:
+Não disponível agora.
+Funciona das 11h às 15h.
 `
+
+}
+
+/* ❌ SEM ITENS */
+else if(!buffet.length){
+
+  buffetTexto = `
+BUFFET:
+Hoje não temos buffet disponível.
+`
+
+}
+
+/* 🧠 JÁ ENVIOU → IA ASSUME */
+else if(buffetJaEnviado && buffetJaEnviado.length){
+
+  buffetTexto = `
+BUFFET:
+Disponível agora.
+
+Itens já foram apresentados anteriormente.
+Responda de forma natural sem listar novamente.
+`
+
+}
+
+/* ✅ PRIMEIRA VEZ → LISTA */
+else{
+
+  buffetTexto = "🍛 Buffet de hoje:\n"
+
+  buffet.slice(0,8).forEach(item=>{
+    buffetTexto += `• ${item.produto_nome}\n`
   })
+
+  if(pertoEncerrando){
+    buffetTexto += "\n⏰ Buffet já está finalizando (até 15h)"
+  }
 }
 
 
