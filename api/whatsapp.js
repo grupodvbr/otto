@@ -819,6 +819,51 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
+/* ================= CONTROLE INTELIGENTE DE BUFFET ================= */
+
+const buffetHoje = await buscarBuffetHoje()
+
+const agora = agoraBahia()
+const horaAtual = agora.getHours()
+const minutosAtual = agora.getMinutes()
+
+const horaFimBuffet = 15
+const minutoFimBuffet = 0
+
+const antesDoFim =
+  horaAtual < horaFimBuffet ||
+  (horaAtual === horaFimBuffet && minutosAtual < minutoFimBuffet)
+
+const podeMostrarBuffet =
+  buffetHoje.length > 10 &&
+  antesDoFim
+
+const perguntaBuffet =
+  texto.includes("buffet") ||
+  texto.includes("tem o que hoje") ||
+  texto.includes("cardapio") ||
+  texto.includes("comida hoje")
+
+if(perguntaBuffet && !podeMostrarBuffet){
+
+  const resposta = "Hoje estamos finalizando os ajustes do buffet 👨‍🍳✨ Em breve teremos tudo pronto para você!"
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      messaging_product:"whatsapp",
+      to: cliente,
+      type:"text",
+      text:{ body: resposta }
+    })
+  })
+
+  return res.status(200).end()
+}
 /* ================= 🔥 BUSCAR APRENDIZADO ================= */
 
 const { data: aprendizadoContexto } = await supabase
