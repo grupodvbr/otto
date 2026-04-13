@@ -2352,8 +2352,8 @@ textoNormalizado.includes("almoco") ||
 textoNormalizado.includes("comida")
 
 
-const agoraAtual = agoraBahia()
-const hora = agora.getHours()
+const agoraAtual = getAgoraBahia()
+  const hora = agora.getHours()
 const minuto = agora.getMinutes()
 
 const horaDecimal = hora + (minuto / 60)
@@ -2968,7 +2968,7 @@ const buffet = await buscarBuffetHoje()
 
 let buffetTexto = ""
 
-const agoraBuffet = agoraBahia()
+const agoraBuffet = getAgoraBahia()
 const horaBuffet = agoraBuffet.getHours()
 const minutoBuffet = agoraAtual.getMinutes()
 
