@@ -1350,8 +1350,8 @@ const { data: promosHoje } = await supabase
 .select("mensagem")
 .eq("telefone", cliente)
 .eq("role", "assistant")
-.gte("created_at", hojeInicio)
-.lte("created_at", hojeFim)
+.gte("created_at", hojeInicioPromo)
+.lte("created_at", hojeFimPromo)
 .ilike("mensagem", "%PROMO%")
 
 const { data: controlePromo } = await supabase
