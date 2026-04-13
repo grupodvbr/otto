@@ -2968,9 +2968,8 @@ const buffet = await buscarBuffetHoje()
 
 let buffetTexto = ""
 
-const agoraAtual = agoraBahia()
-
-const horaBuffet = agoraAtual.getHours()
+const agoraBuffet = agoraBahia()
+const horaBuffet = agoraBuffet.getHours()
 const minutoBuffet = agoraAtual.getMinutes()
 
 const horaDecimal = horaBuffet + (minutoBuffet / 60)
