@@ -54,10 +54,6 @@ const {data:reservas} = await supabase
 .gte("datahora", hoje+"T00:00") // 🔥 daqui pra frente
 .order("datahora",{ascending:true})
 
-
-  
-.order("datahora",{ascending:true})
-
 let resposta = "📊 *Relatório automático de reservas (Hoje)*\n\n"
 
 if(!reservas || !reservas.length){
@@ -537,6 +533,11 @@ REGRAS CRÍTICAS DE CONVERSA
 - Seja natural e direto (como humano)
 `
 },
+
+
+
+
+  
 {
   role: "system",
   content: `
@@ -1168,8 +1169,7 @@ const match = mensagem.match(/PEDIDO_DELIVERY_JSON:\s*(\{[\s\S]*\})$/)
 
 if(pedidoJSON){
 
-const dados = pedidoJSON?.dados || {}
-
+const dados = pedidoJSON || {}
 dados.cliente_nome = dados.cliente_nome || "Cliente"
 dados.cliente_telefone = cliente
 dados.cliente_endereco = dados.cliente_endereco || ""
@@ -4456,7 +4456,7 @@ console.log("Resposta IA:",resposta)
 
 /* ================= PEDIDO DELIVERY ================= */
 
-const pedidoMatch = resposta.match(/PEDIDO_DELIVERY_JSON:\s*(\{[\s\S]*\})$/)
+const pedidoMatch = resposta.match(/ PEDIDO_DELIVERY_JSON:\s*(\{[\s\S]*\}) /)
 
 if(pedidoMatch){
 
