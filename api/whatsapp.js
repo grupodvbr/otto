@@ -931,7 +931,7 @@ let { data: reservas, error } = await supabase
   .from("reservas_mercatto")
   .select("*")
   .in("status", ["Pendente","Confirmada"])
-  .gte("datahora", hoje + "T00:00") // 🔥 CORRETO
+.gte("datahora", hojeBahia + "T00:00")
   .order("datahora",{ ascending:true })
   .limit(50)
 
@@ -948,7 +948,7 @@ if((!reservas || !reservas.length) && nomeMemoria){
     .select("*")
     .ilike("nome", `%${nomeBusca}%`)
     .in("status", ["Pendente","Confirmada"])
-    .gte("datahora", agoraISO)
+    .gte("datahora", hojeBahia + "T00:00")
     .order("datahora",{ ascending:true })
     .limit(20)
 
