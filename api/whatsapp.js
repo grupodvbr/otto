@@ -33,7 +33,7 @@ function agoraBahia(){
 }
 
 // Quando precisar da data, use assim:
-const agoraSistema = agoraBahia();
+const agora = agoraBahia();
 
 /* ================= RELATORIO AUTOMATICO ================= */
 
@@ -183,7 +183,7 @@ return data || []
 
 }
 function getHojeBahia(){
-  const agora = agoraBahia().toLocaleString("sv-SE", {
+  const agora = new Date().toLocaleString("sv-SE", {
     timeZone: "America/Bahia"
   })
   return agora.split(" ")[0]
@@ -192,7 +192,7 @@ function getHojeBahia(){
 
 
 
-async function buscarbuffetValido(){
+async function buscarBuffetHoje(){
 
 const hojeISO = getHojeBahia()
 
@@ -444,7 +444,6 @@ return publicUrl
 
 
 module.exports = async function handler(req,res){
-  const agora = agoraBahia()
 let resposta = ""
 
 
@@ -782,7 +781,8 @@ return res.status(200).end()
 }
 
 // pausa temporária
-  const pausaAte = new Date(pausaBot.pausado_ate)
+const agora = new Date()
+const pausaAte = new Date(pausaBot.pausado_ate)
 
 if(agora < pausaAte){
 console.log("BOT PAUSADO ATÉ:",pausaBot.pausado_ate)
@@ -819,50 +819,6 @@ return res.status(200).end()
 
 const texto = mensagem.toLowerCase()
 
-// ================= CONTROLE BUFFET POR HORÁRIO =================
-
-const agora = agoraBahia()
-
-const horaAtual = agora.getHours()
-const minutosAtual = agora.getMinutes()
-
-const depoisDas15 =
-  horaAtual > 15 ||
-  (horaAtual === 15 && minutosAtual >= 0)
-
-const perguntaBuffet =
-  texto.includes("buffet") ||
-  texto.includes("tem o que hoje") ||
-  texto.includes("cardapio") ||
-  texto.includes("comida hoje")
-
-if(perguntaBuffet && depoisDas15){
-
-  const resposta = "Nosso buffet já encerrou por hoje, ele funciona até às 15h."
-
-  await fetch(url,{
-    method:"POST",
-    headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      messaging_product:"whatsapp",
-      to: cliente,
-      type:"text",
-      text:{ body: resposta }
-    })
-  })
-
-  return res.status(200).end()
-}
-
-
-
-
-
-
-  
 /* ================= 🔥 BUSCAR APRENDIZADO ================= */
 
 const { data: aprendizadoContexto } = await supabase
@@ -2311,7 +2267,8 @@ const dataISO = dataConsulta.toISOString().split("T")[0]
 
 const agendaDia = await buscarAgendaDoDia(dataISO)
 const couvertHoje = calcularCouvert(agendaDia)
-const agora = agoraBahia()
+const agora = new Date()
+
 const agoraBahia = new Date(
 agora.toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -2555,25 +2512,11 @@ if(querHoje){
   const agendaHoje = await buscarAgendaDoDia(hoje)
   const couvertHoje = calcularCouvert(agendaHoje)
 
- // 🔥 HORÁRIO PRIMEIRO
-const agora = agoraBahia()
+  // 🔥 BUSCAR BUFFET REAL
+  const buffetHoje = await buscarBuffetHoje()
 
-const horaAtual = agora.getHours()
-const minutosAtual = agora.getMinutes()
+  let resposta = "Hoje no Mercatto Delícia temos:\n\n"
 
-const depoisDas15 =
-  horaAtual > 15 ||
-  (horaAtual === 15 && minutosAtual >= 0)
-
-
-// 🔥 BUSCAR BUFFET
-const buffetValido = await buffetValido()
-
-let buffetValido = buffetValido
-
-if(depoisDas15){
-  buffetValido = []
-}
   /* ================= MUSICA ================= */
 
   if(agendaHoje.length){
@@ -2609,18 +2552,18 @@ if(rodizioTexto){
   resposta += rodizioTexto + "\n"
 }
 
-/* ================= BUFFET ================= */
+  /* ================= BUFFET ================= */
 
-if(buffetValido.length){
+  if(buffetHoje.length){
 
-  resposta += "🍛 Buffet disponível das 11h às 15h com opções como:\n"
+    resposta += "🍛 Buffet disponível das 11h às 15h com opções como:\n"
 
-  buffetValido.slice(0,5).forEach(item=>{
-    resposta += `• ${item.produto_nome}\n`
-  })
+    buffetHoje.slice(0,5).forEach(item=>{
+      resposta += `• ${item.produto_nome}\n`
+    })
 
-  resposta += "\n"
-}
+    resposta += "\n"
+  }
 
   resposta += "Será um prazer receber você 😊"
 
@@ -2936,25 +2879,10 @@ FOTO: ${p.foto_url || "sem"}
 
 })
 
-// ================= CONTROLE GLOBAL DE BUFFET =================
+/* ================= BUSCAR BUFFET ================= */
 
-const agoraSistema = agoraBahia()
-const horaAtual = agora.getHours()
-const minutosAtual = agora.getMinutes()
+const buffet = await buscarBuffetHoje()
 
-const depoisDas15 =
-  horaAtual > 15 ||
-  (horaAtual === 15 && minutosAtual >= 0)
-
-// 🔥 BUSCA REAL
-const buffetValido = await buscarbuffetValido()
-
-// 🔥 CONTROLE FINAL
-const buffetValido = depoisDas15 ? [] : buffetValido
-
-
-  
-const buffet = buffetValido
 let buffetTexto = ""
 
 if(!buffet.length){
@@ -3027,7 +2955,8 @@ OBSERVACOES: ${r.observacoes || "-"}
 
 try{
 
-const agora = agoraBahia()
+const agora = new Date()
+
 const agoraBahia = new Date(
 agora.toLocaleString("en-US", { timeZone: "America/Bahia" })
 )
@@ -3181,7 +3110,8 @@ role:"system",
 content:`
 BUFFET DE HOJE (DADOS REAIS):
 
-${buffetValido.length ? buffetTexto : "BUFFET ENCERRADO HOJE"}
+${buffetTexto}
+
 Regras:
 
 - Esses são os itens reais do buffet de hoje
@@ -3501,12 +3431,17 @@ texto.includes("pedir")
 const precisaEscalar =
 !resposta ||
 resposta.length < 5 ||
+
 respostaLower.includes("não sei") ||
 respostaLower.includes("nao sei") ||
-respostaLower.includes("não tenho essa informação") ||
-respostaLower.includes("não encontrei essa informação")
-
-  
+respostaLower.includes("não temos") ||
+respostaLower.includes("nao temos") ||
+respostaLower.includes("não encontrei") ||
+respostaLower.includes("nao encontrei") ||
+respostaLower.includes("não possuo") ||
+respostaLower.includes("nao possuo") ||
+respostaLower.includes("sem informação") ||
+respostaLower.includes("no momento")
 
 if(precisaEscalar && !ehAcaoDireta){
   console.log("🚨 ESCALANDO PARA ADM")
@@ -4459,7 +4394,8 @@ return res.status(200).end()
 }
 /* BLOQUEAR DATA PASSADA */
 
-const agora = agoraBahia()
+const agora = new Date()
+
 if(dataTest < agora){
 console.log("DATA PASSADA")
 
