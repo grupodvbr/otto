@@ -54,10 +54,6 @@ const {data:reservas} = await supabase
 .gte("datahora", hoje+"T00:00") // 🔥 daqui pra frente
 .order("datahora",{ascending:true})
 
-
-  
-.order("datahora",{ascending:true})
-
 let resposta = "📊 *Relatório automático de reservas (Hoje)*\n\n"
 
 if(!reservas || !reservas.length){
