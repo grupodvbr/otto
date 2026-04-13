@@ -2556,17 +2556,8 @@ if(querHoje){
   const agendaHoje = await buscarAgendaDoDia(hoje)
   const couvertHoje = calcularCouvert(agendaHoje)
 
-  // 🔥 BUSCAR BUFFET REAL
-  const buffetHoje = await buscarBuffetHoje()
-
-let buffetValido = buffetHoje
-
-if(depoisDas15){
-  buffetValido = []
-}
-
-
-  const agora = agoraBahia()
+ // 🔥 HORÁRIO PRIMEIRO
+const agora = agoraBahia()
 
 const horaAtual = agora.getHours()
 const minutosAtual = agora.getMinutes()
@@ -2576,10 +2567,14 @@ const depoisDas15 =
   (horaAtual === 15 && minutosAtual >= 0)
 
 
+// 🔥 BUSCAR BUFFET
+const buffetHoje = await buscarBuffetHoje()
 
-  
-  let resposta = "Hoje no Mercatto Delícia temos:\n\n"
+let buffetValido = buffetHoje
 
+if(depoisDas15){
+  buffetValido = []
+}
   /* ================= MUSICA ================= */
 
   if(agendaHoje.length){
