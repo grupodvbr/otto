@@ -192,7 +192,7 @@ function getHojeBahia(){
 
 
 
-async function buscarBuffetHoje(){
+async function buscarbuffetValido(){
 
 const hojeISO = getHojeBahia()
 
@@ -2568,9 +2568,9 @@ const depoisDas15 =
 
 
 // 🔥 BUSCAR BUFFET
-const buffetHoje = await buscarBuffetHoje()
+const buffetValido = await buffetValido()
 
-let buffetValido = buffetHoje
+let buffetValido = buffetValido
 
 if(depoisDas15){
   buffetValido = []
@@ -2949,10 +2949,10 @@ const depoisDas15 =
   (horaAtual === 15 && minutosAtual >= 0)
 
 // 🔥 BUSCA REAL
-const buffetHoje = await buscarBuffetHoje()
+const buffetValido = await buscarbuffetValido()
 
 // 🔥 CONTROLE FINAL
-const buffetValido = depoisDas15 ? [] : buffetHoje
+const buffetValido = depoisDas15 ? [] : buffetValido
 
 
   
