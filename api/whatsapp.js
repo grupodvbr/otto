@@ -183,7 +183,7 @@ return data || []
 
 }
 function getHojeBahia(){
-  const agora = new Date().toLocaleString("sv-SE", {
+  const agora = agoraBahia().toLocaleString("sv-SE", {
     timeZone: "America/Bahia"
   })
   return agora.split(" ")[0]
@@ -781,8 +781,8 @@ return res.status(200).end()
 }
 
 // pausa temporária
-const agora = new Date()
-const pausaAte = new Date(pausaBot.pausado_ate)
+const agora = agoraBahia()
+  const pausaAte = new Date(pausaBot.pausado_ate)
 
 if(agora < pausaAte){
 console.log("BOT PAUSADO ATÉ:",pausaBot.pausado_ate)
@@ -2311,8 +2311,7 @@ const dataISO = dataConsulta.toISOString().split("T")[0]
 
 const agendaDia = await buscarAgendaDoDia(dataISO)
 const couvertHoje = calcularCouvert(agendaDia)
-const agora = new Date()
-
+const agora = agoraBahia()
 const agoraBahia = new Date(
 agora.toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
@@ -3028,8 +3027,7 @@ OBSERVACOES: ${r.observacoes || "-"}
 
 try{
 
-const agora = new Date()
-
+const agora = agoraBahia()
 const agoraBahia = new Date(
 agora.toLocaleString("en-US", { timeZone: "America/Bahia" })
 )
@@ -4461,8 +4459,7 @@ return res.status(200).end()
 }
 /* BLOQUEAR DATA PASSADA */
 
-const agora = new Date()
-
+const agora = agoraBahia()
 if(dataTest < agora){
 console.log("DATA PASSADA")
 
