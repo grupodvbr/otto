@@ -395,8 +395,7 @@ let resposta = completion.choices[0].message.content
 
 /* ================= DETECTAR AÇÃO ================= */
 
-const match = resposta.match(/ALTERAR_REGISTRO_JSON:\s*(\{[\s\S]*\})/)
-
+const match = resposta.match(/RESERVA_JSON:\s*(\{[\s\S]*\})/)
 let acao = null
 
 if(match){
