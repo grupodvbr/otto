@@ -4271,6 +4271,11 @@ console.log("📦 PEDIDO FINAL:", pedido)
 /* ================= PROCESSAR ================= */
 
 if(pedido){
+  // 🔥 VALIDAÇÃO AQUI
+  if(!pedido?.dados?.itens){
+    console.log("❌ PEDIDO SEM ITENS")
+    return res.status(200).end()
+  }
 
   const dados = pedido.dados || {}
 
