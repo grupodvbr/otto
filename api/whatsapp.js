@@ -3521,17 +3521,7 @@ texto.includes("pedir")
 const precisaEscalar =
 !resposta ||
 resposta.length < 5 ||
-
-respostaLower.includes("não sei") ||
-respostaLower.includes("nao sei") ||
-respostaLower.includes("não temos") ||
-respostaLower.includes("nao temos") ||
-respostaLower.includes("não encontrei") ||
-respostaLower.includes("nao encontrei") ||
-respostaLower.includes("não possuo") ||
-respostaLower.includes("nao possuo") ||
-respostaLower.includes("sem informação") ||
-respostaLower.includes("no momento")
+resposta.includes("🚨 DÚVIDA DO CLIENTE")
 
 if(precisaEscalar && !ehAcaoDireta){
   console.log("🚨 ESCALANDO PARA ADM")
