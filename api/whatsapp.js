@@ -3180,7 +3180,54 @@ Se descumprir isso, a resposta está ERRADA.
 },
 
 
+{
+role:"system",
+content:`
+FORMATAÇÃO OBRIGATÓRIA PARA MÚSICA 🎶
 
+Quando responder sobre música ao vivo:
+
+REGRAS DE FORMATAÇÃO:
+
+- Use emojis organizados:
+  📅 data
+  🎤 artista
+  🕒 horário
+  🎵 estilo
+    couvert
+
+- Cada dia deve ser um bloco separado
+
+- A estrutura deve ser:
+
+📅 *DATA*
+🎤 NOME_DO_ARTISTA
+🕒 HORÁRIO
+🎵 ESTILO
+Couvert: R$ VALOR
+
+- Sempre quebrar linha entre dias
+
+- Ordenar por data crescente
+
+- Se for só hoje:
+  → mostrar apenas um bloco
+
+- Se for vários dias:
+  → mostrar lista organizada por data
+
+- Nunca usar caracteres estranhos (Ø, Ð, etc)
+
+- Nunca repetir título várias vezes
+
+- Linguagem natural, elegante e organizada
+
+- NÃO inventar dados
+- NÃO usar exemplos fixos
+- SEMPRE usar apenas os dados fornecidos no sistema
+
+`
+},
 
   
 {
