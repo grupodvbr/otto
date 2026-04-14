@@ -1718,26 +1718,7 @@ if(match){
 
   }
 
-  // 🚨 BLOQUEIO SE NÃO ENCONTRAR PRODUTO
-  if(!itemEncontrado){
-    console.log("❌ PRODUTO NÃO ENCONTRADO — NÃO SALVA")
 
-    await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        messaging_product:"whatsapp",
-        to:cliente,
-        type:"text",
-        text:{ body:"Não consegui identificar o item do pedido 😕\nPode me informar o nome exato do prato?" }
-      })
-    })
-
-    return res.status(200).end()
-  }
 
   // 🔥 QUANTIDADE
   let quantidade = 1
