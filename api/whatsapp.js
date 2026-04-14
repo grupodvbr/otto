@@ -117,8 +117,7 @@ let maior = 0
 
 musicos.forEach(m => {
 
-const valor = Number(m.valor) || 0
-
+const valor = Number(String(m.valor).replace(",", ".")) || 0
 if(valor > maior){
 maior = valor
 }
