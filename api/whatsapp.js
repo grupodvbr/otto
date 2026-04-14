@@ -4272,7 +4272,11 @@ console.log("📦 PEDIDO FINAL:", pedido)
 
 if(pedido){
 
-  const valorTotal = (pedido.itens || []).reduce((s,i)=>{
+  const dados = pedido.dados || {}
+
+  const itens = dados.itens || []
+
+  const valorTotal = itens.reduce((s,i)=>{
     const preco = Number(i.preco || 0)
     const qtd = Number(i.quantidade || 1)
     return s + (preco * qtd)
@@ -4288,14 +4292,14 @@ if(pedido){
   const {data,error} = await supabase
   .from("pedidos_pendentes")
   .insert({
-    cliente_nome: pedido.nome,
+    cliente_nome: dados.cliente_nome || "Cliente",
     cliente_telefone: cliente,
-    cliente_endereco: pedido.endereco || "",
-    cliente_bairro: pedido.bairro || "",
-    itens: pedido.itens || [],
+    cliente_endereco: dados.endereco || "",
+    cliente_bairro: dados.bairro || "",
+    itens: itens,
     valor_total: valorTotal,
-    forma_pagamento: pedido.pagamento || "",
-    observacao: pedido.observacao || ""
+    forma_pagamento: dados.forma_pagamento || "",
+    observacao: dados.observacao || ""
   })
   .select()
 
@@ -4314,7 +4318,7 @@ if(pedido){
 
   resposta = `🧾 *Resumo do seu pedido*
 
-${(pedido.itens || []).map(i=>`• ${i.quantidade}x ${i.nome}`).join("\n")}
+${itens.map(i=>`• ${i.quantidade}x ${i.nome}`).join("\n")}
 
 💰 Total: R$ ${valorTotal.toFixed(2)}
 
