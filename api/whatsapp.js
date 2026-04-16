@@ -1765,7 +1765,7 @@ const palavrasPedido = [
 
 const temIntencaoPedido = palavrasPedido.some(p => textoLower.includes(p))
 
-if(temIntencaoPedido){
+if(false){
 
   console.log("🧾 INTENÇÃO DE PEDIDO DETECTADA")
 
