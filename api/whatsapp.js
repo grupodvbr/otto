@@ -811,9 +811,9 @@ if(!phone_number_id){
   
   
   const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
-if(!mensagem){
-console.log("Mensagem vazia")
-return res.status(200).end()
+if(!mensagem || mensagem.trim() === ""){
+  console.log("❌ MENSAGEM PERDIDA NO BUFFER")
+  mensagem = msg.text?.body || "[mensagem não capturada]"
 }
 
 const texto = mensagem.toLowerCase()
