@@ -876,8 +876,11 @@ await db
 
 document.getElementById("mensagens").innerHTML='<div class="empty">Conversa excluída</div>'
 
-carregarClientes()
-
+// 🔥 REMOVE DA TELA DIRETO
+const card = document.querySelector(`[data-telefone="${clienteSelecionado}"]`)
+if(card){
+  card.remove()
+}
 }
 
 document.getElementById("buscar").addEventListener("input",function(){
@@ -1034,8 +1037,23 @@ pausado:true
 
 }
 
-carregarClientes()
+// 🔥 ATUALIZA SÓ O CARD
+const card = document.querySelector(`[data-telefone="${telefone}"]`)
 
+if(card){
+
+  const pausado = novoStatus
+
+  card.classList.toggle("pausado", pausado)
+
+  const statusEl = card.querySelector(".status")
+
+  if(statusEl){
+    statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
+    statusEl.className = "status " + (pausado ? "off" : "on")
+  }
+
+}
 }
 
 
@@ -1133,8 +1151,14 @@ nome:novoNome
 
 }
 
-carregarClientes()
+const card = document.querySelector(`[data-telefone="${telefone}"]`)
 
+if(card){
+  const phoneEl = card.querySelector(".phone")
+  if(phoneEl){
+    phoneEl.innerText = novoNome
+  }
+}
 if(clienteSelecionado === telefone){
 abrirChatIframe(telefone)}
 
