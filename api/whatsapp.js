@@ -771,22 +771,22 @@ const { data: pausaBot } = await supabase
 .eq("telefone", cliente)
 .maybeSingle()
 
-let botPausado = false
-
 if(pausaBot?.pausado){
 
-  if(!pausaBot.pausado_ate){
-    botPausado = true
-  } else {
+// pausa permanente
+if(!pausaBot.pausado_ate){
+console.log("BOT PAUSADO PERMANENTEMENTE PARA:",cliente)
+return res.status(200).end()
+}
 
-    const agora = new Date()
-    const pausaAte = new Date(pausaBot.pausado_ate)
+// pausa temporária
+const agora = new Date()
+const pausaAte = new Date(pausaBot.pausado_ate)
 
-    if(agora < pausaAte){
-      botPausado = true
-    }
-
-  }
+if(agora < pausaAte){
+console.log("BOT PAUSADO ATÉ:",pausaBot.pausado_ate)
+return res.status(200).end()
+}
 
 }
 
@@ -811,9 +811,9 @@ if(!phone_number_id){
   
   
   const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
-if(!mensagem || mensagem.trim() === ""){
-  console.log("❌ MENSAGEM PERDIDA NO BUFFER")
-  mensagem = msg.text?.body || "[mensagem não capturada]"
+if(!mensagem){
+console.log("Mensagem vazia")
+return res.status(200).end()
 }
 
 const texto = mensagem.toLowerCase()
@@ -1747,9 +1747,8 @@ if(match){
 
 
 // 🔥 EXTRAI DADOS DO TEXTO (LINHA NOVA)
-if(temIntencaoPedido){
-  const dadosExtraidos = extrairDadosPedido(mensagem)
-}
+const dadosExtraidos = extrairDadosPedido(mensagem)
+
 await supabase
 .from("pedidos_pendentes")
 .insert({
@@ -2460,15 +2459,7 @@ await supabase
   message_id: message_id, // 🔥 ESSENCIAL
   status: "received"      // 🔥 ESSENCIAL
 })
-// 🔥 BLOQUEIO DE RESPOSTA AUTOMÁTICA
-if(botPausado){
-  console.log("🤖 BOT DESATIVADO → NÃO RESPONDE")
-  return res.status(200).end()
-}
 
-
-
-  
 if(querEndereco){
 
 const resposta = `📍 Estamos localizados em:
