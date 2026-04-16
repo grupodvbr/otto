@@ -23,11 +23,7 @@ html, body{
   width:100%;
   height:100%;
   font-family:'Inter', sans-serif;
-  background: url('https://i.imgur.com/2cOaJ.png');
-background-size: 300px;
-background-repeat: repeat;
-
-  
+  background:#e5ddd5;
   overflow:hidden;
 }
 
@@ -47,18 +43,21 @@ body::before{
 
 /* ===== HEADER ===== */
 .header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
   height:60px;
-  background:#075e54;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 12px;
-}
-
-.header-right{
-  display:flex;
-  gap:15px;
-  font-size:18px;
+  padding:0 16px;
+  background:linear-gradient(135deg,#075e54,#0b7d6c);
+  color:#fff;
+  font-weight:600;
+  font-size:16px;
+  z-index:20;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
 }
 
 .header .title{
@@ -114,7 +113,7 @@ scroll-behavior:smooth;
   line-height:1.4;
   position:relative;
   animation:fadeIn .2s ease;
-box-shadow:0 1px 2px rgba(0,0,0,.15);
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
 /* RECEBIDA */
@@ -171,20 +170,31 @@ box-shadow:0 1px 2px rgba(0,0,0,.15);
 
 /* ===== INPUT ===== */
 .inputBox{
-  background:#f0f2f5;
-  padding:8px;
-  display:flex;
-  align-items:center;
-  gap:8px;
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+display:flex;
+gap:8px;
+padding:10px;
+background:#f0f0f0;
+align-items:center;
+border-top:1px solid #ddd;
+z-index:10;
 }
 
+/* TEXTAREA */
 textarea{
-  background:#fff;
+  flex:1;
+  border:none;
+  outline:none;
   border-radius:20px;
-  padding:10px 15px;
-  box-shadow:0 1px 2px rgba(0,0,0,.2);
+  padding:12px 14px;
+  background:#f0f0f0;
+  font-size:15px;
+  resize:none;
+  max-height:120px;
 }
-
 
 /* BOTÕES */
 button{
@@ -192,9 +202,7 @@ button{
   height:42px;
   border-radius:50%;
   border:none;
-background:#25d366;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
-  
+  background:#25d366;
   color:#fff;
   font-size:18px;
   display:flex;
@@ -269,11 +277,11 @@ button:hover{
 @keyframes fadeIn{
   from{
     opacity:0;
-    transform:scale(.95) translateY(10px);
+    transform:translateY(5px);
   }
   to{
     opacity:1;
-    transform:scale(1) translateY(0);
+    transform:translateY(0);
   }
 }
 
@@ -300,36 +308,6 @@ font-weight:700;
 font-size:14px;
 text-transform:uppercase;
 }
-
-
-
-.msg{
-  position:relative;
-}
-
-/* RECEBIDA */
-.user::before{
-  content:"";
-  position:absolute;
-  left:-6px;
-  top:0;
-  border:6px solid transparent;
-  border-right-color:#fff;
-}
-
-/* ENVIADA */
-.assistant::before{
-  content:"";
-  position:absolute;
-  right:-6px;
-  top:0;
-  border:6px solid transparent;
-  border-left-color:#dcf8c6;
-}
-
-
-
-  
 </style>
 
 </head>
@@ -594,8 +572,8 @@ html += `<div>${m.mensagem}</div>`
 function statusIcon(status){
 if(status === "sent") return "✓"
 if(status === "delivered") return "✓✓"
-if(status === "read") return "<span style='color:#4fc3f7'>✓✓</span>"
-  return ""
+if(status === "read") return "<span style='color:#34b7f1'>✓✓</span>"
+return ""
 }
 
 /* ===== TIME ===== */
@@ -659,7 +637,8 @@ if(!data) return
 
 data.reverse().forEach(m=>render(m))
 
-oldestDate = data[data.length - 1]?.created_at
+oldestDate = data[0]?.created_at
+
 setTimeout(() => {
   scrollBottom()
 }, 100)
@@ -686,9 +665,7 @@ loading=false
 return
 }
 
-// 🔥 CORREÇÃO AQUI
-oldestDate = data[data.length - 1].created_at
-
+oldestDate = new Date(data[0].created_at).toISOString()
 const alturaAntes = msgs.scrollHeight
 
 data.reverse().forEach(m=>render(m,true))
@@ -776,8 +753,25 @@ async function atualizarSilencioso(){
   .order("created_at",{ascending:false})
   .limit(20)
 
-  if(!data) return
+  /* 🔥 SE NÃO EXISTE MAIS CONVERSA */
+  if(!data || data.length === 0){
 
+    msgs.innerHTML = `
+      <div style="
+        margin:auto;
+        text-align:center;
+        color:#555;
+        font-size:14px;
+      ">
+        🗑️ Conversa excluída
+      </div>
+    `
+
+    mensagensIds.clear()
+    return
+  }
+
+  /* NORMAL */
   data.reverse().forEach(m=>{
 
     const id = m.id || m.message_id
@@ -785,7 +779,8 @@ async function atualizarSilencioso(){
     if(!mensagensIds.has(id)){
       render(m)
 
-      const pertoDoFim = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 200
+      const pertoDoFim =
+        msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 200
 
       if(pertoDoFim){
         scrollBottom()
