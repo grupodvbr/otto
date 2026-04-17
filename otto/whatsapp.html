@@ -643,10 +643,10 @@ margin-top:6px;
 .notificacao {
   position:absolute;
 
-  top:50%;
-  transform:translateY(-50%);
+  top:6px;     /* 🔥 canto superior */
+  right:6px;   /* 🔥 canto direito */
 
-  right:60px; /* 🔥 joga para dentro da conversa */
+  transform:none; /* 🔥 remove centralização */
 
   width:10px;
   height:10px;
@@ -655,7 +655,7 @@ margin-top:6px;
   background:#ef4444;
 
   border:2px solid white;
-  z-index:5;
+  z-index:10;
 
   animation:pulse 1s infinite;
 }
