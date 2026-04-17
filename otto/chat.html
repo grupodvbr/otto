@@ -1135,7 +1135,6 @@ box.onclick = () => enviarDiretoGaleria(item)
 
 /* ===== SELEÇÃO ===== */
 
-
 async function enviarDiretoGaleria(item){
 
   if(!telefone) return
@@ -1158,7 +1157,7 @@ async function enviarDiretoGaleria(item){
   // fecha galeria
   document.getElementById("galeria").style.display = "none"
 
-  // envia API
+  // 🔥 ENVIA PARA API
   const send = await fetch("/api/send",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -1169,6 +1168,28 @@ async function enviarDiretoGaleria(item){
       tipo: item.tipo
     })
   }).then(r=>r.json())
+
+  const messageId = send?.message_id
+
+  // 🔥 AGORA SALVA NO SUPABASE (FALTAVA ISSO)
+  await db.from("conversas_whatsapp").insert({
+    telefone,
+    mensagem: item.nome,
+    tipo: item.tipo,
+    media_url: item.url,
+    role:"assistant",
+    message_id: messageId,
+    status:"sent"
+  }).select().single().then(({data})=>{
+
+    const tempEl = document.getElementById(tempId)
+
+    if(tempEl && data?.id){
+      tempEl.id = data.id
+      mensagensIds.add(data.id)
+    }
+
+  })
 
 }
 /* ===== ENVIO ===== */
