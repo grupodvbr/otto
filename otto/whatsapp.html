@@ -1463,22 +1463,7 @@ if(
 
 }
 
-  previewEl.innerText = c.mensagem
 
-  // 🔴 CONTROLE DA BOLINHA
-  let notif = card.querySelector(".notificacao")
-
-  if(c.role === "user"){
-    if(!notif){
-      const dot = document.createElement("div")
-      dot.className = "notificacao"
-      card.appendChild(dot)
-    }
-  } else {
-    if(notif) notif.remove()
-  }
-
-}{
 
   
 
