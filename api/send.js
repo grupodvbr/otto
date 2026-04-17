@@ -5,7 +5,6 @@ export default async function handler(req, res){
   }
 
   try{
-
     const {
       telefone,
       mensagem,
