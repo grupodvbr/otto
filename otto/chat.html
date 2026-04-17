@@ -1106,52 +1106,47 @@ function abrirGaleria(){
 
   galeria.innerHTML = ""
 
-  imagensGaleria.forEach(item => {
+ imagensGaleria.forEach(item => {
 
-    const box = document.createElement("div")
+  const box = document.createElement("div")
 
-    box.style.width = "70px"
-    box.style.textAlign = "center"
-    box.style.cursor = "pointer"
+  box.style.width = "70px"
+  box.style.textAlign = "center"
+  box.style.cursor = "pointer"
 
-let media
+  let media
 
-if(item.tipo === "video"){
-  media = document.createElement("video")
-  media.src = item.url
-  media.muted = true
-  media.autoplay = true
-  media.loop = true
-}else{
-  media = document.createElement("img")
-  media.src = item.url
-}
+  if(item.tipo === "video"){
+    media = document.createElement("video")
+    media.src = item.url
+    media.muted = true
+    media.autoplay = true
+    media.loop = true
+    media.playsInline = true
+  }else{
+    media = document.createElement("img")
+    media.src = item.url
+  }
 
-media.style.width = "70px"
-media.style.height = "70px"
-media.style.objectFit = "cover"
-media.style.borderRadius = "8px"
+  media.style.width = "70px"
+  media.style.height = "70px"
+  media.style.objectFit = "cover"
+  media.style.borderRadius = "8px"
 
-box.appendChild(media)
+  const nome = document.createElement("div")
+  nome.innerText = item.nome
+  nome.style.fontSize = "10px"
+  nome.style.marginTop = "3px"
+  nome.style.color = "#333"
 
-const nome = document.createElement("div")
-nome.innerText = item.nome
-nome.style.fontSize = "10px"
-nome.style.marginTop = "3px"
-nome.style.color = "#333"
+  box.onclick = () => selecionarImagem(item)
 
-box.onclick = () => selecionarImagem(item)
+  box.appendChild(media)   ✅
+  box.appendChild(nome)    ✅
 
-box.appendChild(nome)
-    box.onclick = () => selecionarImagem(item)
+  galeria.appendChild(box)
 
-    box.appendChild(img)
-    box.appendChild(nome)
-
-    galeria.appendChild(box)
-
-  })
-
+})
   galeria.style.display = "flex"
 }
 
