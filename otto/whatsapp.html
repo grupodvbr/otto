@@ -49,14 +49,11 @@ body{
   overflow:hidden;
 }
 
-/* 🔥 MOBILE CORRETO */
+/* 🔥 MOBILE LIBERA SCROLL */
 @media (max-width:768px){
-
   body{
-    display:block; /* 🔥 ESSENCIAL */
     overflow:auto;
   }
-
 }
 
 /* ================= SIDEBAR ================= */
@@ -1394,34 +1391,29 @@ async function atualizarClientesSilencioso(){
 
     const {data} = await db
     .from("conversas_whatsapp")
-    .select("telefone,mensagem,created_at,role")
-    .order("created_at",{ascending:false})
-    .limit(50)
+.select("telefone,mensagem,created_at,role")
+      .order("created_at",{ascending:false})
+    .limit(50) // 🔥 evita travamento
 
     const {data:memoria} = await db
     .from("memoria_clientes")
     .select("telefone,nome")
 
+    /* nomes */
     const nomesTemp = {}
     memoria.forEach(c=>{
       nomesTemp[c.telefone] = c.nome
     })
 
+    /* agrupar */
     const map = {}
-
     data.forEach(m=>{
-      if(
-        !map[m.telefone] ||
-        new Date(m.created_at) > new Date(map[m.telefone].created_at)
-      ){
-        map[m.telefone] = m
-      }
+      if(!map[m.telefone]) map[m.telefone] = m
     })
 
-    const clientes = Object.values(map).sort((a,b)=>{
-      return new Date(b.created_at) - new Date(a.created_at)
-    })
+    const clientes = Object.values(map)
 
+    /* 🔥 LOOP CORRETO (SEM forEach async) */
     for(const c of clientes){
 
       let card = document.querySelector(`[data-telefone="${c.telefone}"]`)
@@ -1429,44 +1421,77 @@ async function atualizarClientesSilencioso(){
       const pausado = await verificarPausa(c.telefone)
       const nome = nomesTemp[c.telefone] || c.telefone
 
-      if(!card){
-        carregarClientes()
-        return
-      }
+      /* 🔥 SE NÃO EXISTE → IGNORA (NÃO CRIA) */
+      if(!card) continue
 
+
+
+
+
+
+      /* 🔥 ATUALIZA SEM RECRIAR */
       const phoneEl = card.querySelector(".phone")
       const previewEl = card.querySelector(".preview")
       const statusEl = card.querySelector(".status")
-      const horaEl = card.querySelector(".hora")
-
       const date = new Date(c.created_at + "Z")
 
-      const hora = date.toLocaleTimeString("pt-BR",{
-        hour:"2-digit",
-        minute:"2-digit",
-        timeZone:"America/Bahia"
-      })
+const hora = date.toLocaleTimeString("pt-BR",{
+  hour:"2-digit",
+  minute:"2-digit",
+  timeZone:"America/Bahia"
+})
 
-      if(phoneEl) phoneEl.innerText = nome
-      if(previewEl) previewEl.innerText = c.mensagem
-      if(horaEl) horaEl.innerText = hora
+const horaEl = card.querySelector(".hora")
+
+if(horaEl){
+  horaEl.innerText = hora
+}
+      if(phoneEl && phoneEl.innerText !== nome){
+        phoneEl.innerText = nome
+      }
+
+// ✅ sempre atualiza mensagem
+if(previewEl){
+  previewEl.innerText = c.mensagem
+}
+
+// 🔴 CONTROLE DA BOLINHA (CORRETO)
+let notif = card.querySelector(".notificacao")
+
+// 🔥 só mostra bolinha se última mensagem for do cliente
+if(c.role === "user"){
+
+  if(!notif){
+    const dot = document.createElement("div")
+    dot.className = "notificacao"
+    card.appendChild(dot)
+  }
+
+}else{
+
+  if(notif){
+    notif.remove()
+  }
+
+}
+
+
+  
 
       if(statusEl){
         statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
         statusEl.className = "status " + (pausado ? "off" : "on")
       }
 
-      /* 🔥 MOVE PRO TOPO */
-      container.prepend(card)
-
     }
 
   }catch(err){
-    console.error(err)
+    console.error("Erro atualização:", err)
   }
 
   atualizando = false
 }
+
 /* ================= INTERVALO ================= */
 
 setInterval(() => {
@@ -1484,33 +1509,11 @@ window.addEventListener("pageshow", () => {
 
   console.log("⚡ Voltou para a tela")
 
+  // 🔥 NÃO recria tudo
+  // 🔥 só atualiza o que mudou
   atualizarClientesSilencioso()
 
 })
-
-db
-.channel("conversas_realtime")
-
-.on("postgres_changes",{
-  event:"INSERT",
-  schema:"public",
-  table:"conversas_whatsapp"
-}, payload => {
-
-  const nova = payload.new
-
-  console.log("📩 NOVA MENSAGEM:", nova)
-
-  atualizarClientesSilencioso()
-
-})
-
-.subscribe()
-
-
-
-
-
   
 </script>
 <div id="popupRepertorio" class="popupOverlay">
