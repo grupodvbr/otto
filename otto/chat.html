@@ -490,7 +490,7 @@ let arquivo = null
 let ultimaDataRender = null
 
 
-  async function carregarNomeCliente(){
+async function carregarNomeCliente(){
 
   if(!telefone) return
 
@@ -502,9 +502,12 @@ let ultimaDataRender = null
 
   let nome = data?.nome || telefone
 
-  document.getElementById("nomeCliente").innerText = nome
+  const el = document.getElementById("nomeCliente")
 
-  gerarAvatar(nome)
+  if(el){
+    el.innerText = nome
+  }
+
 }
 function gerarAvatar(nome){
 
@@ -1119,10 +1122,10 @@ function abrirGaleria(){
   if(item.tipo === "video"){
     media = document.createElement("video")
     media.src = item.url
-    media.muted = true
-    media.autoplay = true
-    media.loop = true
-    media.playsInline = true
+ media.muted = true
+media.autoplay = true
+media.loop = true
+media.playsInline = true
   }else{
     media = document.createElement("img")
     media.src = item.url
@@ -1140,8 +1143,6 @@ function abrirGaleria(){
   nome.style.color = "#333"
 
   box.onclick = () => selecionarImagem(item)
-
-  box.appendChild(media)   ✅
   box.appendChild(nome)    ✅
 
   galeria.appendChild(box)
