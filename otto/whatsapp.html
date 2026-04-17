@@ -59,11 +59,13 @@ body{
 /* ================= SIDEBAR ================= */
 
 .sidebar{
-width:380px;
-background:var(--sidebar);
-border-right:1px solid var(--border);
-display:flex;
-flex-direction:column;
+  width:380px;
+  min-width:380px;
+  max-width:380px;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
 }
 
 /* HEADER */
@@ -495,8 +497,6 @@ background:#f3f4f6;
 }
   
 .sidebar{
-  width:100%;
-  max-width:420px;
   background:#f4f4f5;
   border-right:1px solid #e5e7eb;
   display:flex;
@@ -684,7 +684,9 @@ margin-top:6px;
   }
 
 }
-
+body{
+  justify-content:center;
+}
   
 </style>
 </head>
