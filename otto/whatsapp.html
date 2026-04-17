@@ -59,11 +59,15 @@ body{
 /* ================= SIDEBAR ================= */
 
 .sidebar{
-width:380px;
-background:var(--sidebar);
-border-right:1px solid var(--border);
-display:flex;
-flex-direction:column;
+  width:380px; /* 🔥 TAMANHO FIXO PADRÃO */
+  min-width:380px;
+  max-width:380px;
+
+  background:#f4f4f5;
+  border-right:1px solid #e5e7eb;
+
+  display:flex;
+  flex-direction:column;
 }
 
 /* HEADER */
@@ -684,7 +688,17 @@ margin-top:6px;
   }
 
 }
+.appContainer{
+  width:100%;
+  max-width:1200px;
+  height:100vh;
 
+  margin:0 auto;
+
+  display:flex;
+
+  background:#f0f2f5; /* fundo estilo Whats */
+}
   
 </style>
 </head>
