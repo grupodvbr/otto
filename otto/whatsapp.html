@@ -1393,12 +1393,12 @@ async function atualizarClientesSilencioso(){
 
       /* 🔥 SE NÃO EXISTE → IGNORA (NÃO CRIA) */
       if(!card) continue
-      // 🔥 MOVE PRO TOPO SE FOR NOVA MENSAGEM
-const container = document.getElementById("clientes")
 
-if(container.firstChild !== card){
-  container.prepend(card)
-}
+
+
+
+
+
       /* 🔥 ATUALIZA SEM RECRIAR */
       const phoneEl = card.querySelector(".phone")
       const previewEl = card.querySelector(".preview")
@@ -1420,11 +1420,48 @@ if(horaEl){
         phoneEl.innerText = nome
       }
 
+// 🔥 SE CHEGOU NOVA MENSAGEM REAL
 if(
   previewEl &&
   previewEl.innerText !== c.mensagem &&
-  c.role === "user" // 🔥 só pisca se for mensagem recebida
+  c.role === "user"
 ){
+
+  // ✅ atualiza mensagem
+  previewEl.innerText = c.mensagem
+
+  // 🔴 bolinha
+  let notif = card.querySelector(".notificacao")
+  if(!notif){
+    const dot = document.createElement("div")
+    dot.className = "notificacao"
+    card.appendChild(dot)
+  }
+
+  // 🔥 SOBE PRO TOPO (SÓ AQUI)
+  const container = document.getElementById("clientes")
+  if(container.firstChild !== card){
+    container.prepend(card)
+  }
+
+  // 🔥 PISCAR
+  card.style.transition = "0.3s"
+  card.style.background = "#86efac"
+
+  setTimeout(()=>{
+    card.style.background = "#dcfce7"
+  },200)
+
+  setTimeout(()=>{
+    card.style.background = ""
+  },800)
+
+}else if(previewEl){
+
+  // ✅ só atualiza sem efeito visual
+  previewEl.innerText = c.mensagem
+
+}
 
   previewEl.innerText = c.mensagem
 
@@ -1444,38 +1481,6 @@ if(
 }{
 
   
-  previewEl.innerText = c.mensagem
-
-  // 🔥 PISCAR IGUAL WHATSAPP
-  card.style.transition = "0.3s"
-
-  
-  
-  card.style.background = "#86efac"
-
-setTimeout(()=>{
-  card.style.background = "#dcfce7"
-},200)
-
-setTimeout(()=>{
-  card.style.background = ""
-},800)
-  setTimeout(()=>{
-    card.style.background = "#dcfce7"
-  },150)
-
-  setTimeout(()=>{
-    card.style.background = ""
-  },600)
-
-  // 🔥 LEVE PULO
-  card.style.transform = "scale(1.02)"
-
-  setTimeout(()=>{
-    card.style.transform = "scale(1)"
-  },200)
-
-}
 
       if(statusEl){
         statusEl.innerHTML = `● ${pausado?'BOT PAUSADO':'BOT ATIVO'}`
