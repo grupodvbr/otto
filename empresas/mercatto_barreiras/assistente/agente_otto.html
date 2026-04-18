@@ -1,227 +1,140 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
 <meta charset="UTF-8">
-
-<!-- 🔒 BLOQUEIO TOTAL DE ZOOM -->
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Agente Administrador</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
 
-/* RESET */
-*{margin:0;padding:0;box-sizing:border-box}
+/* BASE */
 
-/* BODY */
 body{
+margin:0;
 font-family:Inter;
-background:#e5ddd5;
-height:100vh;
+background:#0b141a;
 display:flex;
 flex-direction:column;
-overflow:hidden;
+height:100vh;
+color:white;
 }
 
 /* HEADER */
+
 .header{
-background:#ffffff;
-padding:10px 14px;
+background:#202c33;
+padding:12px 16px;
 display:flex;
 align-items:center;
 gap:10px;
-border-bottom:1px solid #e5e7eb;
-}
-
-.avatar{
-width:40px;
-height:40px;
-border-radius:50%;
-background:#25d366;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-weight:600;
-}
-
-.header-info{
-display:flex;
-flex-direction:column;
 }
 
 .header-title{
 font-weight:600;
-font-size:15px;
-color:#111827;
 }
 
-.header-status{
-font-size:12px;
-color:#6b7280;
-}
+/* CHAT AREA */
 
-/* CHAT */
 .chat{
 flex:1;
 overflow:auto;
-padding:15px;
+padding:20px;
 display:flex;
 flex-direction:column;
 gap:10px;
-background-image:url("https://i.imgur.com/2nCt3Sbl.png");
-background-size:cover;
-scroll-behavior:smooth;
+background:#111b21;
 }
 
-/* MSG */
+/* BOLHAS */
+
 .msg{
-max-width:80%;
-padding:10px;
-border-radius:10px;
+max-width:65%;
+padding:10px 12px;
+border-radius:8px;
 font-size:14px;
-line-height:1.4;
-box-shadow:0 1px 1px rgba(0,0,0,0.08);
-animation:fade .2s ease;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(5px)}
-to{opacity:1;transform:translateY(0)}
+line-height:1.5;
+word-wrap:break-word;
 }
 
 .user{
 align-self:flex-end;
-background:#dcf8c6;
+background:#005c4b;
 }
 
 .assistant{
 align-self:flex-start;
-background:white;
+background:#202c33;
 }
 
-/* HORA */
-.time{
-font-size:10px;
-color:#6b7280;
-text-align:right;
-margin-top:4px;
+/* MIDIA */
+
+.media img{
+max-width:260px;
+border-radius:8px;
+margin-top:8px;
+}
+
+.media video{
+max-width:260px;
+border-radius:8px;
+margin-top:8px;
+}
+
+.download{
+display:inline-block;
+margin-top:6px;
+background:#2563eb;
+padding:4px 8px;
+border-radius:4px;
+font-size:12px;
+color:white;
+text-decoration:none;
 }
 
 /* INPUT */
+
 .input-area{
 display:flex;
-gap:8px;
-padding:10px;
-background:#f0f2f5;
-border-top:1px solid #e5e7eb;
-align-items:center;
+gap:10px;
+padding:12px;
+background:#202c33;
 }
 
 textarea{
 flex:1;
 height:40px;
-border-radius:20px;
-border:1px solid #ddd;
-padding:10px;
-resize:none;
+border-radius:6px;
+border:none;
+padding:8px;
 font-family:Inter;
-outline:none;
-
-/* 🔥 ESSA LINHA RESOLVE O ZOOM */
-font-size:16px;
+resize:none;
+background:#2a3942;
+color:white;
 }
 
-/* BOTÕES */
-.btn{
-background:#25d366;
+button{
+background:#00a884;
 border:none;
-padding:10px 14px;
-border-radius:50px;
+padding:8px 14px;
+border-radius:6px;
 color:white;
 cursor:pointer;
-font-weight:500;
 }
 
-.btn-sec{
-background:#e5e7eb;
-color:#111;
+/* PENSANDO */
+
+.thinking{
+opacity:0.6;
+font-size:13px;
 }
 
-/* PREVIEW ARQUIVO */
-.preview{
-position:absolute;
-bottom:80px;
-left:50%;
-transform:translateX(-50%);
-background:white;
-padding:10px;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.2);
-max-width:300px;
-}
-
-/* MIDIA */
-.media img, .media video{
-max-width:220px;
-border-radius:10px;
-margin-top:6px;
-}
-
-.media audio{
-width:220px;
-margin-top:6px;
-}
-
-.file{
-margin-top:6px;
-padding:8px;
-background:#f3f4f6;
-border-radius:6px;
-font-size:12px;
-display:flex;
-justify-content:space-between;
-}
-
-/* DIGITANDO */
-.typing{
-display:flex;
-gap:4px;
-}
-
-.dot{
-width:6px;
-height:6px;
-background:#9ca3af;
-border-radius:50%;
-animation:blink 1.4s infinite;
-}
-
-@keyframes blink{
-0%,80%,100%{opacity:0}
-40%{opacity:1}
-}
-
-/* MOBILE */
-@media(max-width:600px){
-
-.msg{max-width:90%;font-size:13px}
-textarea{height:36px}
-
-}
-html, body {
-touch-action: manipulation;
-overflow: hidden;
-}
-
-* {
-touch-action: manipulation;
-}
 </style>
 
 </head>
@@ -229,267 +142,203 @@ touch-action: manipulation;
 <body>
 
 <div class="header">
-<div class="avatar">AI</div>
-<div class="header-info">
 <div class="header-title">Agente Administrador</div>
-<div class="header-status">online</div>
-</div>
 </div>
 
 <div id="chat" class="chat"></div>
 
 <div class="input-area">
 
-<textarea id="msg" placeholder="Digite uma mensagem..."></textarea>
+<textarea id="msg" placeholder="Digite sua mensagem..."></textarea>
 
-<input type="file" id="file" hidden>
-
-<button class="btn-sec" onclick="abrirFile()">+</button>
-<button class="btn" onclick="enviar()">Enviar</button>
+<button onclick="enviar()">Enviar</button>
 
 </div>
 
-<div id="preview" class="preview" style="display:none"></div>
-
 <script>
 
-/* 🔒 BLOQUEIO HARD DE ZOOM */
-document.addEventListener("gesturestart", e=>e.preventDefault())
-document.addEventListener("dblclick", e=>e.preventDefault())
+/* ================= PROMPT DO SISTEMA ================= */
 
-let historico = JSON.parse(localStorage.getItem("chat_full") || "[]")
-let arquivoTemp = null
+const SYSTEM_PROMPT = `
 
-function salvar(){
-localStorage.setItem("chat_full",JSON.stringify(historico))
+COLE AQUI SEU PROMPT DO AGENTE
+
+`
+
+/* ================= HISTORICO ================= */
+
+let historico = JSON.parse(localStorage.getItem("mercatto_admin_chat") || "[]")
+
+function salvarHistorico(){
+
+localStorage.setItem("mercatto_admin_chat",JSON.stringify(historico))
+
 }
 
-function hora(){
-const d=new Date()
-return d.getHours().toString().padStart(2,'0')+":"+
-d.getMinutes().toString().padStart(2,'0')
-}
+/* ================= DETECTAR MIDIA ================= */
 
-/* RENDER */
-function render(text){
+function renderMidia(texto){
 
-let html = marked.parse(text)
+let html = marked.parse(texto)
 
-const urls = text.match(/https?:\/\/[^\s]+/g)
+const urls = texto.match(/https?:\/\/[^\s]+/g)
 
 if(urls){
+
 urls.forEach(url=>{
 
-if(url.match(/\.(jpg|png|jpeg|webp|gif)/i)){
-html += `<div class="media"><img src="${url}"></div>`
+if(url.match(/\.(jpg|jpeg|png|webp|gif)/i)){
+
+html += `
+<div class="media">
+<img src="${url}">
+<br>
+<a class="download" href="${url}" download>Baixar</a>
+</div>
+`
+
 }
-else if(url.match(/\.(mp4|webm|mov)/i)){
-html += `<div class="media"><video controls src="${url}"></video></div>`
-}
-else if(url.match(/\.(mp3|wav|ogg)/i)){
-html += `<div class="media"><audio controls src="${url}"></audio></div>`
-}
-else{
-html += `<div class="file"><span>Arquivo</span><a href="${url}" target="_blank">Abrir</a></div>`
+
+if(url.match(/\.(mp4|webm|mov)/i)){
+
+html += `
+<div class="media">
+<video controls src="${url}"></video>
+<br>
+<a class="download" href="${url}" download>Baixar</a>
+</div>
+`
+
 }
 
 })
+
 }
 
 return html
 
 }
 
-/* ADD */
+/* ================= ADICIONAR MSG ================= */
+
 function addMsg(role,text){
 
 const chat = document.getElementById("chat")
 
 const div = document.createElement("div")
+
 div.className="msg "+role
 
-div.innerHTML = render(text)+`<div class="time">${hora()}</div>`
+div.innerHTML = renderMidia(text)
 
 chat.appendChild(div)
-scrollBottom()
+
+chat.scrollTop = chat.scrollHeight
 
 }
 
-/* LOAD */
-historico.forEach(m=>addMsg(m.role,m.text))
+/* ================= CARREGAR HISTORICO ================= */
 
-/* FILE */
-function abrirFile(){
-document.getElementById("file").click()
-}
+historico.forEach(m=>{
 
-document.getElementById("file").addEventListener("change",function(){
-
-const file = this.files[0]
-if(!file) return
-
-arquivoTemp = file
-
-const url = URL.createObjectURL(file)
-
-const preview = document.getElementById("preview")
-preview.style.display="block"
-
-preview.innerHTML = `
-<div style="font-size:12px;margin-bottom:5px">${file.name}</div>
-<img src="${url}" style="max-width:100%">
-<button onclick="enviarArquivo()">Enviar</button>
-<button onclick="cancelarArquivo()">Cancelar</button>
-`
+addMsg(m.role,m.content)
 
 })
 
-function cancelarArquivo(){
-arquivoTemp = null
-document.getElementById("preview").style.display="none"
-}
+/* ================= ENVIAR ================= */
 
-/* ENVIAR ARQUIVO */
-function enviarArquivo(){
-
-const url = URL.createObjectURL(arquivoTemp)
-
-addMsg("user",url)
-
-historico.push({role:"user",text:url})
-salvar()
-
-cancelarArquivo()
-
-}
-
-/* ENVIAR TEXTO */
 async function enviar(){
 
-const input = document.getElementById("msg")
-const texto = input.value.trim()
+const textarea = document.getElementById("msg")
+
+const texto = textarea.value.trim()
 
 if(!texto) return
 
-
-
-
-if(texto.toLowerCase() === "limpar"){
-
-// limpa memória
-historico = []
-
-// limpa storage
-localStorage.removeItem("chat_full")
-
-// limpa tela
-document.getElementById("chat").innerHTML = ""
-
-// limpa input
-input.value = ""
-
-return
-}
-
-
-
-
-  
 addMsg("user",texto)
 
-historico.push({role:"user",text:texto})
-salvar()
+historico.push({role:"user",content:texto})
 
-input.value=""
+salvarHistorico()
 
-/* typing */
+textarea.value=""
+
+/* pensando */
+
 const chat = document.getElementById("chat")
 
-const typing = document.createElement("div")
-typing.className="msg assistant"
-typing.innerHTML=`<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`
+const thinking = document.createElement("div")
 
-chat.appendChild(typing)
+thinking.className="msg assistant thinking"
 
-try{
+thinking.innerText="Agente está pensando..."
 
-const res = await fetch("/api/admin-agente",{
+chat.appendChild(thinking)
+
+chat.scrollTop = chat.scrollHeight
+
+/* requisição */
+
+const res = await fetch("/api/ottavio.js",{
+
 method:"POST",
+
 headers:{
 "Content-Type":"application/json",
 "Authorization":"Bearer mercatto_admin_2026"
 },
-body:JSON.stringify({pergunta:texto})
+
+body:JSON.stringify({
+pergunta:texto,
+system_prompt:SYSTEM_PROMPT
 })
 
-const data = await res.json()
+})
 
-typing.remove()
+const text = await res.text()
 
-addMsg("assistant",data.resposta || "Erro")
+let data
 
-setTimeout(scrollBottom,100)
-setTimeout(scrollBottom,300)
-historico.push({role:"assistant",text:data.resposta})
-salvar()
+try{
+
+data = JSON.parse(text)
 
 }catch(e){
 
-typing.remove()
-addMsg("assistant","❌ erro servidor")
+thinking.remove()
+
+addMsg("assistant","Erro no servidor")
+
+return
 
 }
 
+thinking.remove()
+
+addMsg("assistant",data.resposta)
+
+historico.push({role:"assistant",content:data.resposta})
+
+salvarHistorico()
+
 }
 
-/* ENTER */
-document.getElementById("msg").addEventListener("keydown",e=>{
+/* ENTER ENVIA */
+
+document.getElementById("msg").addEventListener("keydown",function(e){
+
 if(e.key==="Enter" && !e.shiftKey){
+
 e.preventDefault()
+
 enviar()
-}
-})
-
-
-
-  /* 🔒 BLOQUEIO TOTAL DE ZOOM MOBILE */
-
-// bloqueia pinch zoom
-document.addEventListener('touchmove', function (event) {
-  if (event.scale !== 1) {
-    event.preventDefault();
-  }
-}, { passive: false });
-
-// bloqueia double tap zoom
-let lastTouchEnd = 0;
-document.addEventListener('touchend', function (event) {
-  const now = new Date().getTime();
-  if (now - lastTouchEnd <= 300) {
-    event.preventDefault();
-  }
-  lastTouchEnd = now;
-}, false);
-
-// bloqueia gesture (iOS)
-document.addEventListener('gesturestart', function (e) {
-  e.preventDefault();
-});
-
-
-function scrollBottom(){
-
-const chat = document.getElementById("chat")
-
-setTimeout(()=>{
-chat.scrollTo({
-top: chat.scrollHeight,
-behavior: "smooth"
-})
-}, 50)
 
 }
+
+})
+
 </script>
 
 </body>
+
 </html>
