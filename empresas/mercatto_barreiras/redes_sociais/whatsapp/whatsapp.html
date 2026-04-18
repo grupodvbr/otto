@@ -696,11 +696,11 @@ let clienteSelecionado = null
 /* ================= CARREGAR CLIENTES ================= */
 
 async function carregarClientes(){
-document.getElementById("frameChat").src = ""
 const {data} = await db
 .from("conversas_whatsapp")
 .select("*")
 .order("created_at",{ascending:false})
+.limit(50)
 
 const {data:memoria} = await db
 .from("memoria_clientes")
@@ -780,10 +780,10 @@ for (const c of clientes){
 div.addEventListener("click", () => {
 
   // 📱 Se for celular → abre outra página
-  if(window.innerWidth <= 768){
-window.location.assign("chat.html?telefone=" + c.telefone)
+if(window.innerWidth <= 768){
+  location.href = "chat.html?telefone=" + c.telefone
   return
-  }
+}
 
   // 💻 Se for desktop → iframe normal
   abrirChatIframe(c.telefone)
@@ -893,8 +893,9 @@ c.style.display=texto.includes(filtro)?"flex":"none"
 })
 
 
-carregarClientes()
-function abrirRepertorio(){
+setInterval(carregarClientes, 5000)
+  
+  function abrirRepertorio(){
 
 const frame = document.getElementById("frameRepertorio")
 
