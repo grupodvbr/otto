@@ -600,29 +600,16 @@ async function iniciarSistema(){
     return
   }
 
-  // 🔐 cliente do AUTH (banco master)
-  const supabaseAuth = supabase.createClient(
-    "https://fcehmjmtxqmrjkuqlkay.supabase.co",
-    "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
-  )
+ // 🔥 VALIDA LOGIN VIA LOCALSTORAGE (SEU NOVO PADRÃO)
 
-  // 🔍 verifica sessão real
-  const { data } = await supabaseAuth.auth.getSession()
+const EMPRESA_ID = localStorage.getItem("EMPRESA_ID")
+const USUARIO_ID = localStorage.getItem("USUARIO_ID")
 
-
-const { data: { user } } = await supabaseAuth.auth.getUser()
-
-if(user){
-  localStorage.setItem("USER_EMAIL", user.email)
+if(!EMPRESA_ID || !USUARIO_ID){
+  localStorage.clear()
+  window.location.href = "index.html"
+  return
 }
-
-
- 
-  if(!data.session){
-    localStorage.clear()
-    window.location.href = "index.html"
-    return
-  }
 
   // ✅ cria conexão com banco da empresa
   db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -1092,8 +1079,15 @@ document.body.appendChild(newScript)
     "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
   )
 
-  const { data: { user } } = await supabaseAuth.auth.getUser()
+const usuarioId = localStorage.getItem("USUARIO_ID")
 
+if(!usuarioId) return
+
+const { data: usuario } = await db
+.from("usuarios")
+.select("nome,email,empresa_id")
+.eq("id", usuarioId)
+.single()
   if(!user) return
 
   const { data: empresa } = await supabaseAuth
