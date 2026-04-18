@@ -221,6 +221,15 @@ overflow: hidden;
 * {
 touch-action: manipulation;
 }
+
+.relatorio-card{
+background:linear-gradient(145deg,#000,#111);
+border:1px solid #d4af37;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+
+
+  
 </style>
 
 </head>
@@ -299,6 +308,94 @@ return html
 
 }
 
+
+
+
+
+
+function renderRelatorio(r){
+
+  const chat = document.getElementById("chat")
+
+  const div = document.createElement("div")
+  div.className = "msg assistant"
+
+  div.innerHTML = `
+  
+  <div style="
+    background:#000;
+    color:#fff;
+    padding:16px;
+    border-radius:14px;
+    font-family:Inter;
+    width:100%;
+  ">
+
+    <img src="${r.logo}" style="height:50px;margin-bottom:10px">
+
+    <div style="font-size:16px;font-weight:600">${r.empresa}</div>
+    <div style="font-size:12px;color:#9ca3af">${r.data}</div>
+
+    <hr style="margin:10px 0;border-color:#333">
+
+    <div style="font-weight:600;margin-bottom:6px">Resumo</div>
+    <div style="font-size:13px;margin-bottom:10px">${r.resumo}</div>
+
+    <div style="font-weight:600;margin-bottom:6px">KPIs</div>
+
+    <div style="
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px;
+      font-size:13px;
+    ">
+      <div>💰 R$ ${r.kpis.faturamento}</div>
+      <div>👥 ${r.kpis.clientes}</div>
+      <div>🎯 R$ ${r.kpis.ticket_medio}</div>
+      <div>📅 ${r.kpis.reservas}</div>
+    </div>
+
+    <div style="margin-top:10px">
+      <b>Status:</b> ${r.status} <br>
+      <b>Score:</b> ${r.score} <br>
+      <b>Tendência:</b> ${r.tendencia}
+    </div>
+
+    <hr style="margin:10px 0;border-color:#333">
+
+    <div style="font-weight:600">Análise</div>
+    <div style="font-size:13px;margin-bottom:10px">${r.analise}</div>
+
+    <div style="font-weight:600">Alertas</div>
+    <ul style="font-size:12px">
+      ${(r.alertas || []).map(a=>`<li>${a}</li>`).join("")}
+    </ul>
+
+    <div style="font-weight:600;margin-top:8px">Recomendações</div>
+    <ul style="font-size:12px">
+      ${(r.recomendacoes || []).map(a=>`<li>${a}</li>`).join("")}
+    </ul>
+
+  </div>
+
+  <div class="time">${hora()}</div>
+  `
+
+  chat.appendChild(div)
+
+  scrollBottom()
+}
+
+
+
+
+
+
+
+
+
+
+  
 /* ADD */
 function addMsg(role,text){
 
@@ -406,8 +503,7 @@ const chat = document.getElementById("chat")
 
 const typing = document.createElement("div")
 typing.className="msg assistant"
-typing.innerHTML=`<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`
-
+typing.innerHTML = "Gerando relatório..."
 chat.appendChild(typing)
 
 try{
@@ -425,12 +521,23 @@ const data = await res.json()
 
 typing.remove()
 
-addMsg("assistant",data.resposta || "Erro")
+if(data.tipo === "relatorio"){
+  renderRelatorio(data.relatorio)
+}else{
+  addMsg("assistant",data.resposta || "Erro")
+}
 
+
+  
 setTimeout(scrollBottom,100)
 setTimeout(scrollBottom,300)
-historico.push({role:"assistant",text:data.resposta})
-salvar()
+if(data.tipo === "relatorio"){
+  historico.push({role:"assistant",text:"[RELATORIO]"})
+}else{
+  historico.push({role:"assistant",text:data.resposta})
+}
+  
+  salvar()
 
 }catch(e){
 
