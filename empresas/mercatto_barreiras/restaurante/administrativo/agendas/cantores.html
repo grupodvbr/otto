@@ -633,11 +633,13 @@ loginMsg.textContent="Senha incorreta"
 
 function definirPeriodoPadrao(){
 
-const hoje=new Date()
+const hoje = new Date()
 
+// início = hoje
 dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())
 
-dataFim = null // sem limite
+// fim = hoje + 7 dias
+dataFim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 7)
 
 }
 
