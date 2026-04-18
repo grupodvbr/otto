@@ -22,7 +22,7 @@ body{
   font-family:Inter;
   background:#e5ddd5;
 
-  overflow:hidden;
+  overflow:auto;
 
   width:100%;
 }
@@ -255,7 +255,6 @@ textarea{height:36px}
 }
 html, body {
 touch-action: manipulation;
-overflow: hidden;
 }
 
 * {
@@ -285,7 +284,14 @@ box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 
+.chat{
+  height: calc(100vh - 124px);
+}
 
+.input-area{
+  position: fixed;
+  bottom: 0;
+}
 
   
   
@@ -620,13 +626,7 @@ enviar()
 })
 const input = document.getElementById("msg");
 
-input.addEventListener("focus", () => {
-  document.body.style.position = "fixed";
-});
 
-input.addEventListener("blur", () => {
-  document.body.style.position = "fixed";
-});
 
 
   /* 🔒 BLOQUEIO TOTAL DE ZOOM MOBILE */
@@ -674,6 +674,20 @@ function travarTela(){
 
 window.addEventListener('load', travarTela);
 window.addEventListener('resize', travarTela);
+
+
+
+// 🔥 CORREÇÃO TECLADO MOBILE
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    const altura = window.visualViewport.height;
+    document.body.style.height = altura + "px";
+  });
+}
+
+
+
+  
 </script>
 
 </body>
