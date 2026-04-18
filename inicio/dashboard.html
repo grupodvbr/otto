@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Dashboard Operacional</title>
 
@@ -17,10 +17,10 @@
 
 body{
   background:#f1f5f9;
+  height:100vh;
   overflow:hidden;
 }
 
-/* HEADER */
 .header{
   height:56px;
   background:#fff;
@@ -31,7 +31,6 @@ body{
   border-bottom:1px solid #e5e7eb;
 }
 
-/* CONTAINER */
 .container{
   position:absolute;
   top:56px;
@@ -52,12 +51,6 @@ body{
   box-shadow:0 10px 25px rgba(0,0,0,.05);
 }
 
-.title{
-  font-weight:700;
-  margin-bottom:12px;
-}
-
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -73,7 +66,6 @@ body{
 .kpi-title{font-size:11px;color:#64748b}
 .kpi-value{font-size:20px;font-weight:800}
 
-/* LINHA */
 .row{
   display:flex;
   justify-content:space-between;
@@ -82,36 +74,17 @@ body{
   border-bottom:1px solid #f1f5f9;
 }
 
-/* TIMELINE */
-.timeline{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.evento{
-  background:#f8fafc;
-  padding:10px;
-  border-radius:10px;
-  font-size:13px;
-}
-
-.hora{
-  font-size:11px;
+.loading{
+  text-align:center;
+  padding:30px;
+  font-size:14px;
   color:#64748b;
 }
 
-/* BARRA */
-.bar{
-  height:6px;
-  background:#e2e8f0;
-  border-radius:10px;
-}
-
-.fill{
-  height:6px;
-  background:#2563eb;
-  border-radius:10px;
+.error{
+  color:red;
+  font-size:12px;
+  margin-top:10px;
 }
 
 </style>
@@ -126,174 +99,151 @@ body{
 
 <div class="container">
 
-  <!-- KPIS -->
   <div class="card">
     <div class="grid">
-      <div class="kpi"><div class="kpi-title">Hoje</div><div class="kpi-value" id="hoje">0</div></div>
-      <div class="kpi"><div class="kpi-title">Mês</div><div class="kpi-value" id="mes">0</div></div>
-      <div class="kpi"><div class="kpi-title">Buffet Hoje</div><div class="kpi-value" id="buffet">0</div></div>
-      <div class="kpi"><div class="kpi-title">Pico Hora</div><div class="kpi-value" id="pico">--</div></div>
+      <div class="kpi"><div class="kpi-title">Hoje</div><div class="kpi-value" id="hoje">--</div></div>
+      <div class="kpi"><div class="kpi-title">Mês</div><div class="kpi-value" id="mes">--</div></div>
+      <div class="kpi"><div class="kpi-title">Buffet Hoje</div><div class="kpi-value" id="buffet">--</div></div>
+      <div class="kpi"><div class="kpi-title">Pico</div><div class="kpi-value" id="pico">--</div></div>
     </div>
   </div>
 
-  <!-- EMPRESAS -->
   <div class="card">
-    <div class="title">Empresas</div>
-    <div id="empresas"></div>
+    <b>Empresas</b>
+    <div id="empresas" class="loading">Carregando...</div>
   </div>
 
-  <!-- STATUS -->
   <div class="card">
-    <div class="title">Status</div>
+    <b>Status</b>
     <div id="statusBox"></div>
   </div>
 
-  <!-- TIMELINE -->
-  <div class="card">
-    <div class="title">Fluxo do Dia</div>
-    <div class="timeline" id="timeline"></div>
-  </div>
-
-  <!-- MESAS -->
-  <div class="card">
-    <div class="title">Mesas mais usadas</div>
-    <div id="mesas"></div>
-  </div>
+  <div id="erro" class="error"></div>
 
 </div>
 
 <script>
 
-const supabase = supabase.createClient(
+// 🔥 CLIENTE CORRETO (SEM CONFLITO)
+const db = supabase.createClient(
 "https://dxkszikemntfusfyrzos.supabase.co",
 "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
+// 🔥 DATA SEGURA
+function hoje(){
+  const d=new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function inicioMes(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-01";
+}
+
+// 🔥 TABELAS
 const tabelas = [
   {nome:"Mercatto", tabela:"reservas_mercatto"},
   {nome:"Villa", tabela:"reservas_villa"},
   {nome:"Delícia", tabela:"reservas_delicia"}
 ];
 
-function hoje(){
-  const d=new Date();
-  return d.toISOString().slice(0,10);
-}
-
-function mesInicio(){
-  const d=new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-01";
-}
-
 async function carregar(){
 
-  let totalHoje=0,totalMes=0;
-  let empresasHTML="";
-  let statusMap={}, horas={}, mesas={};
-  let timeline=[];
+  try{
 
-  for(const t of tabelas){
+    document.getElementById("status").innerText="● carregando";
 
-    const {data} = await supabase.from(t.tabela).select("*");
+    let totalHoje=0,totalMes=0;
+    let empresasHTML="";
+    let statusMap={};
+    let horas={};
 
-    const hojeData = data.filter(r=>r.datahora?.startsWith(hoje()));
-    const mesData = data.filter(r=>r.datahora>=mesInicio());
+    for(const t of tabelas){
 
-    totalHoje += hojeData.length;
-    totalMes += mesData.length;
+      const { data, error } = await db.from(t.tabela).select("status,datahora");
 
-    empresasHTML += `
-      <div class="row">
-        <span>${t.nome}</span>
-        <span>${hojeData.length} hoje</span>
-      </div>
-    `;
-
-    hojeData.forEach(r=>{
-      // STATUS
-      statusMap[r.status]=(statusMap[r.status]||0)+1;
-
-      // HORA
-      const h=r.datahora?.substring(11,13);
-      horas[h]=(horas[h]||0)+1;
-
-      // MESA
-      if(r.mesa){
-        mesas[r.mesa]=(mesas[r.mesa]||0)+1;
+      if(error){
+        console.error(error);
+        document.getElementById("erro").innerText = error.message;
+        continue;
       }
 
-      // TIMELINE
-      timeline.push({
-        nome:r.nome,
-        hora:r.datahora?.substring(11,16),
-        pessoas:r.pessoas
+      if(!data) continue;
+
+      const hojeData = data.filter(r=>r.datahora?.startsWith(hoje()));
+      const mesData = data.filter(r=>r.datahora>=inicioMes());
+
+      totalHoje += hojeData.length;
+      totalMes += mesData.length;
+
+      empresasHTML += `
+        <div class="row">
+          <span>${t.nome}</span>
+          <span>${hojeData.length}</span>
+        </div>
+      `;
+
+      hojeData.forEach(r=>{
+        const s=r.status||"Sem status";
+        statusMap[s]=(statusMap[s]||0)+1;
+
+        const h=r.datahora?.substring(11,13);
+        horas[h]=(horas[h]||0)+1;
       });
-    });
-  }
-
-  // BUFFET
-  const {data:buffet} = await supabase
-  .from("buffet_lancamentos")
-  .select("data");
-
-  const buffetHoje = buffet.filter(b=>b.data===hoje());
-
-  // PICO
-  let picoHora="--",max=0;
-  Object.keys(horas).forEach(h=>{
-    if(horas[h]>max){
-      max=horas[h];
-      picoHora=h+":00";
     }
-  });
 
-  // STATUS HTML
-  let statusHTML="";
-  Object.keys(statusMap).forEach(s=>{
-    statusHTML+=`<div class="row"><span>${s}</span><span>${statusMap[s]}</span></div>`;
-  });
+    // BUFFET
+    const { data: buffet } = await db.from("buffet_lancamentos").select("data");
 
-  // MESAS HTML
-  let mesasHTML="";
-  Object.keys(mesas).sort((a,b)=>mesas[b]-mesas[a]).slice(0,5)
-  .forEach(m=>{
-    mesasHTML+=`
-      <div class="row">
-        <span>${m}</span>
-        <span>${mesas[m]}</span>
-      </div>
-    `;
-  });
+    const buffetHoje = buffet?.filter(b=>b.data===hoje()) || [];
 
-  // TIMELINE HTML
-  timeline.sort((a,b)=>a.hora.localeCompare(b.hora));
+    // PICO
+    let pico="--",max=0;
+    Object.keys(horas).forEach(h=>{
+      if(horas[h]>max){
+        max=horas[h];
+        pico=h+":00";
+      }
+    });
 
-  let timelineHTML="";
-  timeline.slice(0,10).forEach(e=>{
-    timelineHTML+=`
-      <div class="evento">
-        <b>${e.nome}</b> - ${e.pessoas} pessoas
-        <div class="hora">${e.hora}</div>
-      </div>
-    `;
-  });
+    // STATUS HTML
+    let statusHTML="";
+    Object.keys(statusMap).forEach(s=>{
+      statusHTML+=`
+        <div class="row">
+          <span>${s}</span>
+          <span>${statusMap[s]}</span>
+        </div>
+      `;
+    });
 
-  // UI
-  document.getElementById("hoje").innerText=totalHoje;
-  document.getElementById("mes").innerText=totalMes;
-  document.getElementById("buffet").innerText=buffetHoje.length;
-  document.getElementById("pico").innerText=picoHora;
+    // UI
+    document.getElementById("hoje").innerText=totalHoje;
+    document.getElementById("mes").innerText=totalMes;
+    document.getElementById("buffet").innerText=buffetHoje.length;
+    document.getElementById("pico").innerText=pico;
 
-  document.getElementById("empresas").innerHTML=empresasHTML;
-  document.getElementById("statusBox").innerHTML=statusHTML;
-  document.getElementById("mesas").innerHTML=mesasHTML;
-  document.getElementById("timeline").innerHTML=timelineHTML;
+    document.getElementById("empresas").innerHTML=empresasHTML || "Sem dados";
+    document.getElementById("statusBox").innerHTML=statusHTML || "Sem status";
 
-  document.getElementById("status").innerText="● atualizado";
+    document.getElementById("status").innerText="● atualizado";
+
+    console.log("✅ carregado com sucesso");
+
+  }catch(e){
+
+    console.error(e);
+    document.getElementById("erro").innerText = "Erro geral: "+e.message;
+
+  }
 
 }
 
+// 🔥 LOAD
 carregar();
+
+// 🔥 AUTO
 setInterval(carregar,20000);
 
 </script>
