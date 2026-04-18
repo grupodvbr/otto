@@ -5,16 +5,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<title>Dashboard OTTO</title>
+<title>Dashboard Operacional</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 
-/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 
-/* BASE */
 body{
   background:#f1f5f9;
   color:#0f172a;
@@ -22,64 +21,51 @@ body{
   overflow:hidden;
 }
 
-/* HEADER */
 .header{
   height:56px;
+  background:#fff;
   display:flex;
   align-items:center;
   justify-content:space-between;
   padding:0 16px;
-  background:#ffffff;
   border-bottom:1px solid #e5e7eb;
 }
 
-.title{
-  font-size:16px;
-  font-weight:700;
-}
-
-.status{
-  font-size:12px;
-  color:#22c55e;
-}
-
-/* CONTAINER */
 .container{
   position:absolute;
   top:56px;
   bottom:0;
   left:0;
   right:0;
-
   overflow:auto;
-  padding:16px;
-
+  padding:14px;
   display:flex;
   flex-direction:column;
   gap:14px;
 }
 
-.container::-webkit-scrollbar{display:none}
-
-/* CARD */
 .card{
-  background:#ffffff;
+  background:#fff;
   border-radius:14px;
   padding:14px;
   box-shadow:0 6px 18px rgba(0,0,0,.05);
 }
 
-/* KPI GRID */
-.kpis{
+.card-title{
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+.grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
 }
 
 .kpi{
+  background:#f8fafc;
   padding:12px;
   border-radius:12px;
-  background:#f8fafc;
 }
 
 .kpi-title{
@@ -90,74 +76,25 @@ body{
 .kpi-value{
   font-size:18px;
   font-weight:700;
-  margin-top:4px;
 }
 
 /* STATUS */
-.badge{
-  display:inline-block;
+.tag{
+  font-size:11px;
   padding:4px 8px;
   border-radius:20px;
-  font-size:11px;
-  font-weight:600;
 }
 
 .ok{background:#dcfce7;color:#16a34a}
 .warn{background:#fef3c7;color:#d97706}
 .bad{background:#fee2e2;color:#dc2626}
 
-/* ANALISE */
-.analysis{
-  font-size:13px;
-  line-height:1.5;
-  color:#334155;
-}
-
-/* LIST */
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.item{
+.linha{
   display:flex;
   justify-content:space-between;
+  padding:8px 0;
   font-size:13px;
-}
-
-/* BARRAS */
-.bar{
-  height:6px;
-  border-radius:10px;
-  background:#e2e8f0;
-  margin-top:4px;
-}
-
-.fill{
-  height:6px;
-  border-radius:10px;
-  background:#22c55e;
-}
-
-/* ALERTAS */
-.alert{
-  font-size:12px;
-  color:#dc2626;
-}
-
-/* TOP PRODUTOS */
-.produto{
-  display:flex;
-  justify-content:space-between;
-  font-size:13px;
-  padding:6px 0;
   border-bottom:1px solid #f1f5f9;
-}
-
-/* RESPONSIVO */
-@media(min-width:700px){
-  .kpis{grid-template-columns:repeat(4,1fr)}
 }
 
 </style>
@@ -166,153 +103,160 @@ body{
 <body>
 
 <div class="header">
-  <div class="title">Dashboard Analítico</div>
-  <div class="status">● Atualizado agora</div>
+  <div><b>Dashboard Operacional</b></div>
+  <div style="font-size:12px;color:#22c55e">● Atualizando</div>
 </div>
 
 <div class="container">
 
-  <!-- KPIs -->
+  <!-- RESUMO GERAL -->
   <div class="card">
-    <div class="kpis">
+    <div class="card-title">📊 Resumo Geral</div>
 
+    <div class="grid">
       <div class="kpi">
-        <div class="kpi-title">Faturamento</div>
-        <div class="kpi-value">R$ 18.420</div>
+        <div class="kpi-title">Reservas Hoje</div>
+        <div class="kpi-value" id="totalHoje">0</div>
       </div>
 
       <div class="kpi">
-        <div class="kpi-title">Clientes</div>
-        <div class="kpi-value">312</div>
+        <div class="kpi-title">Reservas Mês</div>
+        <div class="kpi-value" id="totalMes">0</div>
       </div>
 
       <div class="kpi">
-        <div class="kpi-title">Ticket Médio</div>
-        <div class="kpi-value">R$ 59,04</div>
+        <div class="kpi-title">Buffet Hoje</div>
+        <div class="kpi-value" id="buffetHoje">0</div>
       </div>
 
       <div class="kpi">
-        <div class="kpi-title">Reservas</div>
-        <div class="kpi-value">104</div>
+        <div class="kpi-title">Empresas Ativas</div>
+        <div class="kpi-value">3</div>
       </div>
-
     </div>
   </div>
 
-  <!-- STATUS + ANALISE -->
+  <!-- POR EMPRESA -->
   <div class="card">
+    <div class="card-title">🏢 Por Empresa</div>
 
-    <div class="analysis">
-      📊 O sistema apresenta crescimento de <b>+12%</b> no faturamento.
-      <br><br>
-      Pico de vendas no período noturno, com maior conversão em reservas.
-    </div>
-
-    <br>
-    <span class="badge ok">Saudável</span>
+    <div id="empresas"></div>
 
   </div>
 
-  <!-- DESEMPENHO -->
+  <!-- STATUS -->
   <div class="card">
+    <div class="card-title">📌 Status das Reservas</div>
 
-    <div class="item">
-      <span>Almoço</span>
-      <span>64%</span>
-    </div>
-    <div class="bar"><div class="fill" style="width:64%"></div></div>
-
-    <div class="item">
-      <span>Jantar</span>
-      <span>91%</span>
-    </div>
-    <div class="bar"><div class="fill" style="width:91%"></div></div>
-
-    <div class="item">
-      <span>Delivery</span>
-      <span>58%</span>
-    </div>
-    <div class="bar"><div class="fill" style="width:58%"></div></div>
-
-  </div>
-
-  <!-- TOP PRODUTOS -->
-  <div class="card">
-
-    <div class="analysis"><b>Produtos mais vendidos</b></div>
-    <br>
-
-    <div class="produto">
-      <span>Pizza Marguerita</span>
-      <span>142</span>
-    </div>
-
-    <div class="produto">
-      <span>Pizza Calabresa</span>
-      <span>118</span>
-    </div>
-
-    <div class="produto">
-      <span>Rodízio Italiano</span>
-      <span>87</span>
-    </div>
-
-  </div>
-
-  <!-- ALERTAS -->
-  <div class="card">
-
-    <div class="analysis"><b>⚠ Pontos de atenção</b></div>
-    <br>
-
-    <div class="list">
-      <div class="alert">• Desperdício alto no buffet</div>
-      <div class="alert">• Estoque elevado em bebidas</div>
-      <div class="alert">• Baixa venda no almoço</div>
-    </div>
-
-  </div>
-
-  <!-- RECOMENDAÇÕES -->
-  <div class="card">
-
-    <div class="analysis">
-      🤖 Recomendações automáticas:
-      <br><br>
-
-      • Reduzir produção no almoço  
-      • Criar promoção para bebidas  
-      • Aumentar divulgação do rodízio  
-      • Incentivar reservas antecipadas  
-
-    </div>
+    <div id="status"></div>
 
   </div>
 
 </div>
+
 <script>
 
-let lastTap = 0;
+const supabase = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
 
-function detectarDuploClique(){
-
-  const agora = new Date().getTime();
-  const diff = agora - lastTap;
-
-  if(diff < 300){
-    // 🔥 avisa o sistema principal
-    window.parent.postMessage("duploClique", "*");
-  }
-
-  lastTap = agora;
+function hojeRange(){
+  const d = new Date();
+  const inicio = new Date(d.setHours(0,0,0,0)).toISOString();
+  const fim = new Date(d.setHours(23,59,59,999)).toISOString();
+  return {inicio,fim};
 }
 
-// mobile
-document.addEventListener("touchend", detectarDuploClique);
+function mesRange(){
+  const d = new Date();
+  const inicio = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
+  const fim = new Date().toISOString();
+  return {inicio,fim};
+}
 
-// desktop
-document.addEventListener("dblclick", detectarDuploClique);
+async function carregar(){
+
+  const hoje = hojeRange();
+  const mes = mesRange();
+
+  const tabelas = [
+    {nome:"MERCATTO", tabela:"reservas_mercatto"},
+    {nome:"VILLA", tabela:"reservas_villa"},
+    {nome:"DELÍCIA", tabela:"reservas_delicia"}
+  ];
+
+  let totalHoje = 0;
+  let totalMes = 0;
+  let htmlEmpresas = "";
+  let statusMap = {};
+
+  for(const t of tabelas){
+
+    // HOJE
+    const {data: hojeData} = await supabase
+    .from(t.tabela)
+    .select("status")
+    .gte("datahora", hoje.inicio)
+    .lte("datahora", hoje.fim);
+
+    // MES
+    const {data: mesData} = await supabase
+    .from(t.tabela)
+    .select("status")
+    .gte("datahora", mes.inicio)
+    .lte("datahora", mes.fim);
+
+    totalHoje += hojeData?.length || 0;
+    totalMes += mesData?.length || 0;
+
+    // STATUS
+    hojeData?.forEach(r=>{
+      statusMap[r.status] = (statusMap[r.status] || 0) + 1;
+    });
+
+    htmlEmpresas += `
+      <div class="linha">
+        <span>${t.nome}</span>
+        <span>${hojeData?.length || 0} hoje</span>
+      </div>
+    `;
+  }
+
+  // BUFFET
+  const {data: buffet} = await supabase
+  .from("buffet_lancamentos")
+  .select("id")
+  .eq("data", new Date().toISOString().slice(0,10));
+
+  document.getElementById("totalHoje").innerText = totalHoje;
+  document.getElementById("totalMes").innerText = totalMes;
+  document.getElementById("buffetHoje").innerText = buffet?.length || 0;
+
+  document.getElementById("empresas").innerHTML = htmlEmpresas;
+
+  // STATUS RENDER
+  let htmlStatus = "";
+  Object.keys(statusMap).forEach(s=>{
+    htmlStatus += `
+      <div class="linha">
+        <span>${s}</span>
+        <span>${statusMap[s]}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("status").innerHTML = htmlStatus;
+
+}
+
+// LOAD
+carregar();
+
+// AUTO UPDATE
+setInterval(carregar, 30000);
 
 </script>
+
 </body>
 </html>
