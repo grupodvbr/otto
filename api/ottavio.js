@@ -61,39 +61,6 @@ delete acao.dados.created_at
 }
 if(acao.operacao === "insert"){
 
-// 🔥 CORREÇÃO CRÍTICA PARA RESERVAS
-if(acao.tabela === "reservas_mercatto"){
-
-  if(!acao.dados.email){
-    acao.dados.email = "nao_informado@mercatto.com"
-  }
-
-  if(!acao.dados.status){
-    acao.dados.status = "Pendente"
-  }
-
-  if(!acao.dados.comandaIndividual){
-    acao.dados.comandaIndividual = "Não"
-  }
-
-  if(!acao.dados.valorEstimado){
-    acao.dados.valorEstimado = 0
-  }
-
-  if(!acao.dados.pagamentoAntecipado){
-    acao.dados.pagamentoAntecipado = 0
-  }
-
-  if(!acao.dados.banco){
-    acao.dados.banco = ""
-  }
-
-  if(!acao.dados.observacoes){
-    acao.dados.observacoes = ""
-  }
-
-}
-
 const { data, error } = await supabase
 .from(acao.tabela)
 .insert(acao.dados)
@@ -186,64 +153,33 @@ mensagens.push({
 role:"user",
 content: pergunta
 })
+/* ================= BUSCAR DADOS SISTEMA ================= */
 
-
-
-/* ================= BUSCA TOTAL DO SISTEMA ================= */
-
-const { data:reservas } = await supabase
+const {data:reservas} = await supabase
 .from("reservas_mercatto")
 .select("*")
-.order("created_at",{ ascending:false })
-.limit(1000)
+.limit(100)
 
-const { data:agenda } = await supabase
+const {data:agenda} = await supabase
 .from("agenda_musicos")
 .select("*")
-.order("data",{ ascending:false })
-.limit(500)
+.limit(100)
 
-const { data:clientes } = await supabase
+const {data:clientes} = await supabase
 .from("memoria_clientes")
 .select("*")
-.order("ultima_interacao",{ ascending:false })
-.limit(1000)
+.limit(100)
 
-const { data:buffet } = await supabase
+const {data:conversas} = await supabase
+.from("conversas_whatsapp")
+.select("*")
+.limit(50)
+
+const {data:buffet} = await supabase
 .from("buffet")
 .select("*")
-.limit(500)
+.limit(100)
 
-const { data:itensBuffet } = await supabase
-.from("itens_buffet")
-.select("*")
-.limit(200)
-
-const { data:produtos } = await supabase
-.from("produtos")
-.select("*")
-.limit(2000)
-
-const { data:pedidos } = await supabase
-.from("pedidos")
-.select("*")
-.order("created_at",{ ascending:false })
-.limit(1000)
-
-const { data:pedidosPendentes } = await supabase
-.from("pedidos_pendentes")
-.select("*")
-.order("created_at",{ ascending:false })
-.limit(200)
-  
-const { data:histReservas } = await supabase
-.from("hist_reservas_mercatto")
-.select("*")
-.order("created_at",{ ascending:false })
-.limit(2000)
-
-
-  
 /* ================= BUSCAR PROMPTS DO AGENTE ================= */
 
 const {data:promptTabela} = await supabase
@@ -264,64 +200,31 @@ const promptAgente = (prompts || [])
 .map(p => p.prompt)
 .join("\n\n")
 
-/* ================= CONTEXTO INTELIGENTE ================= */
 
-function addContext(label, data){
-  if(!data) return null
-
-  const limite = Array.isArray(data) ? data.slice(0, 200) : data
-
-  return {
-    role:"system",
-    content:`${label}:\n${JSON.stringify(limite)}`
-  }
-}
-
-const contextos = [
-
-addContext("RESERVAS", reservas),
-addContext("HIST_RESERVAS", histReservas), // 🔥 NOVO
-addContext("AGENDA", agenda),
-addContext("CLIENTES", clientes),
-addContext("CARDAPIO", buffet),
-addContext("PEDIDOS", pedidos),
-addContext("PEDIDOS_PENDENTES", pedidosPendentes),
-addContext("ITENS_BUFFET", itensBuffet),
-addContext("PRODUTOS", produtos)
-
-].filter(Boolean)
 
 /* ================= DATAS SISTEMA ================= */
 
 const agora = new Date()
 
-const formatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Bahia",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit"
-})
+const hoje = new Date(
+  agora.toLocaleString("en-US",{timeZone:"America/Bahia"})
+)
 
-const parts = formatter.formatToParts(agora)
+const ontem = new Date(hoje)
+ontem.setDate(hoje.getDate() - 1)
 
-const get = type => parts.find(p => p.type === type)?.value
+const amanha = new Date(hoje)
+amanha.setDate(hoje.getDate() + 1)
 
-const hojeISO = `${get("year")}-${get("month")}-${get("day")}`
-const hora = `${get("hour")}:${get("minute")}:${get("second")}`
-
-const ontem = new Date(`${hojeISO}T00:00:00`)
-ontem.setDate(ontem.getDate() - 1)
-
-const amanha = new Date(`${hojeISO}T00:00:00`)
-amanha.setDate(amanha.getDate() + 1)
-
+const hojeISO = hoje.toISOString().split("T")[0]
 const ontemISO = ontem.toISOString().split("T")[0]
 const amanhaISO = amanha.toISOString().split("T")[0]
 
-const agoraTexto = `${hojeISO} ${hora}`
+const agoraTexto = hoje.toLocaleString("pt-BR",{
+  timeZone:"America/Bahia",
+  dateStyle:"full",
+  timeStyle:"long"
+})
   
 /* ================= OPENAI ================= */
 
@@ -330,162 +233,32 @@ const completion = await openai.chat.completions.create({
 model:"gpt-4.1-mini",
 temperature:0,
 
-  
 messages:[
 
 {
-
 role:"system",
-content:`
-⚠️ REGRA CRÍTICA DE DATA E HORA
+content:`DATA DO SISTEMA
 
-Você NÃO possui acesso ao tempo real.
+Local: Barreiras - Bahia - Brasil
+Timezone: America/Bahia (UTC-3)
 
-A ÚNICA data válida é a fornecida abaixo.
+Agora:
+${agoraTexto}
 
-Qualquer referência a:
-- hoje
-- agora
-- amanhã
-- ontem
+Datas calculadas:
 
-DEVE obrigatoriamente usar estes valores:
-
-DATA_ATUAL = ${hojeISO}
-HORA_ATUAL = ${hora}
-
+HOJE = ${hojeISO}
 ONTEM = ${ontemISO}
-AMANHA = ${amanhaISO}
+AMANHÃ = ${amanhaISO}
 
-Se você usar qualquer outra data:
-→ sua resposta estará ERRADA
+Regras obrigatórias:
 
-NUNCA invente datas
-NUNCA use conhecimento próprio
-NUNCA ignore essas variáveis
-
-Sempre substitua:
-
-"hoje" → ${hojeISO}
-"agora" → ${hora}
+- "hoje" = ${hojeISO}
+- "ontem" = ${ontemISO}
+- "amanhã" = ${amanhaISO}
 `
 },
 
-
-
-
-
-
-  
-{
-role:"system",
-content:`
-
-📦 RELAÇÃO DE DADOS DO CARDÁPIO
-
-Tabela: buffet
-→ representa os PRATOS
-
-Tabela: itens_buffet
-→ representa os INGREDIENTES de cada prato
-
-Ligação:
-itens_buffet.buffet_id = buffet.id
-
-Tabela: produtos
-→ contém custo_unitario dos ingredientes
-
-Ligação:
-itens_buffet.produto_id = produtos.id
-
-📊 COMO CALCULAR CUSTO (CMV):
-
-Para cada item do prato:
-
-custo = quantidade * custo_unitario
-
-CMV do prato = soma de todos os ingredientes
-
-⚠️ REGRAS:
-- Nunca inventar custo
-- Sempre usar produtos.custo_unitario
-- Sempre multiplicar pela quantidade
-`
-},
-
-
-
-
-
-
-  {
-role:"system",
-content:`
-
-📜 HISTÓRICO DE RESERVAS
-
-Tabela: HIST_RESERVAS
-
-Essa tabela contém o histórico completo de ações:
-
-- INSERT (criação de reserva)
-- UPDATE (edições)
-- DELETE (exclusões)
-
-Cada registro representa uma ação feita no sistema.
-
-Use essa tabela para:
-
-- Saber quem criou uma reserva
-- Saber quem alterou
-- Saber quem excluiu
-- Ver histórico completo de mudanças
-
-⚠️ REGRAS:
-
-- Nunca inventar histórico
-- Sempre usar os dados da tabela HIST_RESERVAS
-- Sempre considerar a ordem cronológica (created_at)
-`
-},
-{
-role:"system",
-content:`
-
-🔥 RESERVAS
-
-Se o usuário pedir:
-
-- criar reserva
-- marcar mesa
-- reservar
-
-Você DEVE gerar:
-
-RESERVA_JSON:
-{
-"operacao":"insert",
-"tabela":"reservas_mercatto",
-"dados":{
-  "nome":"",
-  "telefone":"",
-  "email":"nao_informado@mercatto.com",
-  "pessoas":1,
-  "mesa":"Salão Central",
-  "cardapio":"",
-  "comandaIndividual":"Não",
-  "datahora":"",
-  "valorEstimado":0,
-  "pagamentoAntecipado":0,
-  "banco":"",
-  "observacoes":"",
-  "status":"Pendente"
-}
-}
-
-⚠️ Não escrever texto fora do JSON
-`
-},
 {
 role:"system",
 content:`REGRAS DO AGENTE:
@@ -495,116 +268,144 @@ ${promptAgente}
 Todas as regras acima são obrigatórias e devem ser seguidas rigorosamente.
 `
 },
-{
-role:"system",
-content:`
 
-🔥 CONTROLE TOTAL DO SISTEMA
-
-Você pode criar, editar ou excluir QUALQUER registro em QUALQUER tabela.
-
-Para isso use:
-
-ALTERAR_REGISTRO_JSON:
-{
-"operacao":"insert | update | delete",
-"tabela":"nome_da_tabela",
-"dados":{...},
-"filtro":{...}
-}
-
-REGRAS:
-- Sempre usar confirmação antes de executar
-- Nunca executar sem confirmação
-- Nunca inventar dados
-- Sempre usar dados existentes como base
-`
-},
 {
 role:"system",
 content:`
 TABELA: reservas_mercatto
 
-Você já recebeu os dados completos da tabela RESERVAS no contexto acima.
+Os dados abaixo são TODOS os registros retornados da tabela reservas_mercatto.
 
-Se uma reserva não aparecer nesses dados:
-→ significa que ela NÃO EXISTE no sistema.
+Se uma reserva não aparecer nessa lista, significa que ela NÃO EXISTE no sistema.
 
-Regras obrigatórias:
+Nunca invente reservas.
+Nunca deduza reservas.
+Use apenas os registros abaixo.
 
-- Nunca inventar reservas
-- Nunca deduzir reservas
-- Nunca criar dados que não estejam no contexto
-- Sempre responder baseado na tabela RESERVAS fornecida
+Dados:
 
-Use apenas os dados reais já enviados anteriormente.
+${JSON.stringify(reservas || [])}
 `},
+
+
+{
+role:"system",
+content:`AGENDA:\n${JSON.stringify(agenda || [])}`
+},
+
+{
+role:"system",
+content:`CLIENTES:\n${JSON.stringify(clientes || [])}`
+},
+
+{
+role:"system",
+content:`CONVERSAS:\n${JSON.stringify(conversas || [])}`
+},
+
+{
+role:"system",
+content:`CARDAPIO:\n${JSON.stringify(buffet || [])}`
+},
+{
+role:"system",
+content:`PROMPTS DO AGENTE:\n${JSON.stringify(promptTabela || [])}`
+},
+
 
 {
 role:"system",
 content:`
 
-Você pode criar, editar ou apagar prompts da tabela "prompt_agente".
+🔥 AÇÕES PERMITIDAS NO SISTEMA
 
-Estrutura da tabela:
+Você pode executar ações no banco de dados.
 
-prompt_agente
-- id
-- prompt
-- ordem
-- ativo
-- created_at
+Sempre que o usuário pedir algo que envolva:
 
-Se o usuário pedir para alterar ou criar prompts, gere uma ação usando:
+- criar reserva
+- editar reserva
+- cancelar reserva
 
-ALTERAR_REGISTRO_JSON:
+Você DEVE gerar obrigatoriamente:
+
+RESERVA_JSON:
 {
 "operacao":"insert | update | delete",
-"tabela":"prompt_agente",
+"tabela":"reservas_mercatto",
 "dados":{...},
 "filtro":{...}
 }
 
-Exemplo criar prompt:
+---
 
-ALTERAR_REGISTRO_JSON:
+📌 EXEMPLO CRIAR RESERVA:
+
+RESERVA_JSON:
 {
 "operacao":"insert",
-"tabela":"prompt_agente",
+"tabela":"reservas_mercatto",
 "dados":{
-"prompt":"Sempre enviar a foto do prato antes da descrição.",
-"ordem":10,
-"ativo":true
+  "nome":"João",
+  "email":"nao_informado@mercatto.com",
+  "telefone":"557799999999",
+  "pessoas":4,
+  "mesa":"Salão Central",
+  "cardapio":"",
+  "comandaIndividual":"Não",
+  "datahora":"2026-04-15T20:00",
+  "valorEstimado":0,
+  "pagamentoAntecipado":0,
+  "banco":"",
+  "observacoes":"",
+  "status":"Pendente"
 }
 }
 
-Exemplo editar prompt:
+---
 
-ALTERAR_REGISTRO_JSON:
+📌 EXEMPLO CANCELAR:
+
+RESERVA_JSON:
 {
 "operacao":"update",
-"tabela":"prompt_agente",
+"tabela":"reservas_mercatto",
 "dados":{
-"prompt":"texto atualizado"
+  "status":"Cancelada"
 },
 "filtro":{
-"id":5
+  "telefone":"557799999999"
 }
 }
 
-Se o usuário pedir para criar, editar ou apagar um prompt:
+---
 
-1. Gere obrigatoriamente a ação ALTERAR_REGISTRO_JSON.
-2. Não explique nada antes.
-3. Não escreva texto adicional.
-4. Apenas retorne o JSON da ação.
+REGRAS:
 
-Se não gerar o JSON a ação será ignorada.
+- Nunca inventar dados
+- Sempre gerar JSON quando for ação
+- Não explicar nada antes
+- Não escrever texto fora do JSON
+
+Se não gerar o JSON, a ação NÃO será executada.
+
+Campos obrigatórios para criar reserva:
+
+- nome
+- telefone
+- pessoas
+- datahora
+
+Se faltar algum desses dados:
+NÃO gere o JSON
+Peça a informação ao usuário primeiro
+
+
 `
 },
 
 
-...contextos,
+  
 ...mensagens
 ]
 
@@ -612,97 +413,9 @@ Se não gerar o JSON a ação será ignorada.
 
 let resposta = completion.choices[0].message.content
 
-
-
-
-
-
-
-
-
-/* ================= DETECTAR RESERVA ================= */
-
-const matchReserva = resposta.match(/RESERVA_JSON:\s*(\{[\s\S]*?\})/)
-let acaoReserva = null
-if(matchReserva){
-
-  try{
-
-    let jsonTexto = matchReserva[1]
-
-    jsonTexto = jsonTexto
-      .replace(/```json/g,"")
-      .replace(/```/g,"")
-      .trim()
-
-    acaoReserva = JSON.parse(jsonTexto)
-
-    // 🔥 GARANTE EMAIL (CRÍTICO)
-    const dados = {
-      email: "nao_informado@mercatto.com",
-      ...acaoReserva.dados
-    }
-
-    if(acaoReserva.operacao === "insert"){
-
-      const { error } = await supabase
-        .from("reservas_mercatto")
-        .insert(dados)
-
-      if(error){
-        console.error("Erro insert reserva:", error)
-      }
-
-    }
-
-    if(acaoReserva.operacao === "update"){
-
-      await supabase
-        .from("reservas_mercatto")
-        .update(dados)
-        .match(acaoReserva.filtro)
-
-    }
-
-    if(acaoReserva.operacao === "delete"){
-
-      await supabase
-        .from("reservas_mercatto")
-        .delete()
-        .match(acaoReserva.filtro)
-
-    }
-
-  }catch(e){
-    console.log("Erro reserva JSON:", e)
-  }
-}
-
-
-
-
-
-
-
-
-  
 /* ================= DETECTAR AÇÃO ================= */
 
-
-
-
-
-
-
-
-
-
-
-
-
-  
-const match = resposta.match(/ALTERAR_REGISTRO_JSON:\s*(\{[\s\S]*\})/)
-
+const match = resposta.match(/RESERVA_JSON:\s*(\{[\s\S]*\})/)
 let acao = null
 
 if(match){
