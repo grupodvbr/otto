@@ -10,6 +10,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
+
+
+
+const LOGOS = {
+  "MERCATTO DELÍCIA": "COLOQUE_LINK_AQUI",
+  "VILLA GOURMET": "COLOQUE_LINK_AQUI",
+  "EMPORIO MERCATTO": "COLOQUE_LINK_AQUI",
+  "M.KIDS": "COLOQUE_LINK_AQUI",
+  "PADARIA DELÍCIA": "COLOQUE_LINK_AQUI",
+  "DELÍCIA GOURMET": "COLOQUE_LINK_AQUI"
+}
+
+
+
+
+
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 module.exports = async function handler(req, res){
@@ -73,7 +89,15 @@ const amanhaISO = amanha.toISOString().split("T")[0]
 let dataFiltro = hojeISO
 
 const texto = pergunta.toLowerCase()
+const isRelatorio =
+  texto.includes("relatorio") ||
+  texto.includes("análise") ||
+  texto.includes("analise") ||
+  texto.includes("desempenho") ||
+  texto.includes("resumo")
 
+
+  
 if(texto.includes("ontem")){
   dataFiltro = ontemISO
 }
@@ -423,12 +447,63 @@ addContext("PRODUTOS", produtos)
 
 const completion = await openai.chat.completions.create({
 
-model:"gpt-4.1-mini",
+model:"gpt-4.1",
 temperature:0,
 
   
 messages:[
 
+
+
+{
+role:"system",
+content:`
+
+📊 MODO RELATÓRIO PROFISSIONAL ATIVADO
+
+Sempre que o usuário pedir:
+
+- relatório
+- análise
+- desempenho
+- resumo
+- faturamento
+- resultado
+
+Você DEVE responder obrigatoriamente em JSON:
+
+RELATORIO_JSON:
+{
+  "empresa": "",
+  "logo": "",
+  "data": "",
+  "resumo": "",
+  "kpis": {
+    "faturamento": 0,
+    "clientes": 0,
+    "ticket_medio": 0,
+    "reservas": 0
+  },
+  "analise": "",
+  "alertas": [],
+  "recomendacoes": [],
+  "status": "SAUDÁVEL | ATENÇÃO | CRÍTICO",
+  "score": 0,
+  "tendencia": "SUBINDO | CAINDO | ESTÁVEL"
+}
+
+⚠️ Nunca responder apenas texto quando for relatório
+⚠️ Sempre preencher todos os campos
+⚠️ Sempre usar dados reais do sistema
+
+`
+},
+{
+role:"system",
+content:`LOGOS DISPONÍVEIS: ${JSON.stringify(LOGOS)}`
+},
+
+  
 {
 
 role:"system",
@@ -743,7 +818,27 @@ Se não gerar o JSON a ação será ignorada.
 
 let resposta = completion.choices[0].message.content
 
+const matchRelatorio = resposta.match(/RELATORIO_JSON:\s*(\{[\s\S]*\})/)
 
+if(matchRelatorio){
+  try{
+
+    const relatorio = JSON.parse(
+      matchRelatorio[1]
+      .replace(/```json/g,"")
+      .replace(/```/g,"")
+      .trim()
+    )
+
+    return res.json({
+      tipo:"relatorio",
+      relatorio
+    })
+
+  }catch(e){
+    console.log("Erro parse relatorio:", e)
+  }
+}
 
 
 
