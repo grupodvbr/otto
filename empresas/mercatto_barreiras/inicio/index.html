@@ -1,458 +1,341 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
-<title>OTTAVIO SYSTEM • Controle Total da Sua Empresa</title>
+<title>Grupo DV • Sistema Inteligente</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-
-  
-/* ===== BASE ===== */
-:root{
---bg:#f8fafc;
---card:#ffffff;
---border:#e2e8f0;
-
---text:#0f172a;
---muted:#64748b;
-
---primary:#2563eb;
---primary-dark:#1e40af;
---success:#16a34a;
---danger:#dc2626;
-
---radius:18px;
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 
 body{
-font-family:Inter;
-background:var(--bg);
-color:var(--text);
+background:#020617;
+color:#fff;
+overflow-x:hidden;
 }
 
-/* ===== HEADER ===== */
+/* FUNDO GRADIENTE */
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 20%, rgba(20,200,168,.15), transparent),
+radial-gradient(circle at 80% 80%, rgba(59,130,246,.15), transparent);
+z-index:-1;
+}
+
+/* HEADER */
 .header{
-position:sticky;
+position:fixed;
 top:0;
-background:#fff;
-border-bottom:1px solid var(--border);
-padding:16px 40px;
+left:0;
+width:100%;
+height:70px;
 display:flex;
-justify-content:space-between;
 align-items:center;
-z-index:10;
+justify-content:space-between;
+padding:0 40px;
+background:rgba(2,6,23,.6);
+backdrop-filter:blur(12px);
+z-index:100;
 }
 
 .logo{
-font-weight:900;
 font-size:20px;
+font-weight:800;
+color:#14c8a8;
 }
 
-.cta-top{
-background:var(--primary);
-color:#fff;
-padding:10px 16px;
-border-radius:10px;
-font-weight:600;
-cursor:pointer;
-}
-
-/* ===== HERO ===== */
+/* HERO */
 .hero{
+height:100vh;
 display:flex;
-gap:40px;
-padding:70px 40px;
+flex-direction:column;
+justify-content:center;
 align-items:center;
+text-align:center;
+padding:20px;
 }
 
-.hero-left{
-flex:1;
-}
-
-.hero-title{
-font-size:48px;
-font-weight:900;
+.hero h1{
+font-size:50px;
+font-weight:800;
+max-width:850px;
 line-height:1.1;
 }
 
-.hero-title span{
-color:var(--primary);
+.hero span{
+color:#14c8a8;
 }
 
-.hero-desc{
-margin-top:20px;
-color:var(--muted);
-max-width:520px;
+.hero p{
+margin-top:18px;
+color:#94a3b8;
+max-width:600px;
 font-size:16px;
 }
 
-.hero-cta{
-margin-top:30px;
-display:flex;
-gap:10px;
-}
-
 .btn{
-padding:14px 20px;
-border-radius:12px;
+margin-top:30px;
+padding:16px 28px;
 border:none;
-cursor:pointer;
-font-weight:600;
-}
-
-.btn-primary{
-background:var(--primary);
+border-radius:14px;
+background:linear-gradient(135deg,#14c8a8,#0ea58b);
 color:#fff;
-}
-
-.btn-secondary{
-background:#fff;
-border:1px solid var(--border);
-}
-
-/* ===== LOGIN ===== */
-.login{
-width:380px;
-background:#fff;
-border:1px solid var(--border);
-border-radius:18px;
-padding:25px;
-box-shadow:0 20px 60px rgba(0,0,0,.08);
-}
-
-.login h2{
-margin-bottom:15px;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-bottom:10px;
-border-radius:10px;
-border:1px solid var(--border);
-}
-
-button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:var(--primary);
-color:#fff;
-font-weight:700;
+font-weight:800;
 cursor:pointer;
+font-size:15px;
+box-shadow:0 15px 40px rgba(20,200,168,.35);
+transition:.2s;
 }
 
-.error{
-color:var(--danger);
-font-size:13px;
-margin-top:10px;
+.btn:hover{
+transform:translateY(-3px);
 }
 
-/* ===== SECTIONS ===== */
+/* SECTIONS */
 .section{
-padding:70px 40px;
+padding:110px 40px;
+text-align:center;
+background:#f8fafc;
+color:#0f172a;
 }
 
-.section h3{
-font-size:30px;
-margin-bottom:30px;
+.section.dark{
+background:#020617;
+color:#fff;
 }
 
-/* ===== GRID ===== */
+.section h2{
+font-size:34px;
+font-weight:800;
+margin-bottom:10px;
+}
+
+.section p{
+color:#64748b;
+margin-bottom:50px;
+}
+
+/* GRID */
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:25px;
 }
 
-/* ===== CARD ===== */
+/* CARD */
 .card{
 background:#fff;
-border:1px solid var(--border);
-border-radius:16px;
+border-radius:22px;
 padding:24px;
-transition:.3s;
+border:1px solid #e2e8f0;
+box-shadow:0 15px 50px rgba(0,0,0,.05);
+transition:.25s;
+text-align:left;
+position:relative;
+overflow:hidden;
+}
+
+.dark .card{
+background:#020617;
+border:1px solid #1e293b;
+}
+
+.card::before{
+content:"";
+position:absolute;
+top:-50%;
+left:-50%;
+width:200%;
+height:200%;
+background:radial-gradient(circle, rgba(20,200,168,.08), transparent);
+transform:rotate(25deg);
 }
 
 .card:hover{
-transform:translateY(-8px);
-box-shadow:0 20px 60px rgba(0,0,0,.08);
+transform:translateY(-6px);
 }
 
-.card b{
-display:block;
-font-size:18px;
-margin-bottom:10px;
+.tag{
+font-size:11px;
+font-weight:700;
+background:#ecfeff;
+color:#0ea58b;
+padding:6px 10px;
+border-radius:8px;
+display:inline-block;
+margin-bottom:12px;
 }
 
-.card span{
-font-size:14px;
-color:var(--muted);
-line-height:1.5;
+.card h3{
+font-size:17px;
+margin-bottom:6px;
 }
 
-/* ===== BENEFITS ===== */
+.card p{
+font-size:13px;
+color:#64748b;
+}
+
+/* BENEFITS */
 .benefits{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
 }
 
-.benefit{
-background:#fff;
-border:1px solid var(--border);
-padding:24px;
-border-radius:16px;
-text-align:center;
-}
-
-/* ===== CTA FINAL ===== */
+/* CTA */
 .cta{
-background:linear-gradient(135deg,#2563eb,#1e40af);
-color:#fff;
-padding:60px;
-border-radius:20px;
+padding:120px 20px;
 text-align:center;
+background:linear-gradient(135deg,#14c8a8,#0ea58b);
 }
 
-.cta h3{
-font-size:32px;
-margin-bottom:15px;
-}
-
-.cta p{
-opacity:.9;
+.cta h2{
+font-size:36px;
+font-weight:800;
 margin-bottom:20px;
 }
 
-/* ===== FOOTER ===== */
+/* FOOTER */
 .footer{
 padding:40px;
 text-align:center;
-font-size:13px;
-color:var(--muted);
+background:#020617;
+color:#64748b;
 }
 
-/* MOBILE */
-@media(max-width:900px){
-.hero{
-flex-direction:column;
-}
-.login{
-width:100%;
-}
-.benefits{
-grid-template-columns:1fr;
-}
+/* ANIMAÇÃO */
+.fade{
+opacity:0;
+transform:translateY(30px);
+transition:.6s;
 }
 
+.fade.show{
+opacity:1;
+transform:translateY(0);
+}
+
+@media(max-width:768px){
+.hero h1{font-size:34px}
+}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
-<div class="logo">OTTAVIO SYSTEM</div>
-<div class="cta-top">Começar agora</div>
+  <div class="logo">GRUPO DV</div>
 </div>
 
 <!-- HERO -->
 <div class="hero">
-
-<div class="hero-left">
-
-<div class="hero-title">
-Pare de perder dinheiro na sua operação.<br>
-<span>Tenha controle total.</span>
+  <h1>O sistema completo para <span>controlar e escalar</span> sua operação</h1>
+  <p>Gestão inteligente de restaurante, compras, reservas e atendimento automatizado.</p>
+  <button class="btn" onclick="whats()">Falar no WhatsApp</button>
 </div>
 
-<div class="hero-desc">
-O OTTAVIO SYSTEM integra atendimento, pedidos, delivery e automação em um único sistema.  
-Você vende mais, erra menos e ganha escala.
-</div>
-
-<div class="hero-cta">
-
-<button class="btn btn-primary">
-Ver como funciona
-</button>
-
-<button class="btn btn-secondary">
-Explorar recursos
-</button>
-
-<button class="btn btn-secondary" onclick="scrollToLogin()">
-Login
-</button>
-
-</div>
-
-</div>
-
-<!-- LOGIN -->
-<div class="login">
-
-<h2>Acessar sistema</h2>
-
-<input id="email" placeholder="Email">
-<input id="senha" type="password" placeholder="Senha">
-
-<button onclick="login()">Entrar</button>
-
-<div onclick="recuperar()" style="margin-top:10px;font-size:13px;color:#64748b;cursor:pointer">
-Esqueci minha senha
-</div>
-
-<div id="erro" class="error"></div>
-
-</div>
-
-</div>
-
-<!-- PRODUTOS -->
+<!-- SISTEMAS -->
 <div class="section">
+  <h2>Todos os módulos integrados</h2>
+  <p>Um único sistema, controle total</p>
 
-<h3>Uma plataforma, todos os sistemas que você precisa</h3>
+  <div class="grid fade">
 
-<div class="grid">
+    <div class="card">
+      <div class="tag">CMV</div>
+      <h3>Ficha Técnica</h3>
+      <p>Controle completo de custo e margem por prato.</p>
+    </div>
 
-<div class="card">
-<b>🤖 Atendimento Inteligente</b>
-<span>Responda clientes automaticamente no WhatsApp e aumente suas vendas sem precisar de mais funcionários.</span>
-</div>
+    <div class="card">
+      <div class="tag">COMPRAS</div>
+      <h3>Requisições</h3>
+      <p>Fluxo de pedidos com aprovação e controle total.</p>
+    </div>
 
-<div class="card">
-<b>🛵 Delivery Completo</b>
-<span>Receba pedidos, acompanhe status e organize sua operação de delivery sem erros.</span>
-</div>
+    <div class="card">
+      <div class="tag">ATENDIMENTO</div>
+      <h3>Reservas</h3>
+      <p>Organização de mesas e clientes.</p>
+    </div>
 
-<div class="card">
-<b>📊 Dashboard em Tempo Real</b>
-<span>Veja exatamente o que está acontecendo na sua empresa agora.</span>
-</div>
+    <div class="card">
+      <div class="tag">AUTOMAÇÃO</div>
+      <h3>WhatsApp Inteligente</h3>
+      <p>Atendimento automatizado com histórico completo.</p>
+    </div>
 
-<div class="card">
-<b>🛒 Gestão de Pedidos</b>
-<span>Controle todos os pedidos do início ao fim com organização total.</span>
-</div>
+    <div class="card">
+      <div class="tag">FINANCEIRO</div>
+      <h3>Cotações</h3>
+      <p>Compare fornecedores e reduza custos.</p>
+    </div>
 
-<div class="card">
-<b>📲 Integração com WhatsApp</b>
-<span>Centralize toda comunicação com seus clientes.</span>
-</div>
+    <div class="card">
+      <div class="tag">ANÁLISE</div>
+      <h3>Dashboard</h3>
+      <p>Métricas em tempo real para decisões.</p>
+    </div>
 
-<div class="card">
-<b>⚙️ Automação Total</b>
-<span>Reduza trabalho manual e elimine erros operacionais.</span>
-</div>
-
-</div>
-
+  </div>
 </div>
 
 <!-- BENEFÍCIOS -->
-<div class="section">
+<div class="section dark">
+  <h2>Por que usar nosso sistema?</h2>
 
-<h3>Por que empresas estão migrando para o OTTAVIO SYSTEM?</h3>
+  <div class="benefits fade">
 
-<div class="benefits">
+    <div class="card">
+      <h3>Redução de custos</h3>
+      <p>Controle absoluto do CMV e desperdícios.</p>
+    </div>
 
-<div class="benefit">📈 Aumenta vendas automaticamente</div>
-<div class="benefit">⏱ Economiza tempo operacional</div>
-<div class="benefit">💰 Reduz erros e prejuízos</div>
-<div class="benefit">📊 Controle total da operação</div>
-<div class="benefit">🤖 Automação inteligente</div>
-<div class="benefit">🚀 Escala seu negócio</div>
+    <div class="card">
+      <h3>Automação</h3>
+      <p>Menos trabalho manual, mais produtividade.</p>
+    </div>
 
+    <div class="card">
+      <h3>Controle centralizado</h3>
+      <p>Tudo em um único sistema.</p>
+    </div>
+
+  </div>
 </div>
 
-</div>
-
-<!-- CTA FINAL -->
-<div class="section">
+<!-- CTA -->
 <div class="cta">
-
-<h3>Pronto para transformar sua empresa?</h3>
-
-<p>Entre agora e tenha controle total da sua operação.</p>
-
-<button class="btn btn-primary">Começar agora</button>
-
-</div>
+  <h2>Pronto para transformar sua operação?</h2>
+  <button class="btn" onclick="whats()">Quero conhecer</button>
 </div>
 
-<!-- FOOTER -->
 <div class="footer">
-© OTTAVIO SYSTEM • Plataforma Inteligente
+  © Grupo DV • Sistema Inteligente
 </div>
 
 <script>
-
-/* ===== CONFIG ===== */
-const SUPABASE = window.supabase.createClient(
-  "https://fcehmjmtxqmrjkuqlkay.supabase.co",
-  "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
-);
-
-async function login(){
-
-const email = document.getElementById('email').value.trim();
-const senha = document.getElementById('senha').value.trim();
-const erro = document.getElementById('erro');
-
-erro.innerText = "";
-
-if(!email || !senha){
-  erro.innerText = "Preencha email e senha";
-  return;
+function whats(){
+  const msg = encodeURIComponent("Tenho interesse no sistema Grupo DV");
+  window.open("https://wa.me/5577999999999?text="+msg);
 }
 
-const { data, error } = await SUPABASE.rpc('login_usuario', {
-  p_email: email,
-  p_senha: senha
+/* ANIMAÇÃO */
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add("show");
+    }
+  });
 });
 
-if(error || !data || data.length === 0){
-  erro.innerText = "Email ou senha inválidos";
-  return;
-}
-
-const user = data[0];
-
-const { data: empresa, error: erroEmpresa } = await SUPABASE
-.from('empresas')
-.select('*')
-.eq('id', user.empresa_id)
-.single();
-
-if(erroEmpresa || !empresa){
-  erro.innerText = "Empresa não encontrada";
-  return;
-}
-
-if(empresa.status !== 'ativo'){
-  erro.innerText = "Acesso bloqueado";
-  return;
-}
-
-localStorage.setItem("SUPABASE_URL", empresa.supabase_url);
-localStorage.setItem("SUPABASE_KEY", empresa.supabase_anon_key);
-localStorage.setItem("EMPRESA_ID", empresa.id);
-localStorage.setItem("USUARIO_ID", user.id);
-localStorage.setItem("USUARIO_NOME", user.nome);
-
-window.location.href = "home.html";
-}
-
+document.querySelectorAll(".fade").forEach(el=>obs.observe(el));
 </script>
 
 </body>
