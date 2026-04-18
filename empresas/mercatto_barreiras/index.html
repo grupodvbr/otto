@@ -404,14 +404,14 @@ iframe{
 </div>
 
   <div class="submenu" id="sub_encontrar">
-    <a onclick="openPage('/restaurante/operacional/requisicoes_de_uso_e_consumo_e_venda.html')">Requisições de mercadorias</a>
-    <a onclick="openPage('administrativo/atalhos/links_uteis.html')" data-page="ferramentas/apresentacoes/links.html">Links</a>
+    <a onclick="openPage('/otto/empresas/mercatto_barreiras/restaurante/operacional/requisicoes_de_uso_e_consumo_e_venda.html')">Requisições de mercadorias</a>
+    <a onclick="openPage('/otto/empresas/mercatto_barreiras/administrativo/atalhos/links_uteis.html')" data-page="ferramentas/apresentacoes/links.html">Links</a>
     <a onclick="openPage('ferramentas/producao/analisedepercas.html')" data-page="ferramentas/apresentacoes/links.html">Trocas</a>
     <a onclick="openPage('ferramentas/producao/analisebuffet.html')" data-page="ferramentas/producao/analisebuffet.html">Buffet</a>
   </div>
 
   <!-- WHATSAPP -->
-  <div class="menu-item" onclick="openPage('otto/whatsapp.html')" data-page="otto/whatsapp.html">
+  <div class="menu-item" onclick="openPage('/otto/empresas/mercatto_barreiras/whatsapp.html')" data-page="otto/whatsapp.html">
     <img src="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/icons/Logos/whatsapp-line.svg">
     WhatsApp
   </div>
@@ -424,8 +424,8 @@ iframe{
 
   <div class="submenu" id="sub_ficha">
     <a onclick="openPage('restaurante/fichas.html')" data-page="restaurante/fichas.html">Fichas</a>
-    <a onclick="openPage('relatórios/caderno.html')" data-page="relatórios/caderno.html">Livro de receitas</a>
-    <a onclick="openPage('relatórios/historico.html')" data-page="relatórios/historico.html">Histórico</a>
+    <a onclick="openPage('relatorios/caderno.html')" data-page="relatorios/caderno.html">Livro de receitas</a>
+    <a onclick="openPage('relatorios/historico.html')" data-page="relatorios/historico.html">Histórico</a>
     <a onclick="openPage('restaurante/relatorios/homerelatorios.html')" data-page="restaurante/relatorios/homerelatorios.html">Relatórios</a>
 
   </div>
@@ -494,7 +494,7 @@ iframe{
 
 </div>
 
-<iframe id="frame" src="inicio/dashboard.html"></iframe>
+<iframe src="/otto/empresas/mercatto_barreiras/index.html"></iframe>
 </div>
 </div>
 
@@ -520,12 +520,11 @@ function toggleMobileMenu(){
   localStorage.setItem("menuAberto", sidebar.classList.contains("open"));
 }
 
-
 function openPage(page){
-  document.getElementById("frame").src = page;
+  const base = "/otto/empresas/mercatto_barreiras/";
+  document.getElementById("frame").src = base + page;
 
   localStorage.setItem("paginaAtual", page);
-
   highlightMenu(page);
 
   // 🔥 FECHA SEMPRE (desktop + mobile)
