@@ -621,15 +621,20 @@ function toggleMobileMenu(){
 
 
 function openPage(page){
-  document.getElementById("frame").src = page;
+  const frame = document.getElementById("frame");
+
+  frame.src = page;
 
   localStorage.setItem("paginaAtual", page);
 
   highlightMenu(page);
 
-  // 🔥 FECHA SEMPRE (desktop + mobile)
+  // fecha menu
   document.querySelector(".sidebar").classList.remove("open");
   document.querySelector(".overlay").classList.remove("active");
+
+  // 🔥 controla botão
+  setTimeout(controlarBotao, 100);
 }
 
 function highlightMenu(page){
@@ -651,14 +656,16 @@ location.href="login.html";
 window.onload = function(){
 
   const paginaSalva = localStorage.getItem("paginaAtual");
+  const frame = document.getElementById("frame");
 
   if(paginaSalva){
-    document.getElementById("frame").src = paginaSalva;
+    frame.src = paginaSalva;
     highlightMenu(paginaSalva);
   }
 
+  // 🔥 controla botão ao iniciar
+  setTimeout(controlarBotao, 100);
 }
-
 
 function voltarPagina(){
   const frame = document.getElementById("frame");
@@ -670,6 +677,21 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js")
     .then(() => console.log("SW registrado"))
     .catch(err => console.log("Erro SW", err));
+}
+
+
+
+function controlarBotao(){
+  const frame = document.getElementById("frame");
+  const botao = document.querySelector(".menu-float-btn");
+
+  const pagina = frame.src;
+
+  if(pagina.includes("inicio/dashboard.html")){
+    botao.style.display = "flex";
+  }else{
+    botao.style.display = "none";
+  }
 }
 </script>
 
