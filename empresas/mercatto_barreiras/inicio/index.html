@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>OTTAVIO SYSTEM • Controle Total da Sua Empresa</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+
+  
+/* ===== BASE ===== */
+:root{
+--bg:#f8fafc;
+--card:#ffffff;
+--border:#e2e8f0;
+
+--text:#0f172a;
+--muted:#64748b;
+
+--primary:#2563eb;
+--primary-dark:#1e40af;
+--success:#16a34a;
+--danger:#dc2626;
+
+--radius:18px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+font-family:Inter;
+background:var(--bg);
+color:var(--text);
+}
+
+/* ===== HEADER ===== */
+.header{
+position:sticky;
+top:0;
+background:#fff;
+border-bottom:1px solid var(--border);
+padding:16px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+z-index:10;
+}
+
+.logo{
+font-weight:900;
+font-size:20px;
+}
+
+.cta-top{
+background:var(--primary);
+color:#fff;
+padding:10px 16px;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+}
+
+/* ===== HERO ===== */
+.hero{
+display:flex;
+gap:40px;
+padding:70px 40px;
+align-items:center;
+}
+
+.hero-left{
+flex:1;
+}
+
+.hero-title{
+font-size:48px;
+font-weight:900;
+line-height:1.1;
+}
+
+.hero-title span{
+color:var(--primary);
+}
+
+.hero-desc{
+margin-top:20px;
+color:var(--muted);
+max-width:520px;
+font-size:16px;
+}
+
+.hero-cta{
+margin-top:30px;
+display:flex;
+gap:10px;
+}
+
+.btn{
+padding:14px 20px;
+border-radius:12px;
+border:none;
+cursor:pointer;
+font-weight:600;
+}
+
+.btn-primary{
+background:var(--primary);
+color:#fff;
+}
+
+.btn-secondary{
+background:#fff;
+border:1px solid var(--border);
+}
+
+/* ===== LOGIN ===== */
+.login{
+width:380px;
+background:#fff;
+border:1px solid var(--border);
+border-radius:18px;
+padding:25px;
+box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.login h2{
+margin-bottom:15px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:10px;
+border-radius:10px;
+border:1px solid var(--border);
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:var(--primary);
+color:#fff;
+font-weight:700;
+cursor:pointer;
+}
+
+.error{
+color:var(--danger);
+font-size:13px;
+margin-top:10px;
+}
+
+/* ===== SECTIONS ===== */
+.section{
+padding:70px 40px;
+}
+
+.section h3{
+font-size:30px;
+margin-bottom:30px;
+}
+
+/* ===== GRID ===== */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:20px;
+}
+
+/* ===== CARD ===== */
+.card{
+background:#fff;
+border:1px solid var(--border);
+border-radius:16px;
+padding:24px;
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-8px);
+box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.card b{
+display:block;
+font-size:18px;
+margin-bottom:10px;
+}
+
+.card span{
+font-size:14px;
+color:var(--muted);
+line-height:1.5;
+}
+
+/* ===== BENEFITS ===== */
+.benefits{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.benefit{
+background:#fff;
+border:1px solid var(--border);
+padding:24px;
+border-radius:16px;
+text-align:center;
+}
+
+/* ===== CTA FINAL ===== */
+.cta{
+background:linear-gradient(135deg,#2563eb,#1e40af);
+color:#fff;
+padding:60px;
+border-radius:20px;
+text-align:center;
+}
+
+.cta h3{
+font-size:32px;
+margin-bottom:15px;
+}
+
+.cta p{
+opacity:.9;
+margin-bottom:20px;
+}
+
+/* ===== FOOTER ===== */
+.footer{
+padding:40px;
+text-align:center;
+font-size:13px;
+color:var(--muted);
+}
+
+/* MOBILE */
+@media(max-width:900px){
+.hero{
+flex-direction:column;
+}
+.login{
+width:100%;
+}
+.benefits{
+grid-template-columns:1fr;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+<div class="logo">OTTAVIO SYSTEM</div>
+<div class="cta-top">Começar agora</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+
+<div class="hero-left">
+
+<div class="hero-title">
+Pare de perder dinheiro na sua operação.<br>
+<span>Tenha controle total.</span>
+</div>
+
+<div class="hero-desc">
+O OTTAVIO SYSTEM integra atendimento, pedidos, delivery e automação em um único sistema.  
+Você vende mais, erra menos e ganha escala.
+</div>
+
+<div class="hero-cta">
+
+<button class="btn btn-primary">
+Ver como funciona
+</button>
+
+<button class="btn btn-secondary">
+Explorar recursos
+</button>
+
+<button class="btn btn-secondary" onclick="scrollToLogin()">
+Login
+</button>
+
+</div>
+
+</div>
+
+<!-- LOGIN -->
+<div class="login">
+
+<h2>Acessar sistema</h2>
+
+<input id="email" placeholder="Email">
+<input id="senha" type="password" placeholder="Senha">
+
+<button onclick="login()">Entrar</button>
+
+<div onclick="recuperar()" style="margin-top:10px;font-size:13px;color:#64748b;cursor:pointer">
+Esqueci minha senha
+</div>
+
+<div id="erro" class="error"></div>
+
+</div>
+
+</div>
+
+<!-- PRODUTOS -->
+<div class="section">
+
+<h3>Uma plataforma, todos os sistemas que você precisa</h3>
+
+<div class="grid">
+
+<div class="card">
+<b>🤖 Atendimento Inteligente</b>
+<span>Responda clientes automaticamente no WhatsApp e aumente suas vendas sem precisar de mais funcionários.</span>
+</div>
+
+<div class="card">
+<b>🛵 Delivery Completo</b>
+<span>Receba pedidos, acompanhe status e organize sua operação de delivery sem erros.</span>
+</div>
+
+<div class="card">
+<b>📊 Dashboard em Tempo Real</b>
+<span>Veja exatamente o que está acontecendo na sua empresa agora.</span>
+</div>
+
+<div class="card">
+<b>🛒 Gestão de Pedidos</b>
+<span>Controle todos os pedidos do início ao fim com organização total.</span>
+</div>
+
+<div class="card">
+<b>📲 Integração com WhatsApp</b>
+<span>Centralize toda comunicação com seus clientes.</span>
+</div>
+
+<div class="card">
+<b>⚙️ Automação Total</b>
+<span>Reduza trabalho manual e elimine erros operacionais.</span>
+</div>
+
+</div>
+
+</div>
+
+<!-- BENEFÍCIOS -->
+<div class="section">
+
+<h3>Por que empresas estão migrando para o OTTAVIO SYSTEM?</h3>
+
+<div class="benefits">
+
+<div class="benefit">📈 Aumenta vendas automaticamente</div>
+<div class="benefit">⏱ Economiza tempo operacional</div>
+<div class="benefit">💰 Reduz erros e prejuízos</div>
+<div class="benefit">📊 Controle total da operação</div>
+<div class="benefit">🤖 Automação inteligente</div>
+<div class="benefit">🚀 Escala seu negócio</div>
+
+</div>
+
+</div>
+
+<!-- CTA FINAL -->
+<div class="section">
+<div class="cta">
+
+<h3>Pronto para transformar sua empresa?</h3>
+
+<p>Entre agora e tenha controle total da sua operação.</p>
+
+<button class="btn btn-primary">Começar agora</button>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+© OTTAVIO SYSTEM • Plataforma Inteligente
+</div>
+
+<script>
+
+/* ===== CONFIG ===== */
+const SUPABASE = window.supabase.createClient(
+  "https://fcehmjmtxqmrjkuqlkay.supabase.co",
+  "sb_publishable_iCDWHsq6EguNauQPP49JCg_jUNcz30o"
+);
+
+/* ===== LOGIN REAL ===== */
+async function login(){
+
+const email = document.getElementById('email').value.trim();
+const senha = document.getElementById('senha').value.trim();
+const erro = document.getElementById('erro');
+
+erro.innerText = "";
+
+/* validação básica */
+if(!email || !senha){
+erro.innerText = "Preencha email e senha";
+return;
+}
+
+/* LOGIN SUPABASE */
+const { data, error } = await SUPABASE.auth.signInWithPassword({
+email,
+password: senha
+});
+
+if(error){
+erro.innerText = "Email ou senha inválidos";
+return;
+}
+
+/* sessão salva automaticamente pelo Supabase */
+
+/* BUSCAR EMPRESA */
+const { data: empresa, error: erroEmpresa } = await SUPABASE
+.from('empresas')
+.select('*')
+.eq('email', email)
+.single();
+
+if(erroEmpresa || !empresa){
+erro.innerText = "Empresa não encontrada";
+return;
+}
+
+/* STATUS */
+if(empresa.status !== 'ativo'){
+erro.innerText = "Acesso bloqueado";
+return;
+}
+
+/* SALVAR CONFIG DINÂMICA */
+localStorage.setItem("SUPABASE_URL", empresa.supabase_url);
+localStorage.setItem("SUPABASE_KEY", empresa.supabase_anon_key);
+localStorage.setItem("EMPRESA_ID", empresa.id);
+
+/* REDIRECIONA */
+window.location.href = "home.html";
+
+}
+
+/* ===== RECUPERAR SENHA ===== */
+async function recuperar(){
+
+const email = document.getElementById('email').value;
+
+if(!email){
+alert("Digite o email");
+return;
+}
+
+const { error } = await SUPABASE.auth.resetPasswordForEmail(email,{
+redirectTo: window.location.origin + "/reset.html"
+});
+
+if(error){
+alert("Erro ao enviar email");
+return;
+}
+
+alert("Email enviado com sucesso");
+
+}
+
+/* ===== SCROLL LOGIN ===== */
+function scrollToLogin(){
+document.querySelector('.login').scrollIntoView({
+behavior: 'smooth'
+});
+}
+
+/* ===== AUTO LOGIN (SE JÁ LOGADO) ===== */
+async function checkSession(){
+
+const { data } = await SUPABASE.auth.getSession();
+
+if(data.session){
+window.location.href = "home.html";
+}
+
+}
+
+checkSession();
+
+</script>
+
+</body>
+</html>
