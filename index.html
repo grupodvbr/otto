@@ -687,11 +687,18 @@ function controlarBotao(){
 
   const pagina = frame.src;
 
-  if(pagina.includes("inicio/dashboard.html")){
-    botao.style.display = "flex";
-  }else{
-    botao.style.display = "none";
-  }
+  const paginasPermitidas = [
+    "inicio/dashboard.html",
+    "empresas/mercatto_barreiras/index.html",
+    "inicio/relatorio.html",
+    "inicio/financeiro.html",
+    "inicio/estoque.html",
+    "inicio/resumo.html"
+  ];
+
+  const mostrar = paginasPermitidas.some(p => pagina.includes(p));
+
+  botao.style.display = mostrar ? "flex" : "none";
 }
 </script>
 
