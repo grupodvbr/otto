@@ -709,18 +709,22 @@ function controlarBotao(){
 
 let lastTap = 0;
 
-document.addEventListener("click", function(e){
-
+function detectarDuploClique(){
   const agora = new Date().getTime();
   const diff = agora - lastTap;
 
   if(diff < 300){
-    toggleMobileMenu(); // abre/fecha menu
+    toggleMobileMenu();
   }
 
   lastTap = agora;
-});
+}
 
+// mobile
+document.addEventListener("touchend", detectarDuploClique);
+
+// desktop
+document.addEventListener("dblclick", detectarDuploClique);
 
 
 
