@@ -15,7 +15,6 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 module.exports = async function handler(req, res){
 
 try{
-
 /* ================= AUTORIZAÇÃO ================= */
 
 if(req.headers.authorization !== `Bearer ${ADMIN_TOKEN}`){
