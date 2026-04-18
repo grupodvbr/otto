@@ -406,6 +406,38 @@ iframe{
 .empresa-item:hover img{
   filter:brightness(0) invert(1);
 }
+
+.menu-float-btn{
+  position:fixed;
+  top:16px;
+  left:16px;
+
+  width:44px;
+  height:44px;
+
+  background:#fff;
+  border-radius:12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:22px;
+  color:#000;
+
+  cursor:pointer;
+  z-index:100;
+
+  box-shadow:0 6px 20px rgba(0,0,0,.15);
+  transition:.2s;
+}
+
+.menu-float-btn:hover{
+  transform:scale(1.05);
+}
+
+
+  
 </style>
 </head>
 
@@ -640,5 +672,9 @@ if ("serviceWorker" in navigator) {
     .catch(err => console.log("Erro SW", err));
 }
 </script>
+
+  <div class="menu-float-btn" onclick="toggleMobileMenu()">
+  <i class="ri-menu-line"></i>
+</div>
 </body>
 </html>
