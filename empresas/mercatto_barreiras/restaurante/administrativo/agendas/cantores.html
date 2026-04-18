@@ -462,6 +462,80 @@ min-height:80px;
 .evento{
 gap:16px;
 }
+
+/* ================= CALENDARIO LIGHT PREMIUM ================= */
+
+.flatpickr-calendar{
+  background:#ffffff;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+  border:1px solid #e5e7eb;
+  font-family:'Poppins',sans-serif;
+}
+
+.flatpickr-months{
+  background:#ffffff;
+  border-bottom:1px solid #eee;
+}
+
+.flatpickr-current-month{
+  color:#111827;
+  font-weight:600;
+}
+
+.flatpickr-weekdays{
+  background:#fafafa;
+}
+
+.flatpickr-weekday{
+  color:#6b7280;
+  font-weight:500;
+}
+
+.flatpickr-day{
+  border-radius:10px;
+  color:#111827;
+}
+
+/* HOVER */
+.flatpickr-day:hover{
+  background:#e5e7eb;
+}
+
+/* DIA SELECIONADO */
+.flatpickr-day.selected{
+  background:#2563eb;
+  color:#fff;
+  border:none;
+}
+
+/* HOJE (BORDA AZUL) */
+.flatpickr-day.today{
+  border:2px solid #2563eb;
+}
+
+/* RANGE */
+.flatpickr-day.startRange,
+.flatpickr-day.endRange{
+  background:#2563eb;
+  color:#fff;
+}
+
+/* SETAS */
+.flatpickr-prev-month,
+.flatpickr-next-month{
+  fill:#374151;
+}
+
+/* INPUT VISUAL */
+#f_data{
+  background:#fff;
+  color:#111827;
+  border:1px solid #d1d5db;
+}
+
+
+  
 </style>
 
 </head>
@@ -500,8 +574,7 @@ gap:16px;
 
 <div>
 <label>Data</label>
-<input type="date" id="f_data">
-</div>
+<input type="text" id="f_data" placeholder="Selecionar data"></div>
 
 <div>
 <label>Hora</label>
@@ -557,7 +630,36 @@ const sb = supabase.createClient(
 "https://dxkszikemntfusfyrzos.supabase.co",
 "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
+/* ================= CALENDARIO DATA (AQUI 👇) ================= */
 
+flatpickr("#f_data",{
+  dateFormat:"Y-m-d",
+  locale:"pt",
+  defaultDate:"today",
+
+  onReady: function(selectedDates, dateStr, instance){
+
+    setTimeout(()=>{
+
+      const hoje = new Date()
+
+      instance.calendarContainer
+        .querySelectorAll(".flatpickr-day")
+        .forEach(d => {
+
+          if(d.dateObj &&
+             d.dateObj.toDateString() === hoje.toDateString()){
+
+            d.classList.add("today")
+
+          }
+
+        })
+
+    },50)
+
+  }
+})
 /* EMPRESAS */
 
 let EMPRESA = "Mercatto Delícia"
