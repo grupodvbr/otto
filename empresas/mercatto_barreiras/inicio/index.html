@@ -416,7 +416,6 @@ if(!email || !senha){
   return;
 }
 
-/* LOGIN VIA TABELA */
 const { data, error } = await SUPABASE.rpc('login_usuario', {
   p_email: email,
   p_senha: senha
@@ -429,7 +428,6 @@ if(error || !data || data.length === 0){
 
 const user = data[0];
 
-/* BUSCAR EMPRESA */
 const { data: empresa, error: erroEmpresa } = await SUPABASE
 .from('empresas')
 .select('*')
@@ -446,18 +444,14 @@ if(empresa.status !== 'ativo'){
   return;
 }
 
-/* SALVAR SESSÃO */
 localStorage.setItem("SUPABASE_URL", empresa.supabase_url);
 localStorage.setItem("SUPABASE_KEY", empresa.supabase_anon_key);
 localStorage.setItem("EMPRESA_ID", empresa.id);
-
 localStorage.setItem("USUARIO_ID", user.id);
 localStorage.setItem("USUARIO_NOME", user.nome);
 
-/* REDIRECIONAR */
 window.location.href = "home.html";
 }
-
 checkSession();
 
 </script>
