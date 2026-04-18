@@ -521,17 +521,17 @@ function toggleMobileMenu(){
 }
 
 function openPage(page){
-  const base = "/otto/empresas/mercatto_barreiras/";
-  document.getElementById("frame").src = base + page;
+  document.getElementById("frame").src = page;
 
   localStorage.setItem("paginaAtual", page);
   highlightMenu(page);
 
-  // 🔥 FECHA SEMPRE (desktop + mobile)
   document.querySelector(".sidebar").classList.remove("open");
   document.querySelector(".overlay").classList.remove("active");
 }
 
+
+  
 function highlightMenu(page){
 document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
 document.querySelectorAll(".submenu a").forEach(i=>i.classList.remove("active-sub"));
