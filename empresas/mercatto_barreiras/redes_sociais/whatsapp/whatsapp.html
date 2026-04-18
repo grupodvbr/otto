@@ -727,12 +727,15 @@ const clientes = Object.values(map)
 /* RENDER */
 
 const container = document.getElementById("clientes")
-container.innerHTML = ""
+
+if(container.childElementCount > 0){
+  return // 🔥 NÃO recria tudo toda hora
+}
 
 for (const c of clientes){
 
   const div = document.createElement("div")
-
+div.setAttribute("data-fone", c.telefone)
   const inicial = c.telefone.slice(-2)
 
   const pausado = await verificarPausa(c.telefone)
@@ -893,8 +896,7 @@ c.style.display=texto.includes(filtro)?"flex":"none"
 })
 
 
-setInterval(carregarClientes, 5000)
-  
+setInterval(atualizarPreview, 5000)  
   function abrirRepertorio(){
 
 const frame = document.getElementById("frameRepertorio")
@@ -1256,7 +1258,28 @@ if(sendBox){
 
 
   
+async function atualizarPreview(){
 
+  const {data} = await db
+  .from("conversas_whatsapp")
+  .select("telefone,mensagem")
+  .order("created_at",{ascending:false})
+  .limit(20)
+
+  if(!data) return
+
+  data.forEach(m=>{
+
+    const el = document.querySelector(`[data-fone="${m.telefone}"]`)
+
+    if(el){
+      const preview = el.querySelector(".preview")
+      if(preview) preview.innerText = m.mensagem
+    }
+
+  })
+
+}
 
 
 
