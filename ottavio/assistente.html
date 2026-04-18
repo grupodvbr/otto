@@ -19,12 +19,14 @@
 
 /* BODY */
 body{
-font-family:Inter;
-background:#e5ddd5;
-height:100vh;
-display:flex;
-flex-direction:column;
-overflow:hidden;
+  font-family:Inter;
+  background:#e5ddd5;
+
+  height:100dvh;
+  overflow:hidden;
+
+  position:fixed;
+  width:100%;
 }
 
 /* HEADER */
@@ -84,16 +86,23 @@ color:#6b7280;
 
 /* CHAT */
 .chat{
-flex:1;
-overflow:auto;
-padding:15px;
-display:flex;
-flex-direction:column;
-gap:10px;
-background-image:url("https://i.imgur.com/2nCt3Sbl.png");
-background-size:cover;
-scroll-behavior:smooth;
-  height:100dvh;
+  position:fixed;
+
+  top:54px; /* altura do header */
+  bottom:70px; /* espaço do input */
+
+  left:0;
+  right:0;
+
+  overflow:auto;
+
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+
+  background-image:url("https://i.imgur.com/2nCt3Sbl.png");
+  background-size:cover;
 }
 
 /* MSG */
@@ -132,12 +141,20 @@ margin-top:4px;
 
 /* INPUT */
 .input-area{
-display:flex;
-gap:8px;
-padding:10px;
-background:#f0f2f5;
-border-top:1px solid #e5e7eb;
-align-items:center;
+  position:fixed;
+
+  bottom:0;
+  left:0;
+  width:100%;
+
+  display:flex;
+  gap:8px;
+  padding:10px;
+
+  background:#f0f2f5;
+  border-top:1px solid #e5e7eb;
+
+  z-index:100;
 }
 
 textarea{
