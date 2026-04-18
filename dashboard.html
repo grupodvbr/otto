@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<title>Dashboard OTTO</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{
+  background:#0f172a;
+  color:#fff;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* HEADER */
+.header{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  background:#020617;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+.title{
+  font-size:16px;
+  font-weight:700;
+}
+
+.status{
+  font-size:12px;
+  color:#22c55e;
+}
+
+/* CONTAINER */
+.container{
+  position:absolute;
+  top:56px;
+  bottom:0;
+  left:0;
+  right:0;
+
+  overflow:auto;
+  padding:16px;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* SCROLL HIDDEN */
+.container::-webkit-scrollbar{display:none}
+
+/* CARDS */
+.card{
+  background:#020617;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:14px;
+}
+
+/* KPI GRID */
+.kpis{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.kpi{
+  background:linear-gradient(145deg,#020617,#0f172a);
+  border-radius:12px;
+  padding:12px;
+}
+
+.kpi-title{
+  font-size:11px;
+  color:#94a3b8;
+}
+
+.kpi-value{
+  font-size:18px;
+  font-weight:700;
+  margin-top:4px;
+}
+
+/* ANALISE */
+.analysis{
+  font-size:13px;
+  line-height:1.4;
+  color:#cbd5f5;
+}
+
+/* STATUS */
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+}
+
+.ok{background:#16a34a33;color:#22c55e}
+.warn{background:#f59e0b33;color:#facc15}
+.bad{background:#ef444433;color:#ef4444}
+
+/* LIST */
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+}
+
+/* GRÁFICO SIMPLES */
+.bar{
+  height:6px;
+  border-radius:10px;
+  background:#1e293b;
+  margin-top:4px;
+}
+
+.fill{
+  height:6px;
+  border-radius:10px;
+  background:#22c55e;
+}
+
+/* ALERTAS */
+.alert{
+  font-size:12px;
+  color:#f87171;
+}
+
+/* RESPONSIVO */
+@media(min-width:700px){
+  .kpis{grid-template-columns:1fr 1fr 1fr 1fr}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="title">Dashboard Analítico</div>
+  <div class="status">● Online</div>
+</div>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div class="card">
+    <div class="kpis">
+
+      <div class="kpi">
+        <div class="kpi-title">Faturamento</div>
+        <div class="kpi-value">R$ 12.430</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-title">Clientes</div>
+        <div class="kpi-value">284</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-title">Ticket Médio</div>
+        <div class="kpi-value">R$ 43,70</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-title">Reservas</div>
+        <div class="kpi-value">92</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="card">
+    <div class="analysis">
+      Sistema operando dentro do esperado.
+      <br><br>
+      Conversão acima da média e crescimento de vendas em horário noturno.
+    </div>
+
+    <br>
+
+    <span class="badge ok">Saudável</span>
+  </div>
+
+  <!-- DESEMPENHO -->
+  <div class="card">
+
+    <div class="item">
+      <span>Almoço</span>
+      <span>68%</span>
+    </div>
+    <div class="bar"><div class="fill" style="width:68%"></div></div>
+
+    <div class="item">
+      <span>Jantar</span>
+      <span>92%</span>
+    </div>
+    <div class="bar"><div class="fill" style="width:92%"></div></div>
+
+    <div class="item">
+      <span>Delivery</span>
+      <span>54%</span>
+    </div>
+    <div class="bar"><div class="fill" style="width:54%"></div></div>
+
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="card">
+    <div class="analysis">⚠ Pontos de atenção:</div>
+
+    <div class="list">
+      <div class="alert">• Desperdício elevado no buffet</div>
+      <div class="alert">• Estoque alto em bebidas</div>
+    </div>
+  </div>
+
+  <!-- RECOMENDAÇÕES -->
+  <div class="card">
+    <div class="analysis">
+      📊 Recomendações:
+      <br><br>
+      • Reduzir produção no almoço  
+      • Criar promoção para bebidas  
+      • Incentivar reservas antecipadas  
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
