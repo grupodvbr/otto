@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
 <style>
 
 /* ================= BASE ================= */
@@ -462,89 +462,6 @@ min-height:80px;
 .evento{
 gap:16px;
 }
-
-/* ================= CALENDARIO LIGHT PREMIUM ================= */
-
-.flatpickr-calendar{
-  background:#ffffff;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.15);
-  border:1px solid #e5e7eb;
-  font-family:'Poppins',sans-serif;
-}
-
-.flatpickr-months{
-  background:#ffffff;
-  border-bottom:1px solid #eee;
-}
-
-.flatpickr-current-month{
-  color:#111827;
-  font-weight:600;
-}
-
-.flatpickr-weekdays{
-  background:#fafafa;
-}
-
-.flatpickr-weekday{
-  color:#6b7280;
-  font-weight:500;
-}
-
-.flatpickr-day{
-  border-radius:10px;
-  color:#111827;
-}
-
-/* HOVER */
-.flatpickr-day:hover{
-  background:#e5e7eb;
-}
-
-/* DIA SELECIONADO */
-.flatpickr-day.selected{
-  background:#2563eb;
-  color:#fff;
-  border:none;
-}
-
-/* HOJE (BORDA AZUL) */
-.flatpickr-day.today{
-  border:2px solid #2563eb;
-}
-
-/* RANGE */
-.flatpickr-day.startRange,
-.flatpickr-day.endRange{
-  background:#2563eb;
-  color:#fff;
-}
-
-/* SETAS */
-.flatpickr-prev-month,
-.flatpickr-next-month{
-  fill:#374151;
-}
-
-/* INPUT VISUAL */
-#f_data{
-  background:#fff;
-  color:#111827;
-  border:1px solid #d1d5db;
-}
-
-.flatpickr-day.today{
-  border:2px solid #2563eb;
-  font-weight:600;
-}
-
-.flatpickr-day.selected{
-  background:#2563eb;
-  color:#fff;
-  box-shadow:0 4px 10px rgba(37,99,235,.3);
-}
-  
 </style>
 
 </head>
@@ -583,7 +500,8 @@ gap:16px;
 
 <div>
 <label>Data</label>
-<input type="text" id="f_data" placeholder="Selecionar data"></div>
+<input type="date" id="f_data">
+</div>
 
 <div>
 <label>Hora</label>
@@ -639,24 +557,7 @@ const sb = supabase.createClient(
 "https://dxkszikemntfusfyrzos.supabase.co",
 "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
-/* ================= CALENDARIO DATA (AQUI 👇) ================= */
 
-flatpickr("#f_data",{
-  dateFormat:"Y-m-d",
-  locale:"pt",
-  defaultDate:"today",
-  disableMobile:true,
-
-  onDayCreate: function(dObj, dStr, fp, dayElem){
-
-    const hoje = new Date()
-
-    if(dayElem.dateObj.toDateString() === hoje.toDateString()){
-      dayElem.classList.add("today")
-    }
-
-  }
-})
 /* EMPRESAS */
 
 let EMPRESA = "Mercatto Delícia"
@@ -668,34 +569,23 @@ let dataFim=null
 /* CALENDARIO */
 
 flatpickr("#calendarBtn",{
-  mode:"range",
-  dateFormat:"Y-m-d",
-  locale:"pt",
-  disableMobile:true,
 
-  onDayCreate: function(dObj, dStr, fp, dayElem){
+mode:"range",
 
-    const data = dayElem.dateObj.toISOString().split("T")[0]
+dateFormat:"Y-m-d",
 
-    // 🔥 VER SE TEM EVENTO NESSE DIA
-    if(window.datasComEventos && window.datasComEventos.includes(data)){
-      dayElem.innerHTML += "<span style='display:block;width:6px;height:6px;background:#facc15;border-radius:50%;margin:2px auto'></span>"
-    }
+onClose:(dates)=>{
 
-  },
+if(dates.length===2){
 
-  onClose:(dates)=>{
+dataInicio=dates[0]
+dataFim=dates[1]
 
-    if(dates.length===2){
+carregarAgenda()
 
-      dataInicio=dates[0]
-      dataFim=dates[1]
+}
 
-      carregarAgenda()
-
-    }
-
-  }
+}
 
 })
 
@@ -757,8 +647,6 @@ async function carregarAgenda(){
 
 lista.innerHTML=""
 
-window.datasComEventos = [] // 🔥 AQUI
-
 let {data}=await sb
 .from("agenda_musicos")
 .select("*")
@@ -770,13 +658,8 @@ const grupos={}
 
 data.forEach(ev=>{
 
-// 🔥 MARCAR DIAS COM EVENTO
-if(!window.datasComEventos.includes(ev.data)){
-  window.datasComEventos.push(ev.data)
-}
-
 const d = new Date(ev.data + "T00:00")
-
+  
 if(
    d >= dataInicio &&
    (dataFim === null || d <= dataFim)
@@ -788,6 +671,53 @@ grupos[ev.data].push(ev)
 }
 
 })
+
+Object.keys(grupos).forEach(dataStr=>{
+
+const dataObj = new Date(dataStr + "T00:00")
+
+const itens=grupos[dataStr].map(ev=>`
+<div class="linha" onclick="editar('${ev.id}')">
+
+<div class="evento">
+
+<img class="foto" src="${ev.foto||''}">
+
+<div>
+
+<div class="texto">${ev.cantor}</div>
+<div class="estilo">${ev.estilo||''}</div>
+
+</div>
+
+</div>
+
+<div class="hora">${ev.hora}</div>
+
+</div>
+
+`).join("")
+
+lista.innerHTML+=`
+
+<div class="grupo">
+
+<div class="dia">
+
+${dataObj.getDate()}
+<small>${dataObj.toLocaleString('pt-BR',{month:'short'})}</small>
+
+</div>
+
+<div class="itens">${itens}</div>
+
+</div>
+
+`
+
+})
+
+}
 
 /* EDITAR */
 
@@ -968,20 +898,6 @@ btn.disabled = false
 })
 
 }
-
-
-
-
-
-  document.getElementById("f_data").addEventListener("focus", function(){
-  this._flatpickr.open()
-})
-
-
-
-
-
-  
 </script>
 <div class="loading" id="loading">
 
