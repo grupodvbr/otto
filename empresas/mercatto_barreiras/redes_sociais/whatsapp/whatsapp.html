@@ -19,12 +19,11 @@ viewport-fit=cover">
 <style>
 
 :root{
---bg:#075e54; 
---sidebar:#f4f4f5;
---chat:#075e54; 
---card:#ffffff;
---border:#e5e7eb;
-
+--bg:#0b141a;
+--sidebar:#0b141a;
+--chat:#0b141a;
+--card:transparent;
+--border:rgba(255,255,255,0.06);
 --text:#111827;
 --muted:#6b7280;
 
@@ -71,29 +70,26 @@ body{
 /* HEADER */
 
 .header{
-padding:20px;
+padding:20px 16px 10px;
 font-weight:800;
-font-size:18px;
-color:#111827;
-border-bottom:1px solid var(--border);
+font-size:28px;
+color:#e9edef;
+border:none;
 }
 
 /* SEARCH */
 
 .search{
-padding:14px;
+padding:10px 12px;
 border-bottom:1px solid var(--border);
 }
 
 .search input{
-width:100%;
-padding:12px 14px;
-border-radius:12px;
-border:1px solid var(--border);
-background:white;
-color:#111827;
-font-size:14px;
-outline:none;
+background:#202c33;
+border:none;
+color:#e9edef;
+border-radius:999px;
+padding:10px 16px;
 }
 
 /* CLIENT LIST */
@@ -111,28 +107,23 @@ padding-bottom:10px;
   gap:10px;
   align-items:center;
 
-  height:72px;          /* 🔥 ALTURA FIXA */
-  min-height:72px;
-  max-height:72px;
+  height:72px;
 
-  padding:8px 10px;
-  position:relative; /* 🔥 ESSENCIAL */
-  background:white;
-  margin:4px 8px;
-  border-radius:10px;
-  border-bottom:1px solid #e5e7eb;
+  padding:10px 16px;
+  position:relative;
+  background:transparent;
+  margin:0;
+  border-radius:0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
 
- overflow:visible;      /* 🔥 impede estourar */
+  overflow:visible;
 }
 
 .client:hover{
-  background:#f9fafb;
+  background:#202c33;
   transform:none;
 }
 
-.client:hover{
-transform:none;
-}
 
 /* PAUSADO */
 
@@ -146,7 +137,7 @@ background:#fee2e2;
   width:40px;
   height:40px;
   border-radius:50%;
-  background:#e5e7eb;
+  background:#202c33;
 
   display:flex;
   align-items:center;
@@ -160,14 +151,13 @@ background:#fee2e2;
 
 /* TEXTOS */
 .phone{
-  font-weight:600;
-  font-size:13px;
-  color:#111827;
+font-size:15px;
+font-weight:600;
+color:#e9edef;
 }
 .preview{
-  font-size:12px;
-  color:#6b7280;
-
+  font-size:13px;
+  color:#8696a0;
   display:-webkit-box;
   -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
@@ -187,7 +177,7 @@ background:#fee2e2;
 }
 
 .status.on{
-color:#16a34a;
+color:#22c55e;
 }
 
 .status.off{
@@ -201,7 +191,7 @@ color:#dc2626;
   cursor:pointer;
   font-size:16px;
   opacity:.5;
-  color:#111827;
+  color:#8696a0;
 
   width:36px;
   height:36px;
@@ -495,8 +485,6 @@ background:#f3f4f6;
 }
   
 .sidebar{
-  background:#f4f4f5;
-  border-right:1px solid #e5e7eb;
   display:flex;
   flex-direction:column;
 }
@@ -515,7 +503,7 @@ background:#f3f4f6;
 
 
 .menuOverlay{
-position:absolute;
+position:fixed;
 inset:0;
 background:rgba(0,0,0,0.35);
 backdrop-filter:blur(8px);
@@ -615,10 +603,8 @@ margin-top:6px;
 .client{
   -webkit-tap-highlight-color: transparent;
 }
-
 .client:active{
-  transform:scale(0.98);
-  opacity:0.8;
+  background:#202c33;
 }
 
 @media (max-width:768px){
@@ -691,6 +677,16 @@ margin-top:6px;
 body{
   justify-content:center;
 }
+
+.hora{
+  font-size:12px;
+  color:#8696a0;
+}
+
+
+
+
+
   
 </style>
 </head>
@@ -891,8 +887,8 @@ div.innerHTML = `
   </div>
 
   <div style="margin-left:auto;margin-right:6px">
-    <div class="hora" style="font-size:11px;color:#6b7280">
-      ${hora}
+<div class="hora">
+${hora}
     </div>
   </div>
 
@@ -1510,15 +1506,15 @@ if(previewEl){
 }
 
 // 🔴 CONTROLE DA BOLINHA (CORRETO)
-let notif = card.querySelector(".notificacao")
-
+let notif = card.querySelector(".badge")
 // 🔥 só mostra bolinha se última mensagem for do cliente
 if(c.role === "user"){
 
   if(!notif){
     const dot = document.createElement("div")
-    dot.className = "notificacao"
-    card.appendChild(dot)
+dot.className = "badge"
+dot.innerText = "1"
+  card.appendChild(dot)
   }
 
 }else{
