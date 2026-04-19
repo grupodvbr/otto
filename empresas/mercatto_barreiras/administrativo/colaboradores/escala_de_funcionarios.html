@@ -12,15 +12,25 @@
 <style>
 
 :root{
-  --bg:#f3f4f6;
+  --bg:#f4f6f9;
   --card:#ffffff;
   --border:#e5e7eb;
+
   --text:#111827;
   --muted:#6b7280;
+
   --primary:#2563eb;
+  --primary-light:#eff6ff;
+  --primary-dark:#1d4ed8;
+
+  --radius:14px;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
 }
 
-*{box-sizing:border-box;}
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
 
 body{
   margin:0;
@@ -34,49 +44,75 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:16px;
-  background:#fff;
+  padding:16px 20px;
+  background:var(--card);
   border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 
+header b{
+  font-size:16px;
+  text-transform:capitalize;
+}
+
+/* BOTÕES */
 button{
   background:var(--primary);
-  color:white;
+  color:#fff;
   border:none;
   padding:10px 14px;
   border-radius:10px;
   cursor:pointer;
   font-weight:600;
+  transition:.2s;
+}
+
+button:hover{
+  background:var(--primary-dark);
+  transform:translateY(-1px);
 }
 
 /* CALENDARIO */
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:10px;
-  padding:15px;
+  gap:12px;
+  padding:20px;
 }
 
 .day{
   background:var(--card);
-  border-radius:12px;
-  padding:10px;
-  min-height:130px;
+  border-radius:var(--radius);
+  padding:12px;
+  min-height:140px;
   border:1px solid var(--border);
   cursor:pointer;
+  transition:.2s;
+  position:relative;
+}
+
+.day:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow);
 }
 
 .day-number{
   font-size:12px;
   color:var(--muted);
+  margin-bottom:6px;
 }
 
+/* ESCALA */
 .item-escala{
-  margin-top:5px;
-  padding:4px 6px;
-  border-radius:6px;
+  margin-top:6px;
+  padding:6px 8px;
+  border-radius:8px;
   font-size:11px;
-  background:#dbeafe;
+  background:var(--primary-light);
+  color:var(--primary-dark);
+  font-weight:600;
 }
 
 /* MODAL */
@@ -87,27 +123,94 @@ button{
   display:none;
   align-items:center;
   justify-content:center;
+  backdrop-filter:blur(4px);
 }
 
 .box{
-  background:white;
+  background:var(--card);
   padding:20px;
-  border-radius:14px;
-  width:480px;
+  border-radius:18px;
+  width:520px;
+  max-width:95%;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  animation:fadeIn .2s ease;
 }
 
+@keyframes fadeIn{
+  from{transform:scale(.95);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+/* FORM */
 .form{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:12px;
 }
 
-.form-full{grid-column:1/-1;}
+.form-full{
+  grid-column:1/-1;
+}
 
-input,select{
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.field label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+/* INPUTS */
+.field input,
+.field select{
   padding:10px;
-  border-radius:8px;
+  border-radius:10px;
   border:1px solid var(--border);
+  font-size:13px;
+  transition:.2s;
+  background:#fff;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:var(--primary);
+  outline:none;
+  box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+/* CHECKBOX */
+.checkbox-group{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:5px;
+}
+
+.checkbox-group label{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#f9fafb;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  cursor:pointer;
+  font-size:13px;
+  transition:.2s;
+}
+
+.checkbox-group label:hover{
+  background:var(--primary-light);
+  border-color:var(--primary);
+}
+
+.checkbox-group input{
+  accent-color:var(--primary);
+  cursor:pointer;
 }
 
 /* LISTA */
@@ -120,10 +223,17 @@ input,select{
 .item{
   background:#f9fafb;
   padding:8px;
-  border-radius:8px;
-  margin-top:5px;
+  border-radius:10px;
+  margin-top:6px;
   display:flex;
   justify-content:space-between;
+  align-items:center;
+  font-size:13px;
+  transition:.2s;
+}
+
+.item:hover{
+  background:#eef2ff;
 }
 
 /* PREVIEW */
@@ -131,79 +241,6 @@ input,select{
   margin-top:10px;
   font-size:12px;
   color:var(--muted);
-}
-
-
-
-/* MODAL PREMIUM */
-.box.premium{
-  width:520px;
-  max-width:95%;
-  border-radius:18px;
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
-  padding:20px;
-}
-
-/* HEADER */
-.header-modal{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-}
-
-.header-modal h2{
-  margin:0;
-  font-size:20px;
-}
-
-.header-modal span{
-  cursor:pointer;
-  font-size:18px;
-}
-
-/* SECTIONS */
-.section{
-  margin-top:15px;
-  padding-top:10px;
-  border-top:1px solid var(--border);
-}
-
-.section h4{
-  margin:0 0 10px 0;
-  font-size:13px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.5px;
-}
-
-/* CAMPOS */
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-
-.field label{
-  font-size:12px;
-  color:var(--muted);
-  font-weight:600;
-}
-
-.field input,
-.field select{
-  padding:10px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  font-size:13px;
-  transition:.2s;
-}
-
-.field input:focus,
-.field select:focus{
-  border-color:var(--primary);
-  outline:none;
-  box-shadow:0 0 0 2px rgba(37,99,235,.15);
 }
 
 /* AÇÕES */
@@ -215,24 +252,36 @@ input,select{
 }
 
 .btn{
-  padding:10px 14px;
+  padding:10px 16px;
   border-radius:10px;
   font-weight:600;
-  border:none;
   cursor:pointer;
+  border:none;
 }
 
 .btn.cancel{
   background:#e5e7eb;
+  color:#111;
 }
 
 .btn.save{
   background:var(--primary);
-  color:white;
+  color:#fff;
 }
 
+.btn.save:hover{
+  background:var(--primary-dark);
+}
 
-  
+/* SCROLL */
+::-webkit-scrollbar{
+  width:6px;
+}
+::-webkit-scrollbar-thumb{
+  background:#d1d5db;
+  border-radius:6px;
+}
+
 </style>
 </head>
 
@@ -252,113 +301,62 @@ input,select{
 <!-- MODAL ESCALA -->
 <div id="modal" class="modal">
   <div class="box">
-
     <h3 id="data"></h3>
 
     <select id="funcionario"></select>
-
     <input type="time" id="entrada">
     <input type="time" id="saida">
 
-    <button onclick="add()">Adicionar horário</button>
-
-    <div id="lista" class="lista"></div>
-
+    <button onclick="add()">Adicionar</button>
+    <div id="lista"></div>
     <button onclick="fechar()">Fechar</button>
   </div>
 </div>
 
-<!-- MODAL CADASTRO PREMIUM -->
+<!-- MODAL CADASTRO -->
 <div id="cadastro" class="modal">
-  <div class="box premium">
+  <div class="box">
 
-    <div class="header-modal">
-      <h2>Cadastro de Colaborador</h2>
-      <span onclick="fecharCadastro()">✕</span>
-    </div>
+    <h3>Cadastro de Colaborador</h3>
 
-    <!-- DADOS PESSOAIS -->
-    <div class="section">
-      <h4>Dados Pessoais</h4>
+    <div class="form">
+      <input class="form-full" id="nome" placeholder="Nome completo">
+      <input type="date" id="nascimento">
+      <input id="numero" placeholder="WhatsApp">
+      <select id="sexo">
+        <option value="">Sexo</option>
+        <option>MASCULINO</option>
+        <option>FEMININO</option>
+      </select>
 
-      <div class="form">
-        <div class="field form-full">
-          <label>Nome Completo *</label>
-          <input id="nome" required placeholder="Digite o nome completo">
-        </div>
+      <input type="date" id="contratacao">
 
-        <div class="field">
-          <label>Data de Nascimento *</label>
-          <input type="date" id="nascimento" required>
-        </div>
+      <select id="setor">
+        <option value="">Setor</option>
+        <option>COZINHA</option>
+        <option>SALÃO</option>
+        <option>BAR</option>
+      </select>
 
-        <div class="field">
-          <label>WhatsApp *</label>
-          <input id="numero" required placeholder="(77) 99999-9999">
-        </div>
+      <input id="funcao" placeholder="Função">
 
-        <div class="field">
-          <label>Sexo *</label>
-          <select id="sexo" required>
-            <option value="">Selecionar</option>
-            <option>MASCULINO</option>
-            <option>FEMININO</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- DADOS PROFISSIONAIS -->
-    <div class="section">
-      <h4>Dados Profissionais</h4>
-
-      <div class="form">
-        <div class="field">
-          <label>Data de Contratação *</label>
-          <input type="date" id="contratacao" required>
-        </div>
-
-        <div class="field">
-          <label>Setor *</label>
-          <select id="setor" required>
-            <option value="">Selecionar</option>
-            <option>COZINHA</option>
-            <option>SALÃO</option>
-            <option>BAR</option>
-            <option>CAIXA</option>
-            <option>ADMINISTRATIVO</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Função *</label>
-          <input id="funcao" required placeholder="Ex: Garçom, Cozinheiro...">
-        </div>
-
-        <div class="field">
-  <label>Dias de Folga *</label>
-
-  <div class="checkbox-group" id="folga">
-    <label><input type="checkbox" value="DOMINGO"> Domingo</label>
-    <label><input type="checkbox" value="SEGUNDA"> Segunda</label>
-    <label><input type="checkbox" value="TERÇA"> Terça</label>
-    <label><input type="checkbox" value="QUARTA"> Quarta</label>
-    <label><input type="checkbox" value="QUINTA"> Quinta</label>
-    <label><input type="checkbox" value="SEXTA"> Sexta</label>
-    <label><input type="checkbox" value="SÁBADO"> Sábado</label>
-  </div>
-</div>
+      <div class="form-full">
+        <label>Dias de Folga</label>
+        <div id="folga" class="checkbox-group">
+          <label><input type="checkbox" value="DOMINGO"> Dom</label>
+          <label><input type="checkbox" value="SEGUNDA"> Seg</label>
+          <label><input type="checkbox" value="TERÇA"> Ter</label>
+          <label><input type="checkbox" value="QUARTA"> Qua</label>
+          <label><input type="checkbox" value="QUINTA"> Qui</label>
+          <label><input type="checkbox" value="SEXTA"> Sex</label>
+          <label><input type="checkbox" value="SÁBADO"> Sab</label>
         </div>
       </div>
     </div>
 
-    <!-- PREVIEW -->
-    <div id="preview" class="preview"></div>
-
-    <!-- AÇÕES -->
     <div class="actions">
-      <button class="btn cancel" onclick="fecharCadastro()">Cancelar</button>
-      <button class="btn save" onclick="salvarFuncionario()">Salvar Colaborador</button>
+      <button onclick="fecharCadastro()">Cancelar</button>
+      <button onclick="salvarFuncionario()">Salvar</button>
     </div>
 
   </div>
@@ -376,7 +374,6 @@ let funcionarios=[]
 let escalas=[]
 let dataSelecionada=null
 
-/* FUNCIONARIOS */
 async function loadFuncionarios(){
   const {data}=await sb.from("funcionarios_mercatto").select("*")
   funcionarios=data||[]
@@ -387,21 +384,17 @@ async function loadFuncionarios(){
   })
 }
 
-/* ESCALA */
 async function loadEscala(){
   const {data}=await sb.from("escala_funcionarios").select("*")
   escalas=data||[]
 }
 
-/* CALENDARIO */
 async function render(){
   await loadEscala()
-
   calendar.innerHTML=""
 
   const ano=dataAtual.getFullYear()
   const mes=dataAtual.getMonth()
-
   mesEl.innerText=dataAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"})
 
   const dias=new Date(ano,mes+1,0).getDate()
@@ -411,34 +404,26 @@ async function render(){
 
     const d=document.createElement("div")
     d.className="day"
-    d.innerHTML=`<div class="day-number">${i}</div>`
+    d.innerHTML=`${i}`
 
     escalas.filter(e=>e.data===dataStr).forEach(e=>{
-      d.innerHTML+=`
-      <div class="item-escala">
-        ${e.nome}<br>
-        ${e.entrada} - ${e.saida}
-      </div>`
+      d.innerHTML+=`<div class="item-escala">${e.nome}</div>`
     })
 
     d.onclick=()=>abrir(dataStr)
-
     calendar.appendChild(d)
   }
 }
 
-/* ESCALA */
 function abrir(data){
   dataSelecionada=data
   modal.style.display="flex"
   dataEl.innerText=data
-  renderLista()
 }
 
 function fechar(){ modal.style.display="none" }
 
 async function add(){
-
   const f=funcionarios.find(x=>x.id==funcionario.value)
 
   await sb.from("escala_funcionarios").insert({
@@ -450,95 +435,67 @@ async function add(){
   })
 
   render()
-  renderLista()
 }
 
-function renderLista(){
-  lista.innerHTML=""
-  escalas.filter(e=>e.data===dataSelecionada).forEach(e=>{
-    lista.innerHTML+=`
-    <div class="item">
-      ${e.nome} (${e.entrada}-${e.saida})
-      <span onclick="remover('${e.id}')">❌</span>
-    </div>`
-  })
-}
-
-async function remover(id){
-  await sb.from("escala_funcionarios").delete().eq("id",id)
-  render()
-  renderLista()
-}
-
-/* CADASTRO */
 function abrirCadastro(){ cadastro.style.display="flex" }
 function fecharCadastro(){ cadastro.style.display="none" }
 
 async function salvarFuncionario(){
 
-if(
-  !nome.value ||
-  !nascimento.value ||
-  !contratacao.value ||
-  !setor.value ||
-  !funcao.value ||
-  folgasSelecionadas.length === 0 ||
-  !numero.value ||
-  !sexo.value
-){
-  alert("Preencha todos os campos obrigatórios")
-  return
-}
-  
-  |
+  const folgasSelecionadas=[...document.querySelectorAll('#folga input:checked')].map(el=>el.value)
+
+  if(
+    !nome.value ||
+    !nascimento.value ||
+    !contratacao.value ||
+    !setor.value ||
+    !funcao.value ||
+    folgasSelecionadas.length===0 ||
+    !numero.value ||
+    !sexo.value
+  ){
+    alert("Preencha todos os campos")
+    return
+  }
+
   await sb.from("funcionarios_mercatto").insert({
     nome:nome.value,
-numero: numero.value.replace(/\D/g, ""),
+    numero:numero.value.replace(/\D/g,""),
     sexo:sexo.value,
     data_nascimento:nascimento.value,
     data_contratacao:contratacao.value,
     setor:setor.value,
     funcao:funcao.value,
-folga: folgasSelecionadas.join(",")
+    folga:folgasSelecionadas.join(",")
   })
-  
 
   fecharCadastro()
   loadFuncionarios()
 }
 
-/* NAV */
+/* MASCARA */
+const numeroInput=document.getElementById("numero")
+numeroInput.addEventListener("input",(e)=>{
+  let v=e.target.value.replace(/\D/g,"")
+  if(v.length>11)v=v.slice(0,11)
+
+  if(v.length<=10){
+    v=v.replace(/(\d{2})(\d)/,"($1) $2")
+    v=v.replace(/(\d{4})(\d)/,"$1-$2")
+  }else{
+    v=v.replace(/(\d{2})(\d)/,"($1) $2")
+    v=v.replace(/(\d{5})(\d)/,"$1-$2")
+  }
+
+  e.target.value=v
+})
+
 function mesAnterior(){ dataAtual.setMonth(dataAtual.getMonth()-1); render() }
 function mesProximo(){ dataAtual.setMonth(dataAtual.getMonth()+1); render() }
 
 const mesEl=document.getElementById("mes")
 const dataEl=document.getElementById("data")
 
-  // MASCARA WHATSAPP
-setTimeout(() => {
-  const numeroInput = document.getElementById("numero")
-
-  numeroInput.addEventListener("input", (e) => {
-
-    let v = e.target.value.replace(/\D/g, "")
-
-    if(v.length > 11) v = v.slice(0,11)
-
-    if(v.length <= 10){
-      v = v.replace(/(\d{2})(\d)/, "($1) $2")
-      v = v.replace(/(\d{4})(\d)/, "$1-$2")
-    } else {
-      v = v.replace(/(\d{2})(\d)/, "($1) $2")
-      v = v.replace(/(\d{5})(\d)/, "$1-$2")
-    }
-
-    e.target.value = v
-  })
-}, 500)
-
-
-
-  
 loadFuncionarios()
 render()
 
