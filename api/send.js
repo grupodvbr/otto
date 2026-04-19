@@ -112,31 +112,82 @@ export default async function handler(req, res){
       }
     )
 
-    const data = await response.json()
+  const data = await response.json()
 
-    /* ===============================
-       TRATAMENTO DE ERRO
-    =============================== */
+const messageId = data?.messages?.[0]?.id || null
+const sucesso = response.ok && !!messageId
 
-    if(!response.ok){
-      console.error("ERRO WHATSAPP:", data)
+/* ===============================
+   LOG CONSOLE (VERCEL)
+=============================== */
 
-      return res.status(400).json({
-        error: "Erro ao enviar mensagem",
-        details: data
-      })
-    }
+console.log("📤 ENVIO WHATSAPP", {
+  telefone,
+  tipo: tipoConvertido,
+  sucesso,
+  messageId,
+  payload,
+  respostaMeta: data
+})
 
-    /* ===============================
-       SUCESSO
-    =============================== */
+/* ===============================
+   SALVAR LOG NO SUPABASE
+=============================== */
 
-    const messageId = data?.messages?.[0]?.id
+try{
 
-    return res.status(200).json({
-      success: true,
-      message_id: messageId
-    })
+  const { createClient } = require("@supabase/supabase-js")
+
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE
+  )
+
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone,
+    mensagem: mensagem || `[${tipoConvertido}]`,
+    tipo: tipoConvertido,
+    media_url,
+    nome_arquivo,
+
+    role: "assistant",
+
+    message_id: messageId,
+    status: sucesso ? "sent" : "erro",
+
+    origem_resposta: "manual",   // 🔥 DIFERENCIAL
+    enviado_por: "API",          // 🔥 OU PASSAR ADMIN
+    sucesso_envio: sucesso
+  })
+
+}catch(err){
+  console.error("❌ ERRO AO SALVAR LOG:", err)
+}
+
+/* ===============================
+   TRATAMENTO DE ERRO
+=============================== */
+
+if(!sucesso){
+
+  console.error("❌ ERRO WHATSAPP:", data)
+
+  return res.status(400).json({
+    error: "Erro ao enviar mensagem",
+    details: data
+  })
+}
+
+/* ===============================
+   SUCESSO
+=============================== */
+
+return res.status(200).json({
+  success: true,
+  message_id: messageId
+})
 
   }catch(e){
 
