@@ -2,54 +2,68 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Escala Profissional • Mercatto</title>
+<title>Painel RH • Mercatto</title>
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
-
-:root{
-  --bg:#f3f4f6;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --text:#111827;
-  --muted:#6b7280;
-  --primary:#2563eb;
-}
-
-*{box-sizing:border-box;}
 
 body{
   margin:0;
   font-family:Inter;
-  background:var(--bg);
-  color:var(--text);
+  background:#f3f4f6;
+  display:flex;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:220px;
+  background:#fff;
+  border-right:1px solid #ddd;
+  padding:15px;
+}
+
+.menu-item{
+  padding:10px;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+.menu-item:hover{
+  background:#f1f5f9;
+}
+
+/* MAIN */
+.main{
+  flex:1;
 }
 
 /* HEADER */
 header{
+  background:#fff;
+  padding:15px;
+  border-bottom:1px solid #ddd;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  padding:16px;
+}
+
+/* DASHBOARD */
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:15px;
+}
+
+.card{
   background:#fff;
-  border-bottom:1px solid var(--border);
+  padding:15px;
+  border-radius:12px;
 }
 
-button{
-  background:var(--primary);
-  color:white;
-  border:none;
-  padding:10px 14px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-}
-
-/* CALENDARIO */
+/* CALENDAR */
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -58,25 +72,18 @@ button{
 }
 
 .day{
-  background:var(--card);
-  border-radius:12px;
-  padding:10px;
-  min-height:130px;
-  border:1px solid var(--border);
-  cursor:pointer;
+  background:#fff;
+  border-radius:10px;
+  padding:8px;
+  min-height:120px;
 }
 
-.day-number{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.item-escala{
-  margin-top:5px;
-  padding:4px 6px;
-  border-radius:6px;
+.item{
   font-size:11px;
   background:#dbeafe;
+  margin-top:4px;
+  padding:4px;
+  border-radius:6px;
 }
 
 /* MODAL */
@@ -90,47 +97,28 @@ button{
 }
 
 .box{
-  background:white;
+  background:#fff;
   padding:20px;
-  border-radius:14px;
-  width:480px;
+  border-radius:12px;
+  width:400px;
 }
-
-.form{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.form-full{grid-column:1/-1;}
 
 input,select{
+  width:100%;
   padding:10px;
-  border-radius:8px;
-  border:1px solid var(--border);
-}
-
-/* LISTA */
-.lista{
-  margin-top:10px;
-  max-height:200px;
-  overflow:auto;
-}
-
-.item{
-  background:#f9fafb;
-  padding:8px;
-  border-radius:8px;
   margin-top:5px;
-  display:flex;
-  justify-content:space-between;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
 
-/* PREVIEW */
-.preview{
+button{
   margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
+  padding:10px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
 }
 
 </style>
@@ -138,179 +126,204 @@ input,select{
 
 <body>
 
-<header>
-  <button onclick="mesAnterior()">◀</button>
-  <b id="mes"></b>
-  <div>
-    <button onclick="abrirCadastro()">+ Funcionário</button>
-    <button onclick="mesProximo()">▶</button>
-  </div>
-</header>
+<div class="sidebar">
 
-<div id="calendar" class="calendar"></div>
+  <b>Painel</b>
 
-<!-- MODAL ESCALA -->
-<div id="modal" class="modal">
-  <div class="box">
+  <div class="menu-item" onclick="trocar('dashboard')">Dashboard</div>
+  <div class="menu-item" onclick="trocar('func')">Funcionários</div>
+  <div class="menu-item" onclick="trocar('escala')">Escala</div>
 
-    <h3 id="data"></h3>
-
-    <select id="funcionario"></select>
-
-    <input type="time" id="entrada">
-    <input type="time" id="saida">
-
-    <button onclick="add()">Adicionar horário</button>
-
-    <div id="lista" class="lista"></div>
-
-    <button onclick="fechar()">Fechar</button>
-  </div>
 </div>
 
-<!-- MODAL CADASTRO -->
-<div id="cadastro" class="modal">
+<div class="main">
+
+<header>
+  <b id="titulo">Dashboard</b>
+
+  <select id="filtroSetor" onchange="renderTudo()"></select>
+</header>
+
+<div id="conteudo"></div>
+
+</div>
+
+<!-- MODAL FUNC -->
+<div id="modalFunc" class="modal">
   <div class="box">
 
     <h3>Novo Funcionário</h3>
 
-    <div class="form">
+    <input id="nome" placeholder="Nome completo">
+    <input id="numero" placeholder="WhatsApp">
 
-      <input class="form-full" id="nome" placeholder="Nome completo">
+    <select id="sexo">
+      <option>MASCULINO</option>
+      <option>FEMININO</option>
+    </select>
 
-      <input id="numero" placeholder="WhatsApp">
+    <input type="date" id="nascimento">
+    <input type="date" id="contratacao">
 
-      <select id="sexo">
-        <option>MASCULINO</option>
-        <option>FEMININO</option>
-      </select>
+    <input id="funcao" placeholder="Função">
 
-      <input type="date" id="nascimento">
-      <input type="date" id="contratacao">
+    <select id="setor"></select>
 
-      <input id="funcao" placeholder="Função">
-      <input id="folga" placeholder="Dia de folga">
-
-    </div>
-
-    <div id="preview" class="preview"></div>
+    <input id="folga" placeholder="Dia de folga">
 
     <button onclick="salvarFuncionario()">Salvar</button>
-    <button onclick="fecharCadastro()">Fechar</button>
 
   </div>
 </div>
 
 <script>
 
+const SETORES=[
+  "COZINHA",
+  "SALÃO",
+  "CAIXA",
+  "BAR",
+  "LIMPEZA",
+  "ADMINISTRATIVO"
+]
+
 const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
 
-let dataAtual=new Date()
 let funcionarios=[]
 let escalas=[]
-let dataSelecionada=null
+let tela="dashboard"
 
-/* FUNCIONARIOS */
-async function loadFuncionarios(){
-  const {data}=await sb.from("funcionarios_mercatto").select("*")
-  funcionarios=data||[]
+/* INIT */
+function initSetores(){
 
-  funcionario.innerHTML=""
-  funcionarios.forEach(f=>{
-    funcionario.innerHTML+=`<option value="${f.id}">${f.nome}</option>`
+  filtroSetor.innerHTML=`<option value="">TODOS</option>`
+  setor.innerHTML=""
+
+  SETORES.forEach(s=>{
+    filtroSetor.innerHTML+=`<option>${s}</option>`
+    setor.innerHTML+=`<option>${s}</option>`
   })
 }
 
-/* ESCALA */
-async function loadEscala(){
-  const {data}=await sb.from("escala_funcionarios").select("*")
-  escalas=data||[]
+/* LOAD */
+async function load(){
+  const {data:f}=await sb.from("funcionarios_mercatto").select("*")
+  const {data:e}=await sb.from("escala_funcionarios").select("*")
+
+  funcionarios=f||[]
+  escalas=e||[]
+
+  renderTudo()
 }
 
-/* CALENDARIO */
-async function render(){
-  await loadEscala()
+/* TROCA */
+function trocar(t){
+  tela=t
+  titulo.innerText=t.toUpperCase()
+  renderTudo()
+}
 
-  calendar.innerHTML=""
+/* FILTRO */
+function getFiltrado(){
 
-  const ano=dataAtual.getFullYear()
-  const mes=dataAtual.getMonth()
+  const s=filtroSetor.value
 
-  mesEl.innerText=dataAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"})
+  if(!s) return {funcionarios,escalas}
 
-  const dias=new Date(ano,mes+1,0).getDate()
-
-  for(let i=1;i<=dias;i++){
-    const dataStr=`${ano}-${String(mes+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`
-
-    const d=document.createElement("div")
-    d.className="day"
-    d.innerHTML=`<div class="day-number">${i}</div>`
-
-    escalas.filter(e=>e.data===dataStr).forEach(e=>{
-      d.innerHTML+=`
-      <div class="item-escala">
-        ${e.nome}<br>
-        ${e.entrada} - ${e.saida}
-      </div>`
-    })
-
-    d.onclick=()=>abrir(dataStr)
-
-    calendar.appendChild(d)
+  return {
+    funcionarios:funcionarios.filter(f=>f.setor===s),
+    escalas:escalas.filter(e=>e.setor===s)
   }
 }
 
+/* DASHBOARD */
+function renderDashboard(){
+
+  const {funcionarios:func,escalas:esc}=getFiltrado()
+
+  let totalMin=0
+
+  esc.forEach(e=>{
+    if(!e.entrada||!e.saida) return
+    const [h1,m1]=e.entrada.split(":")
+    const [h2,m2]=e.saida.split(":")
+    totalMin+=(h2*60+m2)-(h1*60+m1)
+  })
+
+  const horas=(totalMin/60).toFixed(1)
+
+  conteudo.innerHTML=`
+    <div class="dashboard">
+
+      <div class="card">Funcionários: ${func.length}</div>
+      <div class="card">Horas: ${horas}</div>
+      <div class="card">Média: ${(horas/(func.length||1)).toFixed(1)}</div>
+      <div class="card">Sem escala: ${
+        func.filter(f=>!esc.find(e=>e.funcionario_id===f.id)).length
+      }</div>
+
+    </div>
+  `
+}
+
+/* FUNCIONARIOS */
+function renderFuncionarios(){
+
+  conteudo.innerHTML=`
+    <div style="padding:15px">
+      <button onclick="modalFunc.style.display='flex'">+ Novo</button>
+
+      ${funcionarios.map(f=>`
+        <div class="card">
+          <b>${f.nome}</b><br>
+          ${f.funcao} • ${f.setor}<br>
+          ${f.numero}
+        </div>
+      `).join("")}
+
+    </div>
+  `
+}
+
 /* ESCALA */
-function abrir(data){
-  dataSelecionada=data
-  modal.style.display="flex"
-  dataEl.innerText=data
-  renderLista()
+function renderEscala(){
+
+  let html='<div class="calendar">'
+
+  for(let i=1;i<=31;i++){
+
+    html+=`<div class="day"><b>${i}</b>`
+
+    escalas.forEach(e=>{
+      if(new Date(e.data).getDate()===i){
+        html+=`
+        <div class="item">
+          ${e.nome}<br>
+          ${e.entrada}-${e.saida}
+        </div>`
+      }
+    })
+
+    html+='</div>'
+  }
+
+  html+='</div>'
+
+  conteudo.innerHTML=html
 }
 
-function fechar(){ modal.style.display="none" }
+/* RENDER GERAL */
+function renderTudo(){
 
-async function add(){
-
-  const f=funcionarios.find(x=>x.id==funcionario.value)
-
-  await sb.from("escala_funcionarios").insert({
-    funcionario_id:f.id,
-    nome:f.nome,
-    data:dataSelecionada,
-    entrada:entrada.value,
-    saida:saida.value
-  })
-
-  render()
-  renderLista()
+  if(tela==="dashboard") renderDashboard()
+  if(tela==="func") renderFuncionarios()
+  if(tela==="escala") renderEscala()
 }
 
-function renderLista(){
-  lista.innerHTML=""
-  escalas.filter(e=>e.data===dataSelecionada).forEach(e=>{
-    lista.innerHTML+=`
-    <div class="item">
-      ${e.nome} (${e.entrada}-${e.saida})
-      <span onclick="remover('${e.id}')">❌</span>
-    </div>`
-  })
-}
-
-async function remover(id){
-  await sb.from("escala_funcionarios").delete().eq("id",id)
-  render()
-  renderLista()
-}
-
-/* CADASTRO */
-function abrirCadastro(){ cadastro.style.display="flex" }
-function fecharCadastro(){ cadastro.style.display="none" }
-
+/* SALVAR FUNC */
 async function salvarFuncionario(){
 
   await sb.from("funcionarios_mercatto").insert({
@@ -320,34 +333,16 @@ async function salvarFuncionario(){
     data_nascimento:nascimento.value,
     data_contratacao:contratacao.value,
     funcao:funcao.value,
+    setor:setor.value,
     folga:folga.value
   })
 
-  fecharCadastro()
-  loadFuncionarios()
+  modalFunc.style.display="none"
+  load()
 }
 
-/* PREVIEW */
-[nascimento,contratacao].forEach(el=>{
-  el.onchange=()=>{
-    if(!nascimento.value||!contratacao.value) return
-
-    const idade=new Date().getFullYear()-new Date(nascimento.value).getFullYear()
-    const dias=(new Date()-new Date(contratacao.value))/(1000*60*60*24)
-
-    preview.innerText=`Idade: ${idade} | Empresa: ${Math.floor(dias)} dias`
-  }
-})
-
-/* NAV */
-function mesAnterior(){ dataAtual.setMonth(dataAtual.getMonth()-1); render() }
-function mesProximo(){ dataAtual.setMonth(dataAtual.getMonth()+1); render() }
-
-const mesEl=document.getElementById("mes")
-const dataEl=document.getElementById("data")
-
-loadFuncionarios()
-render()
+initSetores()
+load()
 
 </script>
 
