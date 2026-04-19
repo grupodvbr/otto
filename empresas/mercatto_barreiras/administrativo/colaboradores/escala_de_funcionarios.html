@@ -174,8 +174,10 @@ button:hover{
 
 .field label{
   font-size:12px;
-  color:var(--muted);
-  font-weight:600;
+  font-weight:700;
+  color:#374151;
+  margin-bottom:2px;
+  letter-spacing:.3px;
 }
 
 /* INPUTS */
@@ -356,41 +358,70 @@ button:hover{
 
     <h3>Cadastro de Colaborador</h3>
 
-    <div class="form">
-      <input class="form-full" id="nome" placeholder="Nome completo">
-      <input type="date" id="nascimento">
-      <input id="numero" placeholder="WhatsApp">
-      <select id="sexo">
-        <option value="">Sexo</option>
-        <option>MASCULINO</option>
-        <option>FEMININO</option>
-      </select>
+  <div class="form">
 
-      <input type="date" id="contratacao">
+  <div class="field form-full">
+    <label>Nome Completo *</label>
+    <input id="nome" placeholder="Digite o nome completo">
+  </div>
 
-      <select id="setor">
-        <option value="">Setor</option>
-        <option>COZINHA</option>
-        <option>SALÃO</option>
-        <option>BAR</option>
-      </select>
+  <div class="field">
+    <label>Data de Nascimento *</label>
+    <input type="date" id="nascimento">
+  </div>
 
-      <input id="funcao" placeholder="Função">
+  <div class="field">
+    <label>WhatsApp *</label>
+    <input id="numero" placeholder="(77) 99999-9999">
+  </div>
 
-      <div class="form-full">
-        <label>Dias de Folga</label>
-        <div id="folga" class="checkbox-group">
-          <label><input type="checkbox" value="DOMINGO"> Dom</label>
-          <label><input type="checkbox" value="SEGUNDA"> Seg</label>
-          <label><input type="checkbox" value="TERÇA"> Ter</label>
-          <label><input type="checkbox" value="QUARTA"> Qua</label>
-          <label><input type="checkbox" value="QUINTA"> Qui</label>
-          <label><input type="checkbox" value="SEXTA"> Sex</label>
-          <label><input type="checkbox" value="SÁBADO"> Sab</label>
-        </div>
-      </div>
+  <div class="field">
+    <label>Sexo *</label>
+    <select id="sexo">
+      <option value="">Selecionar</option>
+      <option>MASCULINO</option>
+      <option>FEMININO</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Data de Contratação *</label>
+    <input type="date" id="contratacao">
+  </div>
+
+  <div class="field">
+    <label>Setor *</label>
+    <select id="setor">
+      <option value="">Selecionar</option>
+      <option>COZINHA</option>
+      <option>SALÃO</option>
+      <option>BAR</option>
+      <option>CAIXA</option>
+      <option>ADMINISTRATIVO</option>
+    </select>
+  </div>
+
+  <div class="field form-full">
+    <label>Função *</label>
+    <input id="funcao" placeholder="Ex: Garçom, Cozinheiro...">
+  </div>
+
+  <div class="field form-full">
+    <label>Dias de Folga *</label>
+    <div id="folga" class="checkbox-group">
+      <label><input type="checkbox" value="DOMINGO"> Dom</label>
+      <label><input type="checkbox" value="SEGUNDA"> Seg</label>
+      <label><input type="checkbox" value="TERÇA"> Ter</label>
+      <label><input type="checkbox" value="QUARTA"> Qua</label>
+      <label><input type="checkbox" value="QUINTA"> Qui</label>
+      <label><input type="checkbox" value="SEXTA"> Sex</label>
+      <label><input type="checkbox" value="SÁBADO"> Sab</label>
     </div>
+  </div>
 
+</div>
+
+    
     <div class="actions">
       <button onclick="fecharCadastro()">Cancelar</button>
       <button onclick="salvarFuncionario()">Salvar</button>
