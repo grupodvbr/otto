@@ -133,6 +133,106 @@ input,select{
   color:var(--muted);
 }
 
+
+
+/* MODAL PREMIUM */
+.box.premium{
+  width:520px;
+  max-width:95%;
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  padding:20px;
+}
+
+/* HEADER */
+.header-modal{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.header-modal h2{
+  margin:0;
+  font-size:20px;
+}
+
+.header-modal span{
+  cursor:pointer;
+  font-size:18px;
+}
+
+/* SECTIONS */
+.section{
+  margin-top:15px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+
+.section h4{
+  margin:0 0 10px 0;
+  font-size:13px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+/* CAMPOS */
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.field label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+.field input,
+.field select{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:13px;
+  transition:.2s;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:var(--primary);
+  outline:none;
+  box-shadow:0 0 0 2px rgba(37,99,235,.15);
+}
+
+/* AÇÕES */
+.actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:20px;
+}
+
+.btn{
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+}
+
+.btn.cancel{
+  background:#e5e7eb;
+}
+
+.btn.save{
+  background:var(--primary);
+  color:white;
+}
+
+
+  
 </style>
 </head>
 
@@ -168,35 +268,97 @@ input,select{
   </div>
 </div>
 
-<!-- MODAL CADASTRO -->
+<!-- MODAL CADASTRO PREMIUM -->
 <div id="cadastro" class="modal">
-  <div class="box">
+  <div class="box premium">
 
-    <h3>Novo Funcionário</h3>
-
-    <div class="form">
-
-      <input class="form-full" id="nome" placeholder="Nome completo">
-
-      <input id="numero" placeholder="WhatsApp">
-
-      <select id="sexo">
-        <option>MASCULINO</option>
-        <option>FEMININO</option>
-      </select>
-
-      <input type="date" id="nascimento">
-      <input type="date" id="contratacao">
-
-      <input id="funcao" placeholder="Função">
-      <input id="folga" placeholder="Dia de folga">
-
+    <div class="header-modal">
+      <h2>Cadastro de Colaborador</h2>
+      <span onclick="fecharCadastro()">✕</span>
     </div>
 
+    <!-- DADOS PESSOAIS -->
+    <div class="section">
+      <h4>Dados Pessoais</h4>
+
+      <div class="form">
+        <div class="field form-full">
+          <label>Nome Completo *</label>
+          <input id="nome" required placeholder="Digite o nome completo">
+        </div>
+
+        <div class="field">
+          <label>Data de Nascimento *</label>
+          <input type="date" id="nascimento" required>
+        </div>
+
+        <div class="field">
+          <label>WhatsApp *</label>
+          <input id="numero" required placeholder="(77) 99999-9999">
+        </div>
+
+        <div class="field">
+          <label>Sexo *</label>
+          <select id="sexo" required>
+            <option value="">Selecionar</option>
+            <option>MASCULINO</option>
+            <option>FEMININO</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DADOS PROFISSIONAIS -->
+    <div class="section">
+      <h4>Dados Profissionais</h4>
+
+      <div class="form">
+        <div class="field">
+          <label>Data de Contratação *</label>
+          <input type="date" id="contratacao" required>
+        </div>
+
+        <div class="field">
+          <label>Setor *</label>
+          <select id="setor" required>
+            <option value="">Selecionar</option>
+            <option>COZINHA</option>
+            <option>SALÃO</option>
+            <option>BAR</option>
+            <option>CAIXA</option>
+            <option>ADMINISTRATIVO</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Função *</label>
+          <input id="funcao" required placeholder="Ex: Garçom, Cozinheiro...">
+        </div>
+
+        <div class="field">
+          <label>Dia de Folga *</label>
+          <select id="folga" required>
+            <option value="">Selecionar</option>
+            <option>DOMINGO</option>
+            <option>SEGUNDA</option>
+            <option>TERÇA</option>
+            <option>QUARTA</option>
+            <option>QUINTA</option>
+            <option>SEXTA</option>
+            <option>SÁBADO</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
     <div id="preview" class="preview"></div>
 
-    <button onclick="salvarFuncionario()">Salvar</button>
-    <button onclick="fecharCadastro()">Fechar</button>
+    <!-- AÇÕES -->
+    <div class="actions">
+      <button class="btn cancel" onclick="fecharCadastro()">Cancelar</button>
+      <button class="btn save" onclick="salvarFuncionario()">Salvar Colaborador</button>
+    </div>
 
   </div>
 </div>
@@ -313,12 +475,27 @@ function fecharCadastro(){ cadastro.style.display="none" }
 
 async function salvarFuncionario(){
 
+  if(
+    !nome.value ||
+    !nascimento.value ||
+    !contratacao.value ||
+    !setor.value ||
+    !funcao.value ||
+    !folga.value ||
+    !numero.value ||
+    !sexo.value
+  ){
+    alert("Preencha todos os campos obrigatórios")
+    return
+  }
+
   await sb.from("funcionarios_mercatto").insert({
     nome:nome.value,
     numero:numero.value,
     sexo:sexo.value,
     data_nascimento:nascimento.value,
     data_contratacao:contratacao.value,
+    setor:setor.value,
     funcao:funcao.value,
     folga:folga.value
   })
@@ -326,18 +503,6 @@ async function salvarFuncionario(){
   fecharCadastro()
   loadFuncionarios()
 }
-
-/* PREVIEW */
-[nascimento,contratacao].forEach(el=>{
-  el.onchange=()=>{
-    if(!nascimento.value||!contratacao.value) return
-
-    const idade=new Date().getFullYear()-new Date(nascimento.value).getFullYear()
-    const dias=(new Date()-new Date(contratacao.value))/(1000*60*60*24)
-
-    preview.innerText=`Idade: ${idade} | Empresa: ${Math.floor(dias)} dias`
-  }
-})
 
 /* NAV */
 function mesAnterior(){ dataAtual.setMonth(dataAtual.getMonth()-1); render() }
