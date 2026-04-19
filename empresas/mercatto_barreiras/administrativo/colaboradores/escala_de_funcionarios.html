@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel RH • Mercatto</title>
+<title>RH + Escala • Mercatto</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -14,30 +14,6 @@ body{
   margin:0;
   font-family:Inter;
   background:#f3f4f6;
-  display:flex;
-}
-
-/* SIDEBAR */
-.sidebar{
-  width:220px;
-  background:#fff;
-  border-right:1px solid #ddd;
-  padding:15px;
-}
-
-.menu-item{
-  padding:10px;
-  cursor:pointer;
-  border-radius:8px;
-}
-
-.menu-item:hover{
-  background:#f1f5f9;
-}
-
-/* MAIN */
-.main{
-  flex:1;
 }
 
 /* HEADER */
@@ -47,6 +23,7 @@ header{
   border-bottom:1px solid #ddd;
   display:flex;
   justify-content:space-between;
+  align-items:center;
 }
 
 /* DASHBOARD */
@@ -60,10 +37,10 @@ header{
 .card{
   background:#fff;
   padding:15px;
-  border-radius:12px;
+  border-radius:10px;
 }
 
-/* CALENDAR */
+/* CALENDARIO */
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -100,7 +77,7 @@ header{
   background:#fff;
   padding:20px;
   border-radius:12px;
-  width:400px;
+  width:420px;
 }
 
 input,select{
@@ -112,13 +89,24 @@ input,select{
 }
 
 button{
-  margin-top:10px;
   padding:10px;
   background:#2563eb;
   color:white;
   border:none;
   border-radius:8px;
   cursor:pointer;
+  margin-top:10px;
+}
+
+.listaFunc{
+  padding:15px;
+}
+
+.funcCard{
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:8px;
 }
 
 </style>
@@ -126,30 +114,49 @@ button{
 
 <body>
 
-<div class="sidebar">
-
-  <b>Painel</b>
-
-  <div class="menu-item" onclick="trocar('dashboard')">Dashboard</div>
-  <div class="menu-item" onclick="trocar('func')">Funcionários</div>
-  <div class="menu-item" onclick="trocar('escala')">Escala</div>
-
-</div>
-
-<div class="main">
-
 <header>
-  <b id="titulo">Dashboard</b>
+  <b>RH • Mercatto</b>
 
-  <select id="filtroSetor" onchange="renderTudo()"></select>
+  <div>
+    <select id="filtroSetor"></select>
+    <button onclick="abrirCadastro()">+ Funcionário</button>
+  </div>
 </header>
 
-<div id="conteudo"></div>
-
+<!-- DASHBOARD -->
+<div class="dashboard">
+  <div class="card" id="total"></div>
+  <div class="card" id="ativos"></div>
+  <div class="card" id="horas"></div>
+  <div class="card" id="semEscala"></div>
 </div>
 
-<!-- MODAL FUNC -->
-<div id="modalFunc" class="modal">
+<!-- FUNCIONARIOS -->
+<div class="listaFunc" id="listaFunc"></div>
+
+<!-- CALENDARIO -->
+<div id="calendar" class="calendar"></div>
+
+<!-- MODAL ESCALA -->
+<div id="modal" class="modal">
+  <div class="box">
+    <h3 id="data"></h3>
+
+    <select id="funcionario"></select>
+
+    <input type="time" id="entrada">
+    <input type="time" id="saida">
+
+    <button onclick="add()">Adicionar</button>
+
+    <div id="lista"></div>
+
+    <button onclick="fechar()">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL CADASTRO -->
+<div id="cadastro" class="modal">
   <div class="box">
 
     <h3>Novo Funcionário</h3>
@@ -166,10 +173,18 @@ button{
     <input type="date" id="contratacao">
 
     <input id="funcao" placeholder="Função">
-
     <select id="setor"></select>
 
+    <input id="salario" placeholder="Salário">
     <input id="folga" placeholder="Dia de folga">
+
+    <input id="cpf" placeholder="CPF">
+    <input id="endereco" placeholder="Endereço">
+
+    <select id="status">
+      <option>ATIVO</option>
+      <option>INATIVO</option>
+    </select>
 
     <button onclick="salvarFuncionario()">Salvar</button>
 
@@ -178,14 +193,7 @@ button{
 
 <script>
 
-const SETORES=[
-  "COZINHA",
-  "SALÃO",
-  "CAIXA",
-  "BAR",
-  "LIMPEZA",
-  "ADMINISTRATIVO"
-]
+const SETORES=["COZINHA","SALÃO","BAR","CAIXA","LIMPEZA"]
 
 const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
@@ -194,12 +202,11 @@ const sb = supabase.createClient(
 
 let funcionarios=[]
 let escalas=[]
-let tela="dashboard"
+let dataSelecionada=null
 
 /* INIT */
 function initSetores(){
-
-  filtroSetor.innerHTML=`<option value="">TODOS</option>`
+  filtroSetor.innerHTML="<option value=''>TODOS</option>"
   setor.innerHTML=""
 
   SETORES.forEach(s=>{
@@ -210,6 +217,7 @@ function initSetores(){
 
 /* LOAD */
 async function load(){
+
   const {data:f}=await sb.from("funcionarios_mercatto").select("*")
   const {data:e}=await sb.from("escala_funcionarios").select("*")
 
@@ -219,87 +227,64 @@ async function load(){
   renderTudo()
 }
 
-/* TROCA */
-function trocar(t){
-  tela=t
-  titulo.innerText=t.toUpperCase()
-  renderTudo()
-}
-
 /* FILTRO */
-function getFiltrado(){
-
-  const s=filtroSetor.value
-
-  if(!s) return {funcionarios,escalas}
-
-  return {
-    funcionarios:funcionarios.filter(f=>f.setor===s),
-    escalas:escalas.filter(e=>e.setor===s)
-  }
+function getFiltro(){
+  if(!filtroSetor.value) return funcionarios
+  return funcionarios.filter(f=>f.setor===filtroSetor.value)
 }
 
 /* DASHBOARD */
 function renderDashboard(){
 
-  const {funcionarios:func,escalas:esc}=getFiltrado()
+  const ativos=funcionarios.filter(f=>f.status==="ATIVO")
 
-  let totalMin=0
+  let minutos=0
 
-  esc.forEach(e=>{
+  escalas.forEach(e=>{
     if(!e.entrada||!e.saida) return
     const [h1,m1]=e.entrada.split(":")
     const [h2,m2]=e.saida.split(":")
-    totalMin+=(h2*60+m2)-(h1*60+m1)
+    minutos+=(h2*60+m2)-(h1*60+m1)
   })
 
-  const horas=(totalMin/60).toFixed(1)
+  total.innerText=`Total: ${funcionarios.length}`
+  ativosEl.innerText=`Ativos: ${ativos.length}`
+  horas.innerText=`Horas: ${(minutos/60).toFixed(1)}`
 
-  conteudo.innerHTML=`
-    <div class="dashboard">
-
-      <div class="card">Funcionários: ${func.length}</div>
-      <div class="card">Horas: ${horas}</div>
-      <div class="card">Média: ${(horas/(func.length||1)).toFixed(1)}</div>
-      <div class="card">Sem escala: ${
-        func.filter(f=>!esc.find(e=>e.funcionario_id===f.id)).length
-      }</div>
-
-    </div>
-  `
+  semEscala.innerText=`Sem escala: ${
+    ativos.filter(f=>!escalas.find(e=>e.funcionario_id===f.id)).length
+  }`
 }
 
 /* FUNCIONARIOS */
 function renderFuncionarios(){
 
-  conteudo.innerHTML=`
-    <div style="padding:15px">
-      <button onclick="modalFunc.style.display='flex'">+ Novo</button>
+  listaFunc.innerHTML=""
 
-      ${funcionarios.map(f=>`
-        <div class="card">
-          <b>${f.nome}</b><br>
-          ${f.funcao} • ${f.setor}<br>
-          ${f.numero}
-        </div>
-      `).join("")}
-
-    </div>
-  `
+  getFiltro().forEach(f=>{
+    listaFunc.innerHTML+=`
+    <div class="funcCard">
+      <b>${f.nome}</b><br>
+      ${f.funcao} • ${f.setor}<br>
+      ${f.numero}
+    </div>`
+  })
 }
 
-/* ESCALA */
-function renderEscala(){
+/* CALENDARIO */
+function renderCalendario(){
 
-  let html='<div class="calendar">'
+  calendar.innerHTML=""
 
   for(let i=1;i<=31;i++){
 
-    html+=`<div class="day"><b>${i}</b>`
+    let d=document.createElement("div")
+    d.className="day"
+    d.innerHTML=`<b>${i}</b>`
 
     escalas.forEach(e=>{
       if(new Date(e.data).getDate()===i){
-        html+=`
+        d.innerHTML+=`
         <div class="item">
           ${e.nome}<br>
           ${e.entrada}-${e.saida}
@@ -307,23 +292,46 @@ function renderEscala(){
       }
     })
 
-    html+='</div>'
+    d.onclick=()=>abrir(i)
+
+    calendar.appendChild(d)
   }
-
-  html+='</div>'
-
-  conteudo.innerHTML=html
 }
 
-/* RENDER GERAL */
-function renderTudo(){
+/* ESCALA */
+function abrir(dia){
 
-  if(tela==="dashboard") renderDashboard()
-  if(tela==="func") renderFuncionarios()
-  if(tela==="escala") renderEscala()
+  const hoje=new Date()
+  const data=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}-${String(dia).padStart(2,"0")}`
+
+  dataSelecionada=data
+  modal.style.display="flex"
+
+  funcionario.innerHTML=""
+  funcionarios.forEach(f=>{
+    funcionario.innerHTML+=`<option value="${f.id}">${f.nome}</option>`
+  })
 }
 
-/* SALVAR FUNC */
+function fechar(){ modal.style.display="none" }
+
+async function add(){
+
+  const f=funcionarios.find(x=>x.id==funcionario.value)
+
+  await sb.from("escala_funcionarios").insert({
+    funcionario_id:f.id,
+    nome:f.nome,
+    setor:f.setor,
+    data:dataSelecionada,
+    entrada:entrada.value,
+    saida:saida.value
+  })
+
+  load()
+}
+
+/* SALVAR */
 async function salvarFuncionario(){
 
   await sb.from("funcionarios_mercatto").insert({
@@ -334,11 +342,22 @@ async function salvarFuncionario(){
     data_contratacao:contratacao.value,
     funcao:funcao.value,
     setor:setor.value,
-    folga:folga.value
+    salario:salario.value,
+    folga:folga.value,
+    cpf:cpf.value,
+    endereco:endereco.value,
+    status:status.value
   })
 
-  modalFunc.style.display="none"
+  cadastro.style.display="none"
   load()
+}
+
+/* RENDER */
+function renderTudo(){
+  renderDashboard()
+  renderFuncionarios()
+  renderCalendario()
 }
 
 initSetores()
