@@ -121,7 +121,7 @@ const sucesso = response.ok && !!messageId
    LOG CONSOLE (VERCEL)
 =============================== */
 
-console.log("📤 ENVIO WHATSAPP", {
+console.log("📱 ENVIADO MANUALMENTE", {
   telefone,
   tipo: tipoConvertido,
   sucesso,
