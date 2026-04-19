@@ -2,42 +2,51 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RH + Escala • Mercatto</title>
+<title>Escala Profissional • Mercatto</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
+
+:root{
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --primary:#2563eb;
+}
+
+*{box-sizing:border-box;}
 
 body{
   margin:0;
   font-family:Inter;
-  background:#f3f4f6;
+  background:var(--bg);
+  color:var(--text);
 }
 
 /* HEADER */
 header{
-  background:#fff;
-  padding:15px;
-  border-bottom:1px solid #ddd;
   display:flex;
   justify-content:space-between;
   align-items:center;
-}
-
-/* DASHBOARD */
-.dashboard{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  padding:15px;
-}
-
-.card{
+  padding:16px;
   background:#fff;
-  padding:15px;
+  border-bottom:1px solid var(--border);
+}
+
+button{
+  background:var(--primary);
+  color:white;
+  border:none;
+  padding:10px 14px;
   border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
 }
 
 /* CALENDARIO */
@@ -49,18 +58,25 @@ header{
 }
 
 .day{
-  background:#fff;
-  border-radius:10px;
-  padding:8px;
-  min-height:120px;
+  background:var(--card);
+  border-radius:12px;
+  padding:10px;
+  min-height:130px;
+  border:1px solid var(--border);
+  cursor:pointer;
 }
 
-.item{
+.day-number{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.item-escala{
+  margin-top:5px;
+  padding:4px 6px;
+  border-radius:6px;
   font-size:11px;
   background:#dbeafe;
-  margin-top:4px;
-  padding:4px;
-  border-radius:6px;
 }
 
 /* MODAL */
@@ -74,39 +90,47 @@ header{
 }
 
 .box{
-  background:#fff;
+  background:white;
   padding:20px;
-  border-radius:12px;
-  width:420px;
+  border-radius:14px;
+  width:480px;
 }
+
+.form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.form-full{grid-column:1/-1;}
 
 input,select{
-  width:100%;
   padding:10px;
-  margin-top:5px;
   border-radius:8px;
-  border:1px solid #ddd;
+  border:1px solid var(--border);
 }
 
-button{
-  padding:10px;
-  background:#2563eb;
-  color:white;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
+/* LISTA */
+.lista{
   margin-top:10px;
+  max-height:200px;
+  overflow:auto;
 }
 
-.listaFunc{
-  padding:15px;
-}
-
-.funcCard{
-  background:#fff;
-  padding:10px;
+.item{
+  background:#f9fafb;
+  padding:8px;
   border-radius:8px;
-  margin-bottom:8px;
+  margin-top:5px;
+  display:flex;
+  justify-content:space-between;
+}
+
+/* PREVIEW */
+.preview{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
 }
 
 </style>
@@ -115,31 +139,20 @@ button{
 <body>
 
 <header>
-  <b>RH • Mercatto</b>
-
+  <button onclick="mesAnterior()">◀</button>
+  <b id="mes"></b>
   <div>
-    <select id="filtroSetor"></select>
     <button onclick="abrirCadastro()">+ Funcionário</button>
+    <button onclick="mesProximo()">▶</button>
   </div>
 </header>
 
-<!-- DASHBOARD -->
-<div class="dashboard">
-  <div class="card" id="total"></div>
-  <div class="card" id="ativos"></div>
-  <div class="card" id="horas"></div>
-  <div class="card" id="semEscala"></div>
-</div>
-
-<!-- FUNCIONARIOS -->
-<div class="listaFunc" id="listaFunc"></div>
-
-<!-- CALENDARIO -->
 <div id="calendar" class="calendar"></div>
 
 <!-- MODAL ESCALA -->
 <div id="modal" class="modal">
   <div class="box">
+
     <h3 id="data"></h3>
 
     <select id="funcionario"></select>
@@ -147,9 +160,9 @@ button{
     <input type="time" id="entrada">
     <input type="time" id="saida">
 
-    <button onclick="add()">Adicionar</button>
+    <button onclick="add()">Adicionar horário</button>
 
-    <div id="lista"></div>
+    <div id="lista" class="lista"></div>
 
     <button onclick="fechar()">Fechar</button>
   </div>
@@ -161,156 +174,102 @@ button{
 
     <h3>Novo Funcionário</h3>
 
-    <input id="nome" placeholder="Nome completo">
-    <input id="numero" placeholder="WhatsApp">
+    <div class="form">
 
-    <select id="sexo">
-      <option>MASCULINO</option>
-      <option>FEMININO</option>
-    </select>
+      <input class="form-full" id="nome" placeholder="Nome completo">
 
-    <input type="date" id="nascimento">
-    <input type="date" id="contratacao">
+      <input id="numero" placeholder="WhatsApp">
 
-    <input id="funcao" placeholder="Função">
-    <select id="setor"></select>
+      <select id="sexo">
+        <option>MASCULINO</option>
+        <option>FEMININO</option>
+      </select>
 
-    <input id="salario" placeholder="Salário">
-    <input id="folga" placeholder="Dia de folga">
+      <input type="date" id="nascimento">
+      <input type="date" id="contratacao">
 
-    <input id="cpf" placeholder="CPF">
-    <input id="endereco" placeholder="Endereço">
+      <input id="funcao" placeholder="Função">
+      <input id="folga" placeholder="Dia de folga">
 
-    <select id="status">
-      <option>ATIVO</option>
-      <option>INATIVO</option>
-    </select>
+    </div>
+
+    <div id="preview" class="preview"></div>
 
     <button onclick="salvarFuncionario()">Salvar</button>
+    <button onclick="fecharCadastro()">Fechar</button>
 
   </div>
 </div>
 
 <script>
 
-const SETORES=["COZINHA","SALÃO","BAR","CAIXA","LIMPEZA"]
-
 const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
 
+let dataAtual=new Date()
 let funcionarios=[]
 let escalas=[]
 let dataSelecionada=null
 
-/* INIT */
-function initSetores(){
-  filtroSetor.innerHTML="<option value=''>TODOS</option>"
-  setor.innerHTML=""
-
-  SETORES.forEach(s=>{
-    filtroSetor.innerHTML+=`<option>${s}</option>`
-    setor.innerHTML+=`<option>${s}</option>`
-  })
-}
-
-/* LOAD */
-async function load(){
-
-  const {data:f}=await sb.from("funcionarios_mercatto").select("*")
-  const {data:e}=await sb.from("escala_funcionarios").select("*")
-
-  funcionarios=f||[]
-  escalas=e||[]
-
-  renderTudo()
-}
-
-/* FILTRO */
-function getFiltro(){
-  if(!filtroSetor.value) return funcionarios
-  return funcionarios.filter(f=>f.setor===filtroSetor.value)
-}
-
-/* DASHBOARD */
-function renderDashboard(){
-
-  const ativos=funcionarios.filter(f=>f.status==="ATIVO")
-
-  let minutos=0
-
-  escalas.forEach(e=>{
-    if(!e.entrada||!e.saida) return
-    const [h1,m1]=e.entrada.split(":")
-    const [h2,m2]=e.saida.split(":")
-    minutos+=(h2*60+m2)-(h1*60+m1)
-  })
-
-  total.innerText=`Total: ${funcionarios.length}`
-  ativosEl.innerText=`Ativos: ${ativos.length}`
-  horas.innerText=`Horas: ${(minutos/60).toFixed(1)}`
-
-  semEscala.innerText=`Sem escala: ${
-    ativos.filter(f=>!escalas.find(e=>e.funcionario_id===f.id)).length
-  }`
-}
-
 /* FUNCIONARIOS */
-function renderFuncionarios(){
+async function loadFuncionarios(){
+  const {data}=await sb.from("funcionarios_mercatto").select("*")
+  funcionarios=data||[]
 
-  listaFunc.innerHTML=""
-
-  getFiltro().forEach(f=>{
-    listaFunc.innerHTML+=`
-    <div class="funcCard">
-      <b>${f.nome}</b><br>
-      ${f.funcao} • ${f.setor}<br>
-      ${f.numero}
-    </div>`
+  funcionario.innerHTML=""
+  funcionarios.forEach(f=>{
+    funcionario.innerHTML+=`<option value="${f.id}">${f.nome}</option>`
   })
+}
+
+/* ESCALA */
+async function loadEscala(){
+  const {data}=await sb.from("escala_funcionarios").select("*")
+  escalas=data||[]
 }
 
 /* CALENDARIO */
-function renderCalendario(){
+async function render(){
+  await loadEscala()
 
   calendar.innerHTML=""
 
-  for(let i=1;i<=31;i++){
+  const ano=dataAtual.getFullYear()
+  const mes=dataAtual.getMonth()
 
-    let d=document.createElement("div")
+  mesEl.innerText=dataAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"})
+
+  const dias=new Date(ano,mes+1,0).getDate()
+
+  for(let i=1;i<=dias;i++){
+    const dataStr=`${ano}-${String(mes+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`
+
+    const d=document.createElement("div")
     d.className="day"
-    d.innerHTML=`<b>${i}</b>`
+    d.innerHTML=`<div class="day-number">${i}</div>`
 
-    escalas.forEach(e=>{
-      if(new Date(e.data).getDate()===i){
-        d.innerHTML+=`
-        <div class="item">
-          ${e.nome}<br>
-          ${e.entrada}-${e.saida}
-        </div>`
-      }
+    escalas.filter(e=>e.data===dataStr).forEach(e=>{
+      d.innerHTML+=`
+      <div class="item-escala">
+        ${e.nome}<br>
+        ${e.entrada} - ${e.saida}
+      </div>`
     })
 
-    d.onclick=()=>abrir(i)
+    d.onclick=()=>abrir(dataStr)
 
     calendar.appendChild(d)
   }
 }
 
 /* ESCALA */
-function abrir(dia){
-
-  const hoje=new Date()
-  const data=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,"0")}-${String(dia).padStart(2,"0")}`
-
+function abrir(data){
   dataSelecionada=data
   modal.style.display="flex"
-
-  funcionario.innerHTML=""
-  funcionarios.forEach(f=>{
-    funcionario.innerHTML+=`<option value="${f.id}">${f.nome}</option>`
-  })
+  dataEl.innerText=data
+  renderLista()
 }
 
 function fechar(){ modal.style.display="none" }
@@ -322,16 +281,36 @@ async function add(){
   await sb.from("escala_funcionarios").insert({
     funcionario_id:f.id,
     nome:f.nome,
-    setor:f.setor,
     data:dataSelecionada,
     entrada:entrada.value,
     saida:saida.value
   })
 
-  load()
+  render()
+  renderLista()
 }
 
-/* SALVAR */
+function renderLista(){
+  lista.innerHTML=""
+  escalas.filter(e=>e.data===dataSelecionada).forEach(e=>{
+    lista.innerHTML+=`
+    <div class="item">
+      ${e.nome} (${e.entrada}-${e.saida})
+      <span onclick="remover('${e.id}')">❌</span>
+    </div>`
+  })
+}
+
+async function remover(id){
+  await sb.from("escala_funcionarios").delete().eq("id",id)
+  render()
+  renderLista()
+}
+
+/* CADASTRO */
+function abrirCadastro(){ cadastro.style.display="flex" }
+function fecharCadastro(){ cadastro.style.display="none" }
+
 async function salvarFuncionario(){
 
   await sb.from("funcionarios_mercatto").insert({
@@ -341,27 +320,34 @@ async function salvarFuncionario(){
     data_nascimento:nascimento.value,
     data_contratacao:contratacao.value,
     funcao:funcao.value,
-    setor:setor.value,
-    salario:salario.value,
-    folga:folga.value,
-    cpf:cpf.value,
-    endereco:endereco.value,
-    status:status.value
+    folga:folga.value
   })
 
-  cadastro.style.display="none"
-  load()
+  fecharCadastro()
+  loadFuncionarios()
 }
 
-/* RENDER */
-function renderTudo(){
-  renderDashboard()
-  renderFuncionarios()
-  renderCalendario()
-}
+/* PREVIEW */
+[nascimento,contratacao].forEach(el=>{
+  el.onchange=()=>{
+    if(!nascimento.value||!contratacao.value) return
 
-initSetores()
-load()
+    const idade=new Date().getFullYear()-new Date(nascimento.value).getFullYear()
+    const dias=(new Date()-new Date(contratacao.value))/(1000*60*60*24)
+
+    preview.innerText=`Idade: ${idade} | Empresa: ${Math.floor(dias)} dias`
+  }
+})
+
+/* NAV */
+function mesAnterior(){ dataAtual.setMonth(dataAtual.getMonth()-1); render() }
+function mesProximo(){ dataAtual.setMonth(dataAtual.getMonth()+1); render() }
+
+const mesEl=document.getElementById("mes")
+const dataEl=document.getElementById("data")
+
+loadFuncionarios()
+render()
 
 </script>
 
