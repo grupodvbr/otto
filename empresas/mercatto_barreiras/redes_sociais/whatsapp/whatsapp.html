@@ -13,7 +13,7 @@ maximum-scale=1,
 user-scalable=no,
 viewport-fit=cover">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -97,7 +97,7 @@ padding:10px 16px;
 .clients{
 flex:1;
 overflow:auto;
-padding-bottom:10px;
+padding-bottom:90px; /* espaço da navbar */
 }
 
 /* CARD CLIENTE (🔥 PRINCIPAL) */
@@ -684,7 +684,67 @@ body{
 }
 
 
+.bottomNav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:70px;
 
+  background:#020617;
+  border-top:1px solid rgba(255,255,255,0.08);
+
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+
+  backdrop-filter:blur(12px);
+  z-index:999;
+}
+
+/* ITEM */
+
+.navItem{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  font-size:11px;
+  color:#64748b;
+  gap:4px;
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.navItem i{
+  font-size:22px;
+}
+
+/* ATIVO */
+
+.navItem.active{
+  color:#22c55e;
+}
+
+.navItem.active i{
+  transform:translateY(-2px) scale(1.1);
+}
+
+/* HOVER */
+
+.navItem:active{
+  transform:scale(0.95);
+}
+
+/* MOBILE ONLY */
+
+@media (min-width:768px){
+  .bottomNav{
+    display:none;
+  }
+}
 
 
   
@@ -1575,7 +1635,58 @@ document.addEventListener("click", () => {
 
 
 
+function trocarAba(aba){
 
+  document.querySelectorAll(".navItem").forEach(n=>{
+    n.classList.remove("active")
+  })
+
+  event.currentTarget.classList.add("active")
+
+  /* 🔥 AQUI VOCÊ CONTROLA AS TELAS */
+
+  if(aba === "cardapio"){
+    abrirIframe("cardapio.html")
+  }
+
+  if(aba === "promocoes"){
+    abrirIframe("promocoes.html")
+  }
+
+  if(aba === "pacotes"){
+    abrirIframe("pacotes.html")
+  }
+
+  if(aba === "midias"){
+    abrirIframe("midias.html")
+  }
+
+  if(aba === "analise"){
+    abrirIframe("analise.html")
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   
 </script>
 <div id="popupRepertorio" class="popupOverlay">
@@ -1620,5 +1731,39 @@ Fechar
 </div>
 
 </div>
+
+
+<div class="bottomNav">
+
+  <div class="navItem active" onclick="trocarAba('cardapio')">
+    <i class="ri-restaurant-2-line"></i>
+    <span>Cardápio</span>
+  </div>
+
+  <div class="navItem" onclick="trocarAba('promocoes')">
+    <i class="ri-price-tag-3-line"></i>
+    <span>Promoções</span>
+  </div>
+
+  <div class="navItem" onclick="trocarAba('pacotes')">
+    <i class="ri-vip-crown-2-line"></i>
+    <span>Pacotes</span>
+  </div>
+
+  <div class="navItem" onclick="trocarAba('midias')">
+    <i class="ri-image-2-line"></i>
+    <span>Mídias</span>
+  </div>
+
+  <div class="navItem" onclick="trocarAba('analise')">
+    <i class="ri-bar-chart-2-line"></i>
+    <span>Análise</span>
+  </div>
+
+</div>
+
+
+
+  
 </body>
 </html>
