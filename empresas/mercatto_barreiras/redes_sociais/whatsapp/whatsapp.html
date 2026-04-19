@@ -212,7 +212,7 @@ color:#dc2626;
 
 
 .menuDots:hover{
-  background:#f3f4f6;
+  background:#202c33;
   opacity:1;
 }
 
@@ -1194,19 +1194,27 @@ if(card){
 }
 }
 
-document.getElementById("buscarTopo").addEventListener("input",function(){
+document.addEventListener("DOMContentLoaded", () => {
 
-const filtro=this.value.toLowerCase()
+  const input = document.getElementById("buscarTopo")
 
-document.querySelectorAll(".client").forEach(c=>{
+  input.addEventListener("input", function(){
 
-const texto=c.innerText.toLowerCase()
+    const filtro = this.value.toLowerCase()
 
-c.style.display = texto.includes(filtro) ? "flex" : "none"
+    document.querySelectorAll(".client").forEach(c=>{
+
+      const texto = c.innerText.toLowerCase()
+
+      c.style.display = texto.includes(filtro) ? "flex" : "none"
+
+    })
+
+  })
 
 })
 
-})
+
 
 carregarClientes()
 function abrirRepertorio(){
