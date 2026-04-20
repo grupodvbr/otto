@@ -661,9 +661,7 @@ window.onload = function(){
 
   const frame = document.getElementById("frame");
 
-  // 🔥 pega a ultima pagina salva
   const paginaSalva = localStorage.getItem("paginaAtual") || "inicio/dashboard.html";
-
   frame.src = paginaSalva;
 
   highlightMenu(paginaSalva);
@@ -674,8 +672,9 @@ window.onload = function(){
     e.stopPropagation();
   });
 
-  ativarDuploCliqueIframe();
-}
+
+
+  
 function voltarPagina(){
   const frame = document.getElementById("frame");
   frame.contentWindow.history.back();
@@ -737,7 +736,7 @@ function detectarDuploClique(){
   const diff = agora - lastTap;
 
   if(diff < 300){
-    toggleMobileMenu();
+    abrirMenu(); // 🔥 abre direto
   }
 
   lastTap = agora;
