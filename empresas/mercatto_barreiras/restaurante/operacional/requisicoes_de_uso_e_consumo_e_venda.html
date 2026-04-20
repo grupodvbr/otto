@@ -60,7 +60,8 @@ header h1 { font-size: 1.3em; margin: 0; }
 }
 .resumo {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   justify-content: center;
   gap: 10px;
   background: var(--bg);
@@ -87,7 +88,8 @@ header h1 { font-size: 1.3em; margin: 0; }
 }
 .filtros {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* 🔥 FORÇA LINHA ÚNICA */
+  overflow-x: auto;  
   justify-content: center;
   gap: 8px;
   padding: 10px;
@@ -101,7 +103,7 @@ header h1 { font-size: 1.3em; margin: 0; }
   font-size: 13px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  flex: 1 1 140px;
+  flex: 0 0 auto; /* 🔥 NÃO QUEBRA MAIS */
   min-width: 120px;
   background: var(--bg);
   color: var(--ink);
@@ -415,7 +417,30 @@ body.dark .card-status span {
 
 }
 
+@media (min-width:768px){
 
+  .filtros{
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+  }
+
+  .filtros input,
+  .filtros select,
+  .filtros button{
+    flex: 0 0 auto !important;
+    min-width: 160px;
+  }
+
+  .resumo{
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+  }
+
+  .card-status{
+    flex: 0 0 auto;
+  }
+
+}
 
 
   
