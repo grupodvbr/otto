@@ -88,26 +88,26 @@ header h1 { font-size: 1.3em; margin: 0; }
 }
 .filtros {
   display: flex;
-  flex-wrap: nowrap; /* 🔥 FORÇA LINHA ÚNICA */
-  overflow-x: auto;  
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
+  flex-wrap: wrap; /* 🔥 PERMITE QUEBRAR */
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px;
   background: var(--bg);
   position: sticky;
   top: 70px;
   z-index: 10;
 }
-.filtros input, .filtros select {
-  padding: 8px;
-  font-size: 13px;
+
+.filtros input,
+.filtros select,
+.filtros button {
+  flex: 1 1 auto; /* 🔥 FLEXÍVEL */
+  min-width: 0;   /* 🔥 REMOVE TRAVA */
+  font-size: 12px;
+  padding: 6px;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  flex: 0 0 auto; /* 🔥 NÃO QUEBRA MAIS */
-  min-width: 120px;
-  background: var(--bg);
-  color: var(--ink);
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -360,84 +360,36 @@ body.dark .card-status span {
   border:1px solid #dc3545 !important;
   box-shadow:0 0 0 2px rgba(220,53,69,.2);
 }
-/* ================= TABLET IGUAL DESKTOP ================= */
+
+
+/* ================= TABLET AJUSTADO ================= */
 @media (min-width:768px) and (max-width:1200px){
 
-  /* 🔥 HEADER NORMAL (SEM QUEBRA) */
-  header{
-    flex-wrap: nowrap;
-    padding:10px 14px;
+  .filtros{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 🔥 tudo na linha */
+    gap: 6px;
   }
 
-  header h1{
-    font-size:1.2em;
+  .filtros input,
+  .filtros select,
+  .filtros button{
+    width: 100%;
+    min-width: 0;
+    font-size: 12px;
+    padding: 6px;
   }
 
-  header img{
-    height:38px;
-  }
-
-  /* 🔥 RESUMO EM LINHA ÚNICA */
+  /* 🔥 RESUMO SEM SCROLL */
   .resumo{
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: space-between;
-    overflow-x:auto; /* se faltar espaço, rola */
   }
 
   .card-status{
-    flex: 0 0 auto;
-    font-size:13px;
-    padding:8px 12px;
-  }
-
-  /* 🔥 FILTROS IGUAL DESKTOP (SEM QUEBRAR) */
-  .filtros{
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x:auto; /* 🔥 SCROLL horizontal igual sistema */
-  }
-
-  .filtros input,
-  .filtros select,
-  .filtros button{
-    flex: 0 0 auto;
-    min-width: 160px;
-    font-size:13px;
-    padding:8px;
-  }
-
-  /* 🔥 TABELA IGUAL DESKTOP */
-  table{
-    font-size:13px;
-  }
-
-  th, td{
-    padding:8px;
-  }
-
-}
-
-@media (min-width:768px){
-
-  .filtros{
-    flex-wrap: nowrap !important;
-    overflow-x: auto;
-  }
-
-  .filtros input,
-  .filtros select,
-  .filtros button{
-    flex: 0 0 auto !important;
-    min-width: 160px;
-  }
-
-  .resumo{
-    flex-wrap: nowrap !important;
-    overflow-x: auto;
-  }
-
-  .card-status{
-    flex: 0 0 auto;
+    flex: 1 1 16%;
+    font-size: 12px;
+    padding: 8px;
   }
 
 }
