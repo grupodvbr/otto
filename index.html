@@ -681,17 +681,21 @@ function voltarPagina(){
   frame.contentWindow.history.back();
 }
 
+
+
 const hoverZone = document.querySelector(".nav-hover-zone");
 const sidebar = document.querySelector(".sidebar");
+const overlay = document.querySelector(".overlay");
 
 hoverZone.addEventListener("mouseenter", () => {
   sidebar.classList.add("open");
+  overlay.classList.add("active"); // 🔥 OFUSCA FUNDO
 });
 
 sidebar.addEventListener("mouseleave", () => {
   sidebar.classList.remove("open");
+  overlay.classList.remove("active"); // 🔥 REMOVE OFUSCAMENTO
 });
-
 
 
 
