@@ -1136,7 +1136,7 @@ async function abrirCardapio(dia){
   const empresa = empresaSelect.value;
 
   const { data } = await sb
-    .from("buffet_produtos")
+    .from("cardapio_dia_buffet") // 🔥 AQUI MUDOU
     .select("*")
     .eq("empresa", empresa)
     .eq("dia_semana", dia);
@@ -1149,8 +1149,8 @@ async function abrirCardapio(dia){
   data?.forEach(item=>{
     container.innerHTML += `
       <label style="display:flex;gap:10px;margin-bottom:6px">
-        <input type="checkbox" checked data-id="${item.id}">
-        <span>${item.nome}</span>
+        <input type="checkbox" checked data-nome="${item.produto_nome}">
+        <span>${item.produto_nome}</span>
       </label>
     `;
   });
@@ -1158,7 +1158,6 @@ async function abrirCardapio(dia){
   document.getElementById("tituloCardapio").innerText = "Cardápio - " + dia;
   document.getElementById("modalCardapio").style.display = "flex";
 }
-
 function fecharCardapio(){
   document.getElementById("modalCardapio").style.display = "none";
 }
@@ -1173,7 +1172,9 @@ async function lancarCardapio(){
 
   for(const checkbox of checkboxes){
 
-    const item = cardapioSelecionado.find(p => p.id == checkbox.dataset.id);
+    const nome = checkbox.dataset.nome;
+
+    const item = cardapioSelecionado.find(p => p.produto_nome === nome);
 
     if(!item) continue;
 
@@ -1181,8 +1182,7 @@ async function lancarCardapio(){
 
     await sb.from("buffet_lancamentos").insert({
       empresa: empresa,
-      produto_id: item.id,
-      produto_nome: item.nome,
+      produto_nome: item.produto_nome,
       tipo: "MONTAGEM",
       quantidade: 0.001, // 🔥 1g
       unidade: "KG",
