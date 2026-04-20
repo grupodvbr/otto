@@ -61,7 +61,7 @@ body{
   position:fixed;
   left:0;
   top:0;
-  width:14px;
+  width:20px;
   height:100vh;
   z-index:50;
 }
@@ -680,6 +680,22 @@ function voltarPagina(){
   const frame = document.getElementById("frame");
   frame.contentWindow.history.back();
 }
+
+const hoverZone = document.querySelector(".nav-hover-zone");
+const sidebar = document.querySelector(".sidebar");
+
+hoverZone.addEventListener("mouseenter", () => {
+  sidebar.classList.add("open");
+});
+
+sidebar.addEventListener("mouseleave", () => {
+  sidebar.classList.remove("open");
+});
+
+
+
+
+  
 </script>
 <script>
 if ("serviceWorker" in navigator) {
