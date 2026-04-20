@@ -358,6 +358,66 @@ body.dark .card-status span {
   border:1px solid #dc3545 !important;
   box-shadow:0 0 0 2px rgba(220,53,69,.2);
 }
+/* ================= TABLET IGUAL DESKTOP ================= */
+@media (min-width:768px) and (max-width:1200px){
+
+  /* 🔥 HEADER NORMAL (SEM QUEBRA) */
+  header{
+    flex-wrap: nowrap;
+    padding:10px 14px;
+  }
+
+  header h1{
+    font-size:1.2em;
+  }
+
+  header img{
+    height:38px;
+  }
+
+  /* 🔥 RESUMO EM LINHA ÚNICA */
+  .resumo{
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    overflow-x:auto; /* se faltar espaço, rola */
+  }
+
+  .card-status{
+    flex: 0 0 auto;
+    font-size:13px;
+    padding:8px 12px;
+  }
+
+  /* 🔥 FILTROS IGUAL DESKTOP (SEM QUEBRAR) */
+  .filtros{
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x:auto; /* 🔥 SCROLL horizontal igual sistema */
+  }
+
+  .filtros input,
+  .filtros select,
+  .filtros button{
+    flex: 0 0 auto;
+    min-width: 160px;
+    font-size:13px;
+    padding:8px;
+  }
+
+  /* 🔥 TABELA IGUAL DESKTOP */
+  table{
+    font-size:13px;
+  }
+
+  th, td{
+    padding:8px;
+  }
+
+}
+
+
+
+
   
 </style>
 </head>
