@@ -143,13 +143,8 @@ const texto = pergunta.toLowerCase()
 
 let empresaFiltro = null
 
-// NIVEL 2 → FORÇA EMPRESA
-if(NIVEL === 2){
-  empresaFiltro = usuario.empresa
-}
 
 
-  
 // NIVEL 2 → BLOQUEIA EMPRESA
 if(NIVEL === 2){
   empresaFiltro = usuario.empresa
