@@ -203,11 +203,6 @@ if(texto.includes("relatorio") || texto.includes("faturamento")){
   tipoConsulta = "relatorio"
 }
 
-// 🔥 FORÇA CONSULTA DE CUPOM
-if(isCupom){
-  tipoConsulta = "cupons"
-}
-
 /* ================= DETECTAR CUPONS ================= */
 
 const isCupom =
@@ -220,6 +215,13 @@ const isCupom =
   texto.includes("resumo das vendas") ||
   texto.includes("resumo vendas") ||
   texto.includes("vendas de hoje")
+
+
+// 🔥 FORÇA CONSULTA DE CUPOM
+if(isCupom){
+  tipoConsulta = "cupons"
+}
+
 /* ================= BLOQUEIO CUPONS ================= */
 
 if(isCupom && ![0,1].includes(NIVEL)){
