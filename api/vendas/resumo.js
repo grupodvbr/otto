@@ -1,5 +1,7 @@
 import fetch from "node-fetch"
 
+/* ================= METAS MENSAIS ================= */
+
 const METAS = {
   "MERCATTO EMPORIO": { meta: 650000 },
   "MERCATTO RESTAURANTE": { meta: 850000 },
@@ -8,6 +10,8 @@ const METAS = {
   "DELÍCIA GOURMET": { meta: 545000 }
 }
 
+/* ================= NORMALIZAÇÃO ================= */
+
 function normalizar(txt){
   return txt
     ?.normalize("NFD")
@@ -15,11 +19,46 @@ function normalizar(txt){
     .toUpperCase()
 }
 
+/* ================= DATA BRASIL ================= */
+
+function getHoje(){
+  const agora = new Date(
+    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+  )
+  return agora
+}
+
+/* ================= META PROPORCIONAL ================= */
+
+function calcularMetaProporcional(metaMensal){
+
+  const hoje = getHoje()
+
+  const diaAtual = hoje.getDate()
+
+  const ultimoDia = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth() + 1,
+    0
+  ).getDate()
+
+  const metaDia = (metaMensal / ultimoDia) * diaAtual
+
+  return {
+    metaMensal,
+    metaAteHoje: metaDia
+  }
+}
+
+/* ================= HANDLER ================= */
+
 export default async function handler(req, res){
 
 try{
 
   const { empresa } = req.query
+
+  /* ================= URL BASE ================= */
 
   let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
 
@@ -31,26 +70,40 @@ try{
     "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
   }
 
-  // 🔥 aplica filtro na API externa
+  /* ================= FILTRO ================= */
+
   if(empresa && MAPA[empresa]){
     url += `?empresa=${MAPA[empresa]}`
   }
 
-  console.log("🔗 URL:", url)
+  console.log("📡 URL FINAL:", url)
+
+  /* ================= FETCH ================= */
 
   const response = await fetch(url)
+
+  if(!response.ok){
+    console.log("❌ ERRO HTTP:", response.status)
+    throw new Error("Erro na API externa")
+  }
+
   const data = await response.json()
+
+  console.log("📊 RESPOSTA:", JSON.stringify(data))
 
   if(!data){
     return res.status(500).json({ erro: "sem resposta da API" })
   }
+
+  /* ================= VARIÁVEIS ================= */
 
   let faturamento = 0
   let vendas = 0
   let ticket = 0
   let empresaFinal = empresa || "GERAL"
 
-  // 🔥 QUANDO TEM EMPRESA
+  /* ================= EMPRESA ================= */
+
   if(empresa){
 
     const empresaData = (data.empresas || []).find(e =>
@@ -58,6 +111,7 @@ try{
     )
 
     if(!empresaData){
+      console.log("❌ EMPRESA NÃO ENCONTRADA:", empresa)
       return res.status(404).json({
         erro: "empresa nao encontrada",
         empresa
@@ -70,7 +124,8 @@ try{
 
   }
 
-  // 🔥 GERAL
+  /* ================= GERAL ================= */
+
   else{
 
     faturamento = data.faturamento || 0
@@ -79,25 +134,36 @@ try{
 
   }
 
-  // 🔥 META MENSAL (SEM ACUMULADO)
-  let meta = 0
+  /* ================= META ================= */
+
+  let metaMensal = 0
+  let metaAteHoje = 0
   let percentual = 0
 
   if(empresa && METAS[empresa]){
-    meta = METAS[empresa].meta
-    percentual = meta > 0
-      ? (faturamento / meta) * 100
+
+    metaMensal = METAS[empresa].meta
+
+    const metaCalc = calcularMetaProporcional(metaMensal)
+
+    metaAteHoje = metaCalc.metaAteHoje
+
+    percentual = metaAteHoje > 0
+      ? (faturamento / metaAteHoje) * 100
       : 0
   }
 
-  // 🔥 RESPOSTA FINAL LIMPA
+  /* ================= RESPOSTA FINAL ================= */
+
   return res.json({
     data: data.data,
     empresa: empresaFinal,
     faturamento,
     vendas,
     ticket_medio: ticket,
-    meta,
+
+    meta_mensal: metaMensal,
+    meta_ate_hoje: metaAteHoje,
     percentual
   })
 
