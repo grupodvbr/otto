@@ -1341,35 +1341,30 @@ if(matchReserva){
 
 
   
+let acao = null
+
 const match = resposta.match(/ALTERAR_REGISTRO_JSON:\s*(\{[\s\S]*\})/)
 
-if(NIVEL !== 0){
-  acao = null
-}
+if(match && NIVEL === 0){
 
-  
-if(match){
+  try{
 
-try{
+    let jsonTexto = match[1]
 
-let jsonTexto = match[1]
+    jsonTexto = jsonTexto
+      .replace(/```json/g,"")
+      .replace(/```/g,"")
+      .trim()
 
-jsonTexto = jsonTexto
-.replace(/```json/g,"")
-.replace(/```/g,"")
-.trim()
+    acao = JSON.parse(jsonTexto)
 
-acao = JSON.parse(jsonTexto)
+    if(!resposta.includes("Confirme")){
+      resposta += "\n\n⚠️ Confirme para executar esta ação."
+    }
 
-if(!resposta.includes("Confirme")){
-resposta += "\n\n⚠️ Confirme para executar esta ação."
-}
-
-}catch(e){
-
-console.log("Erro parse JSON ação:", match[1])
-
-}
+  }catch(e){
+    console.log("Erro parse JSON ação:", match[1])
+  }
 
 }
 
