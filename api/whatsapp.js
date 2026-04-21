@@ -4,7 +4,7 @@ import fetch from "node-fetch"
 
 const VERIFY_TOKEN = process.env.OTTO_VERIFY_TOKEN
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID
+const PHONE_NUMBER_ID = process.env.OTTO_PHONE_NUMBER_ID
 
 const OTTO_ADMIN_TOKEN = process.env.OTTO_ADMIN_TOKEN
 
