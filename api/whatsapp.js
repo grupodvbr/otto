@@ -1,21 +1,23 @@
 const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args))
 
+/* ================= IMPORTA SEU AGENTE ================= */
+
+const adminAgente = require("./admin-agente")
+
 /* ================= ENV ================= */
 
 const VERIFY_TOKEN = process.env.OTTO_VERIFY_TOKEN
 const TOKEN = process.env.OTTO_WHATSAPP_TOKEN
 const PHONE_ID = process.env.OTTO_PHONE_NUMBER_ID
-
-const OTTO_AGENT_URL = process.env.OTTO_AGENT_URL
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 /* ================= ADMINS ================= */
 
 const ADMINS = [
-  "557798253249" // admin autorizado
+  "557798253249"
 ]
 
-// 🔥 para receber alertas
+// 🔥 quem recebe alerta
 const ADMIN_ALERTA = "5577998253249"
 
 /* ================= ENVIO ================= */
@@ -92,12 +94,12 @@ if(req.method === "POST"){
     console.log("📱 NUMERO:", numero)
 
     /* ======================================================
-       ❌ NÃO ADMIN → ALERTA ADMIN E IGNORA
+       ❌ NÃO ADMIN → ALERTA E IGNORA
     ====================================================== */
 
     if(!ADMINS.includes(numero)){
 
-      console.log("⛔ NÃO ADMIN - ENVIANDO ALERTA")
+      console.log("⛔ NÃO ADMIN - ALERTANDO")
 
       await enviarMensagem(
         ADMIN_ALERTA,
@@ -111,27 +113,37 @@ if(req.method === "POST"){
     }
 
     /* ======================================================
-       🧠 ADMIN → CHAMA OTTO REAL
+       🧠 CHAMA SEU AGENTE DIRETO (SEM FETCH)
     ====================================================== */
 
-    const respostaAPI = await fetch(OTTO_AGENT_URL,{
-      method:"POST",
-      headers:{
-        "Authorization":"Bearer " + ADMIN_TOKEN,
-        "Content-Type":"application/json"
+    let resposta = "Erro ao processar"
+
+    const fakeReq = {
+      method: "POST",
+      headers: {
+        authorization: "Bearer " + ADMIN_TOKEN
       },
-      body: JSON.stringify({
+      body: {
         pergunta: texto
+      }
+    }
+
+    const fakeRes = {
+      json: (data) => {
+        resposta = data?.resposta || resposta
+      },
+      status: () => ({
+        json: () => {}
       })
-    })
+    }
 
-    const json = await respostaAPI.json()
-
-    let resposta = json?.resposta || "Não encontrei essa informação no sistema."
+    await adminAgente(fakeReq, fakeRes)
 
     console.log("🧠 RESPOSTA:", resposta)
 
-    /* ================= ENVIO ================= */
+    /* ======================================================
+       📤 ENVIA RESPOSTA
+    ====================================================== */
 
     await enviarMensagem(numero, resposta)
 
