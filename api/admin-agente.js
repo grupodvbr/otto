@@ -189,7 +189,7 @@ if(isMercatto){
   }
 
   else{
-    empresaFiltro = "MERCATTO" // genérico (vai perguntar depois)
+empresaFiltro = null
   }
 
 }
@@ -509,7 +509,32 @@ if(tipoConsulta === "pedidos"){
   pedidos = data || []
 }
 
+const METAS = {
+  "DELÍCIA GOURMET": { prata: 545000 },
+  "MERCATTO EMPORIO": { prata: 650000 },
+  "MERCATTO RESTAURANTE": { prata: 850000 },
+  "PADARIA DELÍCIA": { prata: 720000 },
+  "VILLA GOURMET": { prata: 746600 }
+}
 
+function calcularMeta(empresa, valor){
+  const meta = METAS[empresa]
+  if(!meta) return { meta:0, percentual:0 }
+
+  return {
+    meta: meta.prata,
+    percentual: (valor / meta.prata) * 100
+  }
+}
+
+function formatar(v){
+  return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2})
+}
+
+function formatarData(dataISO){
+  const [ano, mes, dia] = dataISO.split("-")
+  return `${dia}/${mes}/${ano}`
+}
 
   
 
@@ -521,39 +546,25 @@ if(isCupom){
 
     let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
 
-// 🔥 FILTRO INTELIGENTE DE EMPRESA
+    if(empresaFiltro === "MERCATTO EMPORIO"){
+      url += `?empresa=VAREJO_URL_MERCATTO_EMPORIO`
+    }
+    else if(empresaFiltro === "MERCATTO RESTAURANTE"){
+      url += `?empresa=VAREJO_URL_MERCATTO_RESTAURANTE`
+    }
+    else if(empresaFiltro && empresaFiltro !== "MERCATTO"){
+      const mapa = {
+        "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
+        "VILLA GOURMET": "VAREJO_URL_VILLA",
+        "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
+      }
 
-if(empresaFiltro === "MERCATTO EMPORIO"){
-  url += `?empresa=VAREJO_URL_MERCATTO_EMPORIO`
-}
+      const chave = mapa[empresaFiltro]
+      if(chave){
+        url += `?empresa=${chave}`
+      }
+    }
 
-else if(empresaFiltro === "MERCATTO RESTAURANTE"){
-  url += `?empresa=VAREJO_URL_MERCATTO_RESTAURANTE`
-}
-
-else if(empresaFiltro === "MERCATTO"){
-  // 🔥 TOTAL → não filtra (pega tudo)
-}
-
-else if(empresaFiltro){
-
-  const mapa = {
-    "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
-    "VILLA GOURMET": "VAREJO_URL_VILLA",
-    "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
-  }
-
-  const chave = mapa[empresaFiltro]
-
-  if(chave){
-    url += `?empresa=${chave}`
-  }
-}
-
-
-
-
-    
     console.log("🌐 URL:", url)
 
     const resApi = await fetch(url)
@@ -561,53 +572,67 @@ else if(empresaFiltro){
 
     console.log("📊 RESPOSTA API:", JSON.stringify(data, null, 2))
 
-    let resultado = data
+    const dataFormatada = formatarData(data.data)
 
-   if(empresaFiltro && data.empresas){
+    const isGeral =
+      !empresaFiltro ||
+      empresaFiltro === "MERCATTO" ||
+      texto.includes("geral") ||
+      texto.includes("total")
 
-  const empresaData = data.empresas.find(e =>
-    String(e.empresa).trim().toUpperCase() === String(empresaFiltro).trim().toUpperCase()
-  )
+    // 🔥 GERAL
+    if(isGeral){
 
-  if(empresaData){
-    resultado = {
-      data: data.data,
-      faturamento: empresaData.faturamento,
-      vendas: empresaData.vendas,
-      ticket_medio: empresaData.vendas > 0
-        ? empresaData.faturamento / empresaData.vendas
-        : 0
+      let resposta = `📊 ${dataFormatada}\n\n🏢 *GERAL*\n\n`
+
+      resposta += `💰 Total: *R$ ${formatar(data.faturamento)}*\n\n`
+
+      if(data.empresas){
+        data.empresas.forEach(emp => {
+          const metaInfo = calcularMeta(emp.empresa, emp.faturamento)
+
+          resposta += `🏢 ${emp.empresa}\n`
+          resposta += `💰 R$ ${formatar(emp.faturamento)}\n`
+          resposta += `📊 ${metaInfo.percentual.toFixed(2)}%\n\n`
+        })
+      }
+
+      resposta += `🧾 Vendas: ${data.vendas}\n`
+      resposta += `💳 Ticket médio: R$ ${formatar(data.ticket_medio)}`
+
+      return res.json({ resposta })
     }
-  }
-}
 
+    // 🔥 EMPRESA
+    const empresaData = data.empresas?.find(e =>
+      e.empresa.toUpperCase() === empresaFiltro.toUpperCase()
+    )
 
+    if(!empresaData){
+      return res.json({ resposta: "❌ Empresa não encontrada" })
+    }
 
-    const formatar = v =>
-      Number(v).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2
-      })
+    const metaInfo = calcularMeta(empresaData.empresa, empresaData.faturamento)
 
-    console.log("✅ RESULTADO FINAL:", resultado)
-
-    // 🔥 RETORNO IMEDIATO (GPT NUNCA RODA)
     return res.json({
       resposta:
-`Resumo de vendas do dia ${resultado.data}:
+`📊 ${dataFormatada}
 
-Faturamento: R$ ${formatar(resultado.faturamento)}
-Vendas: ${resultado.vendas}
-Ticket médio: R$ ${formatar(resultado.ticket_medio)}`
+🏢 *${empresaData.empresa}*
+
+💰 Já vendeu: *R$ ${formatar(empresaData.faturamento)}*
+
+🎯 Meta: R$ ${metaInfo.meta.toLocaleString("pt-BR")}
+📊 Atingido: *${metaInfo.percentual.toFixed(2)}%*
+
+🧾 Vendas: ${empresaData.vendas}
+💳 Ticket médio: R$ ${formatar(data.ticket_medio)}`
     })
 
   }catch(e){
-    console.log("❌ ERRO RESUMO:", e.message)
-
-    return res.json({
-      resposta: "❌ Erro ao buscar dados de vendas"
-    })
+    console.log("❌ ERRO:", e)
+    return res.json({ resposta: "Erro ao buscar vendas" })
   }
-
 }
 /* ================= CLIENTES ================= */
 
