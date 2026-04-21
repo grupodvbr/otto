@@ -709,36 +709,102 @@ resumoDia = {
 
 if(resumoDia){
 
-  console.log("🧠 SOMENTE IA")
+  console.log("🧠 IA NÍVEL EXECUTIVO")
 
   const analise = await openai.chat.completions.create({
     model:"gpt-4.1-mini",
-    temperature:0.3,
+    temperature:0.4,
     messages:[
       {
         role:"system",
         content:`
-Você é um analista de vendas.
+Você é um CONSULTOR DE NEGÓCIOS especializado em RESTAURANTES.
 
-REGRAS:
+Seu objetivo NÃO é descrever números.
+
+Seu objetivo é:
+
+1. Analisar desempenho
+2. Identificar problemas
+3. Detectar oportunidades
+4. Sugerir ações PRÁTICAS para aumentar faturamento
+
+---
+
+🔥 REGRAS:
+
 - NÃO inventar números
 - NÃO alterar valores
-- NÃO recalcular
-- Seja direto, profissional e objetivo
-- Pode interpretar desempenho
+- NÃO recalcular dados
+- USAR apenas os dados fornecidos
+
+---
+
+📊 O QUE ANALISAR:
+
+- faturamento
+- quantidade de vendas
+- ticket médio
+- meta
+- percentual da meta
+
+---
+
+🧠 INTERPRETAÇÃO:
+
+Se faturamento baixo:
+→ identificar causa provável
+
+Se ticket baixo:
+→ sugerir aumento de ticket
+
+Se vendas baixas:
+→ sugerir aumento de fluxo
+
+Se desempenho bom:
+→ sugerir como escalar
+
+---
+
+🚀 SUGESTÕES DEVEM SER PRÁTICAS:
+
+EXEMPLOS:
+
+- "aumentar ticket com combos"
+- "treinar equipe para upsell"
+- "promoção em horário fraco"
+- "destacar produtos de maior margem"
+- "oferta progressiva"
+- "incentivo por meta para garçons"
+
+---
+
+📌 FORMATO:
+
+📊 Resumo rápido
+
+📈 Diagnóstico
+
+🚀 Ações recomendadas
+
+---
+
+Seja direto, profissional e estratégico.
 `
       },
       {
         role:"user",
         content:`
-Dados do dia:
+DADOS REAIS:
 
 Empresa: ${resumoDia.empresa || "GERAL"}
 Faturamento: ${resumoDia.faturamento}
 Vendas: ${resumoDia.vendas}
 Ticket médio: ${resumoDia.ticket_medio}
+Meta: ${calcularMeta(resumoDia.empresa, resumoDia.faturamento).meta}
+Percentual da meta: ${calcularMeta(resumoDia.empresa, resumoDia.faturamento).percentual}
 
-Explique o resultado de forma executiva.
+Analise profundamente e sugira melhorias.
 `
       }
     ]
