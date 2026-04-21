@@ -204,7 +204,32 @@ if(texto.includes("relatorio") || texto.includes("faturamento")){
 }
 
 
+
+/* ================= DETECTAR CUPONS ================= */
+
+const isCupom =
+  texto.includes("cupom") ||
+  texto.includes("venda") ||
+  texto.includes("faturamento") ||
+  texto.includes("quanto vendeu") ||
+  texto.includes("vendas")
+
+/* ================= BLOQUEIO CUPONS ================= */
+
+if(isCupom && NIVEL !== 1){
+  return res.json({
+    resposta: "⛔ Apenas usuários nível 1 podem acessar dados de vendas"
+  })
+}
+
+
+
+
+  
 /* ================= CONTROLE POR NIVEL ================= */
+
+
+  
 
 if(NIVEL === 3 && tipoConsulta !== "relatorio"){
   return res.json({
@@ -212,6 +237,15 @@ if(NIVEL === 3 && tipoConsulta !== "relatorio"){
   })
 }
 
+
+
+
+
+
+
+
+
+  
 
   
 const isRelatorio =
@@ -414,12 +448,16 @@ content: pergunta
 
 /* ================= BUSCA INTELIGENTE ================= */
 
+
+  
+
 let reservas = []
 let pedidos = []
 let clientes = []
 let produtos = []
 let buffetLancamentos = []
 let musicos = []
+let cupons = []
 /* ================= RESERVAS ================= */
 
 if(tipoConsulta === "reservas" || tipoConsulta === "relatorio"){
@@ -453,7 +491,61 @@ if(tipoConsulta === "pedidos"){
   pedidos = data || []
 }
 
+  /* ================= CUPONS (VENDAS EXTERNAS) ================= */
+
+if(isCupom && NIVEL === 1){
+
+  try{
+
+    const urls = [
+      process.env.VAREJO_URL_MERCATTO,
+      process.env.VAREJO_URL_VILLA,
+      process.env.VAREJO_URL_PADARIA,
+      process.env.VAREJO_URL_DELICIA
+    ].filter(Boolean)
+
+    let todos = []
+
+    for(const url of urls){
+
+      try{
+
+        const res = await fetch(url)
+        const data = await res.json()
+
+        console.log("📊 CUPONS RECEBIDOS:", url, data?.length || 0)
+
+        if(Array.isArray(data)){
+          todos.push(...data)
+        }
+
+      }catch(e){
+        console.log("❌ ERRO CUPOM URL:", url, e.message)
+      }
+
+    }
+
+    // 🔥 FILTRO POR DATA
+    cupons = todos.filter(c => c.data === dataFiltro)
+
+    console.log("📊 TOTAL CUPONS FILTRADOS:", cupons.length)
+
+  }catch(e){
+    console.log("❌ ERRO GERAL CUPONS:", e)
+  }
+
+}
+
+
+
+
+
+
+  
 /* ================= CLIENTES ================= */
+
+
+  
 
 if(tipoConsulta === "clientes"){
 
@@ -649,12 +741,19 @@ if(buffetLancamentos.length){
 }
   
 if(musicos.length){
+
+  
   contextos.push({
     role:"system",
     content: "AGENDA_MUSICOS:\n" + JSON.stringify(musicos)
   })
 }
-
+if(cupons.length){
+  contextos.push({
+    role:"system",
+    content: "CUPONS_VENDAS:\n" + JSON.stringify(cupons.slice(0,200))
+  })
+}
   
 /* ================= OPENAI ================= */
 
