@@ -746,14 +746,6 @@ Texto direto e profissional.
 - Resposta estilo WhatsApp premium
 
 
----
-⚠️ REGRA DE FORMATAÇÃO:
-
-- Cada linha deve conter "NOME: VALOR"
-- NÃO quebrar linha
-- NÃO separar nome e valor
-- NÃO usar linha dupla
-
 
 
 ⚠️ REGRAS:
