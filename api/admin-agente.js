@@ -507,7 +507,34 @@ if(produtos.length){
 }
 
 if(buffetLancamentos.length){
-  contextos.push(addContext("BUFFET_LANCAMENTOS", buffetLancamentos))
+
+  const resumo = {}
+
+  buffetLancamentos.forEach(item => {
+    const nome = item.produto_nome || "SEM NOME"
+    const qtd = parseFloat(item.quantidade) || 0
+    const tipo = item.tipo || "OUTRO"
+
+    const chave = `${nome}__${tipo}`
+
+    if(!resumo[chave]){
+      resumo[chave] = {
+        nome,
+        tipo,
+        total: 0,
+        unidade: item.unidade || "KG"
+      }
+    }
+
+    resumo[chave].total += qtd
+  })
+
+  const lista = Object.values(resumo)
+
+  contextos.push({
+    role:"system",
+    content: "RESUMO_REAL_BUFFET:\n" + JSON.stringify(lista)
+  })
 }
   
 
@@ -668,33 +695,53 @@ content:`DATA FILTRADA: ${dataFiltro}`
 role:"system",
 content:`
 
-📊 REGRA INTELIGENTE — BUFFET_LANCAMENTOS
+📊 REGRA CRÍTICA — BUFFET_LANCAMENTOS (DADOS REAIS)
 
-Sempre que o usuário pedir dados do buffet:
+A tabela BUFFET_LANCAMENTOS contém:
 
-1. Se NÃO informar a empresa:
-→ Pergunte QUAL EMPRESA antes de qualquer resposta
+- produto_nome → nome do item
+- quantidade → quantidade REAL produzida
+- unidade → KG ou UN
+- tipo → PRODUCAO | REPOSICAO | RETIRADA
+- empresa → empresa do registro
 
-2. Se informar empresa MAS não houver dados no dia:
-→ NÃO pare a resposta
-→ Você DEVE automaticamente:
+REGRAS OBRIGATÓRIAS:
 
-- buscar dados de ONTEM
-- ou sugerir outras datas disponíveis
+1. Você DEVE usar APENAS os dados reais recebidos no contexto
+2. NUNCA inventar produtos
+3. NUNCA repetir itens que não existem
+4. NUNCA gerar lista fictícia de cardápio
 
-3. Se não houver dados nem hoje nem ontem:
-→ informe claramente:
-"Não houve lançamentos recentes"
+5. Para responder:
 
-4. Nunca responda vazio
-5. Sempre sugira próximo passo
+→ Agrupar por produto_nome
+→ Somar quantidade por produto
+→ Mostrar no formato:
 
-Exemplo correto:
+"ALCATRA (CHURRASCO) — 1.520 KG (Reposição)"
 
-"Hoje não houve registros para Mercatto.
-Ontem houve produção de X kg.
-Deseja ver outro período ou outra empresa?"
+6. Se houver múltiplos registros do mesmo item:
+→ SOMAR quantidades
 
+7. Se não houver registros:
+→ dizer claramente:
+"Não houve lançamentos de buffet para essa data"
+
+8. Se houver dados:
+
+→ Responder assim:
+
+"Buffet do dia ${dataFiltro} — ${empresaFiltro || 'todas as empresas'}:
+
+- ALCATRA — 1.520 KG (Reposição)
+- ARROZ — 2.300 KG (Produção)"
+
+⚠️ PROIBIDO:
+- inventar pratos
+- usar 0.001 kg sem existir no banco
+- gerar lista grande falsa
+
+⚠️ SEMPRE usar produto_nome e quantidade reais
 `
 },
 
