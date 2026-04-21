@@ -148,25 +148,33 @@ if(NIVEL === 2){
   empresaFiltro = usuario.empresa
 }else{
 
-if(texto.includes("mercatto")){
+// 🔥 NORMALIZA TEXTO
+// 🔥 NORMALIZA TEXTO
+const normal = texto
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+
+// 🔥 PRIORIDADE (ordem IMPORTA)
+if(normal.includes("mercatto")){
   empresaFiltro = "MERCATTO DELÍCIA"
 }
-
-if(texto.includes("villa")){
-  empresaFiltro = "VILLA GOURMET"
-}
-
-if(texto.includes("padaria")){
+else if(normal.includes("padaria")){
   empresaFiltro = "PADARIA DELÍCIA"
 }
-
-if(texto.includes("kids")){
+else if(normal.includes("villa")){
+  empresaFiltro = "VILLA GOURMET"
+}
+else if(normal.includes("kids")){
   empresaFiltro = "M.KIDS"
 }
-
-if(texto.includes("delicia") || texto.includes("delícia")){
+else if(
+  normal.includes("delicia gourmet") ||
+  normal.includes("gourmet")
+){
   empresaFiltro = "DELÍCIA GOURMET"
 }
+
+// ⚠️ NÃO usar "delicia" sozinho
 
 }
 
@@ -521,6 +529,42 @@ if(isCupom){
     const res = await fetch(url)
     resumoDia = await res.json()
 
+// 🔥 GARANTE FILTRO REAL NO AGENTE
+if(empresaFiltro && resumoDia?.empresas){
+
+  const mapa = {
+    "MERCATTO DELÍCIA": "VAREJO_URL_MERCATTO",
+    "VILLA GOURMET": "VAREJO_URL_VILLA",
+    "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
+    "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
+  }
+
+  const chave = mapa[empresaFiltro]
+
+  const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
+
+  if(empresaData){
+    resumoDia = {
+      data: resumoDia.data,
+      faturamento: empresaData.faturamento,
+      vendas: empresaData.vendas,
+      ticket_medio: empresaData.vendas > 0
+        ? empresaData.faturamento / empresaData.vendas
+        : 0,
+      empresas: [empresaData]
+    }
+  }else{
+    resumoDia = null
+  }
+
+}
+
+
+    
+
+
+
+    
     console.log("📊 RESUMO DIA:", resumoDia)
 
   }catch(e){
