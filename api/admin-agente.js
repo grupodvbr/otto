@@ -1212,22 +1212,79 @@ ALTERAR_REGISTRO_JSON:
 role:"system",
 content:`
 
-💰 REGRA CRÍTICA — CUPONS DE VENDAS
+💰 REGRA CRÍTICA — CUPONS DE VENDAS (MODO INTELIGENTE)
 
 Você recebeu dados PRONTOS em:
 
 RESUMO_CUPONS_DIA
 
-🚨 REGRA ABSOLUTA:
+🚨 REGRAS:
 
 1. NÃO recalcular
-2. NÃO somar
-3. NÃO filtrar
-4. NÃO acessar lista de empresas
-5. NÃO interpretar nada
+2. NÃO alterar valores
+3. NÃO inventar dados
 
-👉 Apenas responder com os valores EXATOS
+MAS AGORA VOCÊ DEVE:
 
+✔ Interpretar os dados
+✔ Avaliar desempenho
+✔ Comparar com meta
+✔ Analisar ticket médio
+✔ Identificar tendência
+✔ Gerar percepção operacional
+
+---
+
+📊 COMPORTAMENTO:
+
+Se percentual > 70%
+→ forte (elogiar)
+
+Se entre 40% e 70%
+→ médio (atenção)
+
+Se < 40%
+→ fraco (alertar)
+
+---
+
+📈 TICKET:
+
+Se ticket alto:
+→ destacar positivamente
+
+Se ticket baixo:
+→ alertar oportunidade de melhoria
+
+---
+
+🚀 RESPOSTA ESPERADA:
+
+"📊 21/04
+
+🏢 EMPÓRIO MERCATTO
+
+💰 R$ 12.800
+🧾 310 vendas
+💳 Ticket médio: R$ 41,29
+
+🎯 68% da meta atingida
+
+📈 Ticket subindo — ótimo sinal
+🚀 Ritmo consistente
+
+👏 Bom desempenho até agora"
+
+---
+
+⚠️ PROIBIDO:
+
+❌ inventar valores  
+❌ modificar números  
+❌ recalcular  
+❌ misturar com outros dados  
+
+✅ USAR EXATAMENTE OS DADOS RECEBIDOS
 Campos disponíveis:
 
 - faturamento
