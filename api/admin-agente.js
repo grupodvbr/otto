@@ -509,7 +509,6 @@ if(isCupom){
 
     let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
 
-    // 🔥 filtro por empresa
     if(empresaFiltro){
 
       const mapa = {
@@ -527,45 +526,50 @@ if(isCupom){
     }
 
     const res = await fetch(url)
-    resumoDia = await res.json()
+    const data = await res.json()
 
-// 🔥 GARANTE FILTRO REAL NO AGENTE
-if(empresaFiltro && resumoDia?.empresas){
+    // 🔥 PEGA DIRETO DA API (SEM GPT)
+    let resultado = data
 
-  const mapa = {
-    "MERCATTO DELÍCIA": "VAREJO_URL_MERCATTO",
-    "VILLA GOURMET": "VAREJO_URL_VILLA",
-    "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
-    "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
-  }
+    if(empresaFiltro && data.empresas){
 
-  const chave = mapa[empresaFiltro]
+      const mapa = {
+        "MERCATTO DELÍCIA": "VAREJO_URL_MERCATTO",
+        "VILLA GOURMET": "VAREJO_URL_VILLA",
+        "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
+        "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
+      }
 
-  const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
+      const chave = mapa[empresaFiltro]
 
-  if(empresaData){
-    resumoDia = {
-      data: resumoDia.data,
-      faturamento: empresaData.faturamento,
-      vendas: empresaData.vendas,
-      ticket_medio: empresaData.vendas > 0
-        ? empresaData.faturamento / empresaData.vendas
-        : 0,
-      empresas: [empresaData]
+      const empresaData = data.empresas.find(e => e.empresa === chave)
+
+      if(empresaData){
+        resultado = {
+          data: data.data,
+          faturamento: empresaData.faturamento,
+          vendas: empresaData.vendas,
+          ticket_medio: empresaData.vendas > 0
+            ? empresaData.faturamento / empresaData.vendas
+            : 0
+        }
+      }
     }
-  }else{
-    resumoDia = null
-  }
 
-}
+    const formatar = v =>
+      Number(v).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2
+      })
 
+    // 🔥 RESPOSTA DIRETA (SEM GPT)
+    return res.json({
+      resposta:
+`Resumo de vendas do dia ${resultado.data}:
 
-    
-
-
-
-    
-    console.log("📊 RESUMO DIA:", resumoDia)
+Faturamento: R$ ${formatar(resultado.faturamento)}
+Vendas: ${resultado.vendas}
+Ticket médio: R$ ${formatar(resultado.ticket_medio)}`
+    })
 
   }catch(e){
     console.log("❌ ERRO RESUMO:", e.message)
