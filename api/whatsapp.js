@@ -1,5 +1,5 @@
-import fetch from "node-fetch"
-import OpenAI from "openai"
+const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args))
+const OpenAI = require("openai")
 
 /* ================= ENV ================= */
 
@@ -24,10 +24,10 @@ const OTTO_NUMERO_RESTAURANTE = "5577999229807"
 
 /* ================= HANDLER ================= */
 
-export default async function handler(req, res){
+module.exports = async function handler(req, res){
 
 /* ======================================================
-   🔐 VERIFICAÇÃO META
+   🔐 VERIFY META
 ====================================================== */
 
 if(req.method === "GET"){
@@ -76,9 +76,9 @@ if(req.method === "POST"){
     if(OTTO_TIPO === "text"){
       OTTO_TEXTO = msg.text.body
     } else if(OTTO_TIPO === "image"){
-      OTTO_TEXTO = "O cliente enviou uma imagem"
+      OTTO_TEXTO = "Cliente enviou imagem"
     } else if(OTTO_TIPO === "audio"){
-      OTTO_TEXTO = "O cliente enviou um áudio"
+      OTTO_TEXTO = "Cliente enviou áudio"
     } else {
       OTTO_TEXTO = "Mensagem não suportada"
     }
@@ -86,7 +86,7 @@ if(req.method === "POST"){
     console.log("🤖 RECEBEU:", OTTO_TEXTO)
 
     /* ======================================================
-       🔐 BLOQUEIO
+       🔐 BLOQUEIO NÃO ADMIN
     ====================================================== */
 
     const OTTO_EH_ADMIN = OTTO_ADMINS.includes(OTTO_NUMERO)
@@ -117,7 +117,7 @@ Para atendimento, fale com o Mercatto Delícia:
     }
 
     /* ======================================================
-       🧠 AGENTE OTTO (OPENAI DIRETO)
+       🧠 OPENAI
     ====================================================== */
 
     const completion = await openai.chat.completions.create({
@@ -129,11 +129,7 @@ Para atendimento, fale com o Mercatto Delícia:
           content: `
 Você é OTTO, administrador do Mercatto Delícia.
 
-Regras:
-- Seja direto
-- Não invente dados
-- Fale como gestor
-- Responda claro e profissional
+Responda de forma profissional, direta e objetiva.
 `
         },
         {
@@ -143,7 +139,7 @@ Regras:
       ]
     })
 
-    let resposta = completion.choices[0].message.content
+    const resposta = completion.choices[0].message.content
 
     console.log("🧠 RESPOSTA:", resposta)
 
@@ -180,3 +176,5 @@ Regras:
 }
 
 return res.sendStatus(405)
+
+}
