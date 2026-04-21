@@ -583,20 +583,6 @@ else if(empresaFiltro){
 
 
 
-
-    
-      if(empresaData){
-        resultado = {
-          data: data.data,
-          faturamento: empresaData.faturamento,
-          vendas: empresaData.vendas,
-          ticket_medio: empresaData.vendas > 0
-            ? empresaData.faturamento / empresaData.vendas
-            : 0
-        }
-      }
-    }
-
     const formatar = v =>
       Number(v).toLocaleString("pt-BR", {
         minimumFractionDigits: 2
