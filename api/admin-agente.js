@@ -541,22 +541,22 @@ if(empresaFiltro && resumoDia?.empresas){
 
   const chave = mapa[empresaFiltro]
 
-  const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
+const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
 
-  if(empresaData){
-    resumoDia = {
-      data: resumoDia.data,
-      faturamento: empresaData.faturamento,
-      vendas: empresaData.vendas,
-      ticket_medio: empresaData.vendas > 0
-        ? empresaData.faturamento / empresaData.vendas
-        : 0,
-      empresas: [empresaData]
-    }
-  }else{
-    resumoDia = null
+if(empresaData){
+
+  resumoDia = {
+    data: resumoDia.data,
+    faturamento: empresaData.faturamento,
+    vendas: empresaData.vendas,
+    ticket_medio: empresaData.vendas > 0
+      ? empresaData.faturamento / empresaData.vendas
+      : 0,
+    empresas: [empresaData] // 🔥 ESSENCIAL
   }
 
+}else{
+  resumoDia = null
 }
 
 
@@ -779,11 +779,22 @@ if(musicos.length){
     content: "AGENDA_MUSICOS:\n" + JSON.stringify(musicos)
   })
 }
+
+  
 if(resumoDia){
 
+  // 🔥 GARANTE QUE VAI SÓ DADO FINAL (SEM GPT FILTRAR)
   contextos.push({
     role:"system",
-    content: "CUPONS_VENDAS:\n" + JSON.stringify(resumoDia)
+    content: `
+RESUMO_CUPONS_DIA:
+${JSON.stringify({
+  data: resumoDia.data,
+  faturamento: resumoDia.faturamento,
+  vendas: resumoDia.vendas,
+  ticket_medio: resumoDia.ticket_medio
+})}
+`
   })
 
 }
@@ -933,20 +944,20 @@ content:`
 
 💰 REGRA CRÍTICA — CUPONS DE VENDAS
 
-Você recebeu dados reais de vendas em:
 
-CUPONS_VENDAS
+Você recebeu dados já processados em:
 
-Campos:
-- data
-- faturamento
-- vendas
-- ticket_medio
-- empresas[]
+RESUMO_CUPONS_DIA
 
 REGRAS:
 
-Use diretamente os valores já calculados:
+1. NÃO recalcular nada
+2. NÃO filtrar nada
+3. NÃO somar nada
+4. Apenas usar os valores prontos
+
+Use diretamente:
+
 - faturamento
 - vendas
 - ticket_medio
