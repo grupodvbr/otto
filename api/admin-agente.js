@@ -726,11 +726,13 @@ Sua resposta DEVE seguir exatamente essa estrutura:
 
 📊 RESUMO DO DIA (OBRIGATÓRIO PRIMEIRO)
 
-🏢 Empresa
-💰 Faturamento (R$)
-🧾 Vendas
-💳 Ticket médio (R$)
-🎯 Percentual da meta (%)
+Formato obrigatório:
+
+🏢 Empresa: NOME
+💰 Faturamento: R$ VALOR
+🧾 Vendas: NUMERO
+💳 Ticket médio: R$ VALOR
+🎯 Meta: XX%
 
 ---
 
@@ -749,6 +751,14 @@ Sua resposta DEVE seguir exatamente essa estrutura:
 - Foco em aumento de receita
 
 ---
+⚠️ REGRA DE FORMATAÇÃO:
+
+- Cada linha deve conter "NOME: VALOR"
+- NÃO quebrar linha
+- NÃO separar nome e valor
+- NÃO usar linha dupla
+
+
 
 ⚠️ REGRAS:
 
@@ -777,11 +787,29 @@ Percentual da meta: ${calcularMeta(resumoDia.empresa, resumoDia.faturamento).per
 ]
   })
 
-  const respostaIA = analise.choices[0].message.content
+const respostaIA = analise.choices[0].message.content
 
-  return res.json({
-    resposta: respostaIA
-  })
+function criarBox(texto){
+
+  const linhas = texto.split("\n")
+
+  const largura = Math.max(...linhas.map(l => l.length))
+
+  const topo = "┌" + "─".repeat(largura + 2) + "┐"
+  const base = "└" + "─".repeat(largura + 2) + "┘"
+
+  const meio = linhas.map(l =>
+    "│ " + l.padEnd(largura, " ") + " │"
+  )
+
+  return [topo, ...meio, base].join("\n")
+}
+
+const respostaFormatada = criarBox(respostaIA)
+
+return res.json({
+  resposta: respostaFormatada
+})
 }
     
 
