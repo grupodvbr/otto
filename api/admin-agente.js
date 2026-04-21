@@ -169,13 +169,10 @@ else if(normal.includes("kids")){
 }
 else if(
   normal.includes("delicia gourmet") ||
-  normal.includes("delicia restaurante") ||
-  (normal.includes("delicia") && !normal.includes("padaria") && !normal.includes("mercatto"))
+  normal.includes("gourmet")
 ){
   empresaFiltro = "DELÍCIA GOURMET"
 }
-
-
 
 // ⚠️ NÃO usar "delicia" sozinho
 
@@ -510,25 +507,8 @@ if(isCupom){
 
   try{
 
-const baseUrl = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
+    let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
 
-// 🔥 FORÇA FILTRO SEMPRE
-const mapa = {
-  "MERCATTO DELÍCIA": "VAREJO_URL_MERCATTO",
-  "VILLA GOURMET": "VAREJO_URL_VILLA",
-  "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
-  "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
-}
-
-let url = baseUrl
-
-if(empresaFiltro && mapa[empresaFiltro]){
-  url = `${baseUrl}?empresa=${mapa[empresaFiltro]}`
-}else{
-  console.log("⚠️ SEM FILTRO DE EMPRESA — PEGANDO TODAS")
-}
-
-    
     // 🔥 filtro por empresa
     if(empresaFiltro){
 
@@ -561,22 +541,22 @@ if(empresaFiltro && resumoDia?.empresas){
 
   const chave = mapa[empresaFiltro]
 
-const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
+  const empresaData = resumoDia.empresas.find(e => e.empresa === chave)
 
-if(empresaData){
-
-  resumoDia = {
-    data: resumoDia.data,
-    faturamento: empresaData.faturamento,
-    vendas: empresaData.vendas,
-    ticket_medio: empresaData.vendas > 0
-      ? empresaData.faturamento / empresaData.vendas
-      : 0,
-    empresas: [empresaData] // 🔥 ESSENCIAL
+  if(empresaData){
+    resumoDia = {
+      data: resumoDia.data,
+      faturamento: empresaData.faturamento,
+      vendas: empresaData.vendas,
+      ticket_medio: empresaData.vendas > 0
+        ? empresaData.faturamento / empresaData.vendas
+        : 0,
+      empresas: [empresaData]
+    }
+  }else{
+    resumoDia = null
   }
 
-}else{
-  resumoDia = null
 }
 
 
@@ -799,22 +779,11 @@ if(musicos.length){
     content: "AGENDA_MUSICOS:\n" + JSON.stringify(musicos)
   })
 }
-
-  
 if(resumoDia){
 
-  // 🔥 GARANTE QUE VAI SÓ DADO FINAL (SEM GPT FILTRAR)
   contextos.push({
     role:"system",
-    content: `
-RESUMO_CUPONS_DIA:
-${JSON.stringify({
-  data: resumoDia.data,
-  faturamento: resumoDia.faturamento,
-  vendas: resumoDia.vendas,
-  ticket_medio: resumoDia.ticket_medio
-})}
-`
+    content: "CUPONS_VENDAS:\n" + JSON.stringify(resumoDia)
   })
 
 }
@@ -964,20 +933,20 @@ content:`
 
 💰 REGRA CRÍTICA — CUPONS DE VENDAS
 
+Você recebeu dados reais de vendas em:
 
-Você recebeu dados já processados em:
+CUPONS_VENDAS
 
-RESUMO_CUPONS_DIA
+Campos:
+- data
+- faturamento
+- vendas
+- ticket_medio
+- empresas[]
 
 REGRAS:
 
-1. NÃO recalcular nada
-2. NÃO filtrar nada
-3. NÃO somar nada
-4. Apenas usar os valores prontos
-
-Use diretamente:
-
+Use diretamente os valores já calculados:
 - faturamento
 - vendas
 - ticket_medio
