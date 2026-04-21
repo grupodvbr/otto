@@ -28,6 +28,20 @@ const LOGOS = {
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
+/* ================= NÍVEIS DE ACESSO ================= */
+
+const USUARIOS = {
+  "779999999999": { nivel: 0 }, // ADMIN TOTAL
+  "778888888888": { nivel: 1 }, // TODAS EMPRESAS
+  "777777777777": { nivel: 2, empresa: "MERCATTO DELÍCIA" }, // 1 empresa
+  "776666666666": { nivel: 3 } // só relatórios
+}
+
+
+
+
+
+
 module.exports = async function handler(req, res){
 
 try{
@@ -47,6 +61,42 @@ typeof req.body === "string"
 
 const pergunta = body?.pergunta || ""
 
+
+
+
+
+
+
+
+
+
+
+
+  
+
+const numero = body?.numero || "779999999999" // fallback teste
+
+const usuario = USUARIOS[numero]
+
+if(!usuario){
+  console.log("⛔ ACESSO NEGADO:", numero)
+  return res.json({ resposta: "⛔ Usuário sem acesso" })
+}
+
+const NIVEL = usuario.nivel
+
+
+
+
+
+
+
+
+
+
+  
+
+  
 /* ================= DATAS PRIMEIRO ================= */
 
 const agora = new Date()
@@ -91,29 +141,57 @@ let dataFiltro = hojeISO
 const texto = pergunta.toLowerCase()
 
 
-  let empresaFiltro = null
+let empresaFiltro = null
 
-if(texto.includes("mercatto")){
-  empresaFiltro = "MERCATTO DELÍCIA"
+// NIVEL 2 → FORÇA EMPRESA
+if(NIVEL === 2){
+  empresaFiltro = usuario.empresa
 }
 
-if(texto.includes("villa")){
-  empresaFiltro = "VILLA GOURMET"
-}
 
-if(texto.includes("padaria")){
-  empresaFiltro = "PADARIA DELÍCIA"
-}
+  
+// NIVEL 2 → BLOQUEIA EMPRESA
+if(NIVEL === 2){
+  empresaFiltro = usuario.empresa
+}else{
 
-if(texto.includes("kids")){
-  empresaFiltro = "M.KIDS"
-}
+  if(texto.includes("mercatto")){
+    empresaFiltro = "MERCATTO DELÍCIA"
+  }
 
+  if(texto.includes("villa")){
+    empresaFiltro = "VILLA GOURMET"
+  }
+
+  if(texto.includes("padaria")){
+    empresaFiltro = "PADARIA DELÍCIA"
+  }
+
+  if(texto.includes("kids")){
+    empresaFiltro = "M.KIDS"
+  }
+
+}
 
 
   
 let tipoConsulta = "geral"
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 if(texto.includes("reserva")){
   tipoConsulta = "reservas"
 }
@@ -135,7 +213,13 @@ if(texto.includes("relatorio") || texto.includes("faturamento")){
 }
 
 
+/* ================= CONTROLE POR NIVEL ================= */
 
+if(NIVEL === 3 && tipoConsulta !== "relatorio"){
+  return res.json({
+    resposta: "⛔ Seu acesso permite apenas relatórios"
+  })
+}
 
 
   
@@ -192,6 +276,14 @@ confirmar = last[0].acao_json
 
 if(confirmar){
 
+// 🔒 BLOQUEIO TOTAL
+if(NIVEL !== 0){
+  return res.json({
+    resposta: "⛔ Você não tem permissão para alterar dados"
+  })
+}
+
+  
 try{
 
 const acao = confirmar
@@ -336,7 +428,7 @@ let pedidos = []
 let clientes = []
 let produtos = []
 let buffetLancamentos = []
-
+let musicos = []
 /* ================= RESERVAS ================= */
 
 if(tipoConsulta === "reservas" || tipoConsulta === "relatorio"){
@@ -437,7 +529,23 @@ if(!buffetLancamentos || buffetLancamentos.length === 0){
   buffetLancamentos = ontemData || []
 }
 
-  
+  /* ================= MUSICOS ================= */
+
+if(texto.includes("cantor") || texto.includes("musico") || texto.includes("agenda")){
+
+  let query = supabase
+    .from("agenda_musicos")
+    .select("*")
+    .eq("data", dataFiltro)
+
+  if(empresaFiltro){
+    query = query.eq("empresa", empresaFiltro)
+  }
+
+  const { data } = await query
+
+  musicos = data || []
+}
   
   
 /* ================= BUSCAR PROMPTS DO AGENTE ================= */
@@ -508,6 +616,10 @@ if(produtos.length){
 
 if(buffetLancamentos.length){
 
+
+
+
+  
   const resumo = {}
 
   buffetLancamentos.forEach(item => {
@@ -537,7 +649,12 @@ if(buffetLancamentos.length){
   })
 }
   
-
+if(musicos.length){
+  contextos.push({
+    role:"system",
+    content: "AGENDA_MUSICOS:\n" + JSON.stringify(musicos)
+  })
+}
 
   
 /* ================= OPENAI ================= */
@@ -597,7 +714,88 @@ Se variacao > 0 → SUBINDO
 `
 },
 
-  
+  {
+role:"system",
+content:`
+
+🎤 REGRA CRÍTICA — AGENDA DE MÚSICOS
+
+Tabela: agenda_musicos
+
+Campos:
+- empresa
+- data
+- cantor
+- hora
+- valor
+- estilo
+
+REGRAS:
+
+1. Você DEVE usar APENAS os dados reais recebidos
+2. NUNCA inventar cantor
+3. NUNCA inventar horários
+4. NUNCA criar agenda falsa
+
+5. Resposta correta:
+
+Se houver dados:
+
+"Agenda musical do dia ${dataFiltro}:
+
+- Guthierry — 21:00 (Internacional)"
+
+6. Se não houver:
+
+"Não há músicos cadastrados para essa data"
+
+7. Para CRIAR:
+
+GERAR:
+
+ALTERAR_REGISTRO_JSON:
+{
+"operacao":"insert",
+"tabela":"agenda_musicos",
+"dados":{
+  "empresa":"",
+  "data":"",
+  "cantor":"",
+  "hora":"",
+  "valor":0,
+  "estilo":""
+}
+}
+
+8. Para EDITAR:
+
+ALTERAR_REGISTRO_JSON:
+{
+"operacao":"update",
+"tabela":"agenda_musicos",
+"dados":{...},
+"filtro":{
+  "id":""
+}
+}
+
+9. Para EXCLUIR:
+
+ALTERAR_REGISTRO_JSON:
+{
+"operacao":"delete",
+"tabela":"agenda_musicos",
+"filtro":{
+  "id":""
+}
+}
+
+⚠️ NUNCA executar direto
+⚠️ SEMPRE pedir confirmação
+⚠️ NUNCA inventar ID
+
+`
+},
 
 
 {
@@ -1097,7 +1295,7 @@ if(matchReserva){
 
       nome: acaoReserva.dados.nome || "Cliente",
       telefone: acaoReserva.dados.telefone || "ADMIN",
-      email: acaoReserva.dados.email || "nao_informado@mercatto.com",
+      email: "whatsapp_otto@mercatto.com",
       pessoas: parseInt(acaoReserva.dados.pessoas) || 1,
       mesa: acaoReserva.dados.mesa || "Salão",
       cardapio: acaoReserva.dados.cardapio || "",
@@ -1154,8 +1352,11 @@ if(matchReserva){
   
 const match = resposta.match(/ALTERAR_REGISTRO_JSON:\s*(\{[\s\S]*\})/)
 
-let acao = null
+if(NIVEL !== 0){
+  acao = null
+}
 
+  
 if(match){
 
 try{
