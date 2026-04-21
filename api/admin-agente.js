@@ -610,7 +610,36 @@ if(empresaFiltro){
   }
 
 }
+// 🔥 BLOQUEIO TOTAL DO GPT PARA VENDAS
+if(resumoDia){
 
+  console.log("🧾 RESPONDENDO DIRETO (SEM GPT)")
+
+  if(resumoDia.tipo === "EMPRESA"){
+    
+    return res.json({
+      resposta: `Resumo de vendas do dia ${resumoDia.data}:
+
+🏢 ${resumoDia.empresa}
+
+Faturamento: R$ ${formatar(resumoDia.faturamento)}
+Vendas: ${resumoDia.vendas}
+Ticket médio: R$ ${formatar(resumoDia.ticket_medio)}`
+    })
+
+  }else{
+
+    return res.json({
+      resposta: `Resumo geral de vendas do dia ${resumoDia.data}:
+
+Faturamento total: R$ ${formatar(resumoDia.faturamento)}
+Total de vendas: ${resumoDia.vendas}
+Ticket médio: R$ ${formatar(resumoDia.ticket_medio)}`
+    })
+
+  }
+
+}
     
 
   }catch(e){
