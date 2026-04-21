@@ -2,22 +2,6 @@ const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch
 
 /* ================= IMPORTA SEU AGENTE ================= */
 
-const adminAgente = require("./admin-agente")
-
-/* ================= ENV ================= */
-
-const VERIFY_TOKEN = process.env.OTTO_VERIFY_TOKEN
-const TOKEN = process.env.OTTO_WHATSAPP_TOKEN
-const PHONE_ID = process.env.OTTO_PHONE_NUMBER_ID
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN
-
-/* ================= ADMINS ================= */
-
-const ADMINS = [
-  "557798253249"
-]
-
-// 🔥 quem recebe alerta
 const ADMIN_ALERTA = "5577998253249"
 
 /* ================= ENVIO ================= */
