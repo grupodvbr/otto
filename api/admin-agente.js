@@ -89,6 +89,34 @@ const amanhaISO = amanha.toISOString().split("T")[0]
 let dataFiltro = hojeISO
 
 const texto = pergunta.toLowerCase()
+
+let tipoConsulta = "geral"
+
+if(texto.includes("reserva")){
+  tipoConsulta = "reservas"
+}
+
+if(texto.includes("pedido")){
+  tipoConsulta = "pedidos"
+}
+
+if(texto.includes("buffet")){
+  tipoConsulta = "buffet"
+}
+
+if(texto.includes("cliente")){
+  tipoConsulta = "clientes"
+}
+
+if(texto.includes("relatorio") || texto.includes("faturamento")){
+  tipoConsulta = "relatorio"
+}
+
+
+
+
+
+  
 const isRelatorio =
   texto.includes("relatorio") ||
   texto.includes("análise") ||
