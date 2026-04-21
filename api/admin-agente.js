@@ -60,7 +60,26 @@ typeof req.body === "string"
 const pergunta = body?.pergunta || ""
 
 
+/* ================= IDENTIFICA USUÁRIO ================= */
 
+const numero = body?.numero
+
+if(!numero){
+  console.log("❌ NUMERO NÃO INFORMADO")
+  return res.json({ resposta: "Erro interno: número não identificado" })
+}
+
+const usuario = USUARIOS[numero]
+
+if(!usuario){
+  console.log("⛔ ACESSO NEGADO:", numero)
+  return res.json({ resposta: "⛔ Usuário sem acesso" })
+}
+
+const NIVEL = usuario.nivel
+
+console.log("👤 USUARIO:", numero)
+console.log("🔐 NIVEL:", NIVEL)
 
 
 
