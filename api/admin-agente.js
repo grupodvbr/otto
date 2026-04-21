@@ -526,10 +526,17 @@ if(isCupom){
     }
 
     const res = await fetch(url)
-    const data = await res.json()
+const data = await res.json()
 
-    // 🔥 PEGA DIRETO DA API (SEM GPT)
-    let resultado = data
+let resultado = data
+
+// 🔥 SALVA PARA USO GLOBAL
+resumoDia = {
+  data: resultado.data,
+  faturamento: resultado.faturamento,
+  vendas: resultado.vendas,
+  ticket_medio: resultado.ticket_medio
+}
 
     if(empresaFiltro && data.empresas){
 
