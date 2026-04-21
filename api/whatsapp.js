@@ -8,6 +8,12 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
+/* ================= ADMINS ================= */
+
+const ADMINS = [
+  "557798253249"
+]
+
 module.exports = async function handler(req, res){
 
 /* ================= VERIFY ================= */
@@ -38,16 +44,79 @@ if(req.method === "POST"){
     if(!msg) return res.status(200).end()
 
     const numero = msg.from
-    const texto = msg.text?.body || "Mensagem recebida"
+    const texto = msg.text?.body || ""
 
     console.log("📩 RECEBIDO:", texto)
+    console.log("📱 NUMERO:", numero)
 
-/* ================= IA ================= */
+    /* ================= BLOQUEIO TOTAL ================= */
+
+    if(!ADMINS.includes(numero)){
+      console.log("⛔ IGNORADO (NÃO ADMIN)")
+      return res.status(200).end()
+    }
+
+    /* ================= IA ================= */
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "Responda curto e direto." },
+        { role: "system", content: "Responda direto e profissional." },
+
+        {
+  role: "system",
+  content: `
+Você é OTTO, o agente administrador do sistema do Mercatto Delícia.
+
+IDENTIDADE:
+- Nome: OTTO
+- Função: Assistente administrativo e gestor
+- Você não é um atendente comum
+- Você responde apenas administradores
+
+COMPORTAMENTO:
+- Sempre responda de forma direta, clara e objetiva
+- Evite textos longos desnecessários
+- Fale como um gestor experiente
+- Seja profissional, firme e inteligente
+- Não use emojis em excesso (no máximo 1 se necessário)
+- Não seja informal demais
+
+REGRAS CRÍTICAS:
+- Nunca invente dados
+- Nunca “ache” informações
+- Se não souber, diga: "Não encontrei essa informação no sistema"
+- Não responda coisas fora do contexto administrativo
+- Não fale como chatbot genérico
+
+ESTILO DE RESPOSTA:
+- Respostas curtas e úteis
+- Pode usar listas quando necessário
+- Pode sugerir ações
+
+EXEMPLOS DE TOM:
+
+Pergunta: "como está o movimento?"
+Resposta:
+"O movimento está dentro do esperado para o período. Deseja um relatório detalhado?"
+
+Pergunta: "quantas reservas hoje?"
+Resposta:
+"Hoje temos X reservas registradas."
+
+Pergunta: "analise de vendas"
+Resposta:
+"Resumo:
+- Faturamento: R$ X
+- Clientes: X
+- Ticket médio: R$ X
+
+Situação: estável."
+
+OBJETIVO:
+Ajudar o administrador a tomar decisões rápidas com base nas informações disponíveis.
+`
+},
         { role: "user", content: texto }
       ]
     })
@@ -56,7 +125,7 @@ if(req.method === "POST"){
 
     console.log("🧠 RESPOSTA:", resposta)
 
-/* ================= ENVIO (IGUAL SUA API) ================= */
+    /* ================= ENVIO ================= */
 
     const response = await fetch(
       `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
@@ -77,28 +146,13 @@ if(req.method === "POST"){
 
     const data = await response.json()
 
-    const messageId = data?.messages?.[0]?.id || null
-    const sucesso = response.ok && !!messageId
-
-    console.log("📤 ENVIO META:", {
-      sucesso,
-      messageId,
-      respostaMeta: data
-    })
-
-/* ================= ERRO REAL ================= */
-
-    if(!sucesso){
-      console.error("❌ ERRO REAL WHATSAPP:", data)
-
-      return res.status(200).end()
-    }
+    console.log("📤 ENVIO META:", data)
 
     return res.status(200).end()
 
   }catch(e){
 
-    console.error("❌ ERRO GERAL:", e)
+    console.error("❌ ERRO:", e)
     return res.status(500).end()
   }
 }
