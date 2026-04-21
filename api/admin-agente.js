@@ -31,7 +31,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 /* ================= NÍVEIS DE ACESSO ================= */
 
 const USUARIOS = {
-  "77998253249": { nivel: 0 }, // ADMIN TOTAL
+  "5577998253249": { nivel: 0 }, // ADMIN TOTAL
   "778888888888": { nivel: 1 }, // TODAS EMPRESAS
   "777777777777": { nivel: 2, empresa: "MERCATTO DELÍCIA" }, // 1 empresa
   "776666666666": { nivel: 3 } // só relatórios
@@ -63,27 +63,6 @@ const pergunta = body?.pergunta || ""
 
 
 
-
-
-
-
-
-
-
-
-
-  
-
-const numero = body?.numero || "779999999999" // fallback teste
-
-const usuario = USUARIOS[numero]
-
-if(!usuario){
-  console.log("⛔ ACESSO NEGADO:", numero)
-  return res.json({ resposta: "⛔ Usuário sem acesso" })
-}
-
-const NIVEL = usuario.nivel
 
 
 
