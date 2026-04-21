@@ -169,10 +169,13 @@ else if(normal.includes("kids")){
 }
 else if(
   normal.includes("delicia gourmet") ||
-  normal.includes("gourmet")
+  normal.includes("delicia restaurante") ||
+  (normal.includes("delicia") && !normal.includes("padaria") && !normal.includes("mercatto"))
 ){
   empresaFiltro = "DELÍCIA GOURMET"
 }
+
+
 
 // ⚠️ NÃO usar "delicia" sozinho
 
@@ -507,8 +510,25 @@ if(isCupom){
 
   try{
 
-    let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
+const baseUrl = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
 
+// 🔥 FORÇA FILTRO SEMPRE
+const mapa = {
+  "MERCATTO DELÍCIA": "VAREJO_URL_MERCATTO",
+  "VILLA GOURMET": "VAREJO_URL_VILLA",
+  "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
+  "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
+}
+
+let url = baseUrl
+
+if(empresaFiltro && mapa[empresaFiltro]){
+  url = `${baseUrl}?empresa=${mapa[empresaFiltro]}`
+}else{
+  console.log("⚠️ SEM FILTRO DE EMPRESA — PEGANDO TODAS")
+}
+
+    
     // 🔥 filtro por empresa
     if(empresaFiltro){
 
