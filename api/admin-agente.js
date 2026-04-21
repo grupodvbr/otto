@@ -610,34 +610,70 @@ if(empresaFiltro){
   }
 
 }
-// 🔥 BLOQUEIO TOTAL DO GPT PARA VENDAS
+
+
+
+ // ✅ CORRETO — BASE + GPT ANALISANDO
+
 if(resumoDia){
 
-  console.log("🧾 RESPONDENDO DIRETO (SEM GPT)")
+  console.log("🧾 BASE + GPT")
+
+  // 🔥 1. BASE FIXA (NUNCA ERRA)
+  let respostaBase = ""
 
   if(resumoDia.tipo === "EMPRESA"){
-    
-    return res.json({
-      resposta: `Resumo de vendas do dia ${resumoDia.data}:
+    respostaBase = `Resumo de vendas do dia ${resumoDia.data}:
 
 🏢 ${resumoDia.empresa}
 
 Faturamento: R$ ${formatar(resumoDia.faturamento)}
 Vendas: ${resumoDia.vendas}
 Ticket médio: R$ ${formatar(resumoDia.ticket_medio)}`
-    })
-
   }else{
-
-    return res.json({
-      resposta: `Resumo geral de vendas do dia ${resumoDia.data}:
+    respostaBase = `Resumo geral de vendas do dia ${resumoDia.data}:
 
 Faturamento total: R$ ${formatar(resumoDia.faturamento)}
 Total de vendas: ${resumoDia.vendas}
 Ticket médio: R$ ${formatar(resumoDia.ticket_medio)}`
-    })
-
   }
+
+  // 🔥 2. GPT ANALISA (SEM ALTERAR NÚMEROS)
+  const analise = await openai.chat.completions.create({
+    model:"gpt-4.1-mini",
+    temperature:0.3,
+    messages:[
+      {
+        role:"system",
+        content:`
+Você é um analista de vendas.
+
+REGRAS:
+- NÃO alterar números
+- NÃO recalcular
+- NÃO inventar valores
+- Seja direto e profissional
+`
+      },
+      {
+        role:"user",
+        content:`
+Analise esse resultado:
+
+Faturamento: ${resumoDia.faturamento}
+Vendas: ${resumoDia.vendas}
+Ticket médio: ${resumoDia.ticket_medio}
+`
+      }
+    ]
+  })
+
+  const comentario = analise.choices[0].message.content
+
+  // 🔥 3. MANDA TUDO JUNTO
+  return res.json({
+    resposta: respostaBase + "\n\n📊 Análise:\n" + comentario
+  })
 
 }
     
