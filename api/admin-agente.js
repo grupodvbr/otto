@@ -728,24 +728,32 @@ else if(!empresaFiltro){
 }
 
 
+// 🔥 SÓ VALIDA QUANDO FOR EMPRESA ÚNICA OU TOTAL
+if(
+  !resumoDia?.tipo === "MULTI_EMPRESA" &&
+  (!empresaData || Number(empresaData.faturamento) <= 0)
+){
+  return res.json({
+    resposta: "Ainda não houve vendas registradas até agora."
+  })
+}
 
 
-    if(!empresaData || Number(empresaData.faturamento) <= 0){
-      return res.json({
-        resposta: "Ainda não houve vendas registradas até agora."
-      })
-    }
+  
 
 const ticket = empresaData.ticket_medio || 0
 
-    resumoDia = {
-      data: data.data,
-      faturamento: empresaData.faturamento,
-      vendas: empresaData.vendas,
-      ticket_medio: ticket,
-      tipo: empresaFiltro ? "EMPRESA" : "GERAL",
-      empresa: empresaFiltro
-    }
+// 🔥 NÃO SOBRESCREVER RELATÓRIO MULTI-EMPRESA
+if(!resumoDia || resumoDia.tipo !== "MULTI_EMPRESA"){
+  resumoDia = {
+    data: data.data,
+    faturamento: empresaData.faturamento,
+    vendas: empresaData.vendas,
+    ticket_medio: ticket,
+    tipo: empresaFiltro ? "EMPRESA" : "GERAL",
+    empresa: empresaFiltro
+  }
+}
 
     const analise = await openai.chat.completions.create({
       model:"gpt-4.1-mini",
