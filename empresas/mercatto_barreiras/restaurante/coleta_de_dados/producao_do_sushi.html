@@ -31,11 +31,18 @@ body{
 
 /* HEADER */
 .header{
-  padding:18px;
-  font-size:20px;
-  font-weight:900;
-  text-align:center;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:50;
+
+  padding:8px;
+  font-size:14px;
+  font-weight:700;
+
   background:#020617;
+  text-align:center;
 }
 
 /* BUSCA */
@@ -68,6 +75,7 @@ body{
   display:grid;
   gap:6px;
   padding:8px;
+  margin-top:90px;
 }
 
 /* 📱 CELULAR → 4 COLUNAS */
@@ -262,7 +270,19 @@ z-index:9999;
 
 <div class="header">Controle Sushi</div>
 
-<div class="search" style="display:flex;gap:8px;align-items:center">
+<div class="search" style="
+position:fixed;
+top:40px;
+left:0;
+width:100%;
+z-index:50;
+background:#0b1220;
+
+display:flex;
+gap:8px;
+align-items:center;
+padding:6px;
+">
   <input id="busca" placeholder="Buscar sushi..." style="flex:1">
 
 <button class="btn-registros" onclick="abrirRegistros()" style="margin:0;height:44px;min-width:120px">
