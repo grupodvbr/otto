@@ -620,7 +620,7 @@ if(isCupom){
 
     console.log("🔥 CONSULTANDO API DE VENDAS...")
 
-    let url = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
+    let url = "https://revision-peripherals-glad-martha.trycloudflare.com/resumo-dia"
 
   const MAPA_EMPRESAS = {
   "MERCATTO EMPORIO": "VAREJO_URL_MERCATTO_EMPORIO",
@@ -2049,8 +2049,8 @@ let dataMes = null
 try{
 
   const [resDia, resMes] = await Promise.all([
-    fetch("https://goals-continental-examinations-carrier.trycloudflare.com/cupons-ontem"),
-    fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-mes")
+    fetch("https://revision-peripherals-glad-martha.trycloudflare.com/cupons-ontem"),
+    fetch("https://revision-peripherals-glad-martha.trycloudflare.com/resumo-mes")
   ])
 
   if(!resDia.ok || !resMes.ok){
