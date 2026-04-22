@@ -533,8 +533,16 @@ margin-bottom:6px;
 <div id="registros" class="modal-reg">
   <div class="box-reg">
 
-    <input type="date" id="dataFiltro" onchange="carregarRegistros()">
+<input type="date" id="dataFiltro" onchange="carregarRegistros()" style="
+height:36px;
+font-size:14px;
+padding:4px 8px;
+appearance:none;
+-webkit-appearance:none;
+">
 
+
+    
     <div id="listaRegistros"></div>
 
     <button class="btn fechar" onclick="fecharRegistros()">Fechar</button>
