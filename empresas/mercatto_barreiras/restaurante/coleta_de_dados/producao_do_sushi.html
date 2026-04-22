@@ -459,18 +459,31 @@ margin-bottom:6px;
 
     <p id="descricao"></p>
 
+   <div style="display:flex; gap:10px; margin-top:10px;">
+
+  <div style="flex:1;">
+    <label style="font-size:12px; font-weight:700; color:#555;">
+      Tipo
+    </label>
     <select id="tipo">
       <option>Produção</option>
       <option>Reaproveitamento</option>
       <option>Desperdício</option>
     </select>
+  </div>
 
-<input id="qtd"
-type="number"
-inputmode="numeric"
-pattern="[0-9]*"
-placeholder="Quantidade"
-style="font-size:16px;">
+  <div style="flex:1;">
+    <label style="font-size:12px; font-weight:700; color:#555;">
+      Quantidade
+    </label>
+    <input id="qtd"
+      type="number"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      placeholder="0">
+  </div>
+
+</div>
 
 
 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
