@@ -2108,13 +2108,62 @@ try{
   console.error("❌ ERRO AO PARSEAR JSON:", e)
 }
 
-console.log("📊 DADOS API:", JSON.stringify(data, null, 2))
+console.log("🌅 GERANDO RELATÓRIO AUTOMÁTICO...")
 
-  
+// ================= FORMATADOR =================
+function formatar(v){
+  return Number(v || 0).toLocaleString("pt-BR",{
+    minimumFractionDigits:2
+  })
+}
 
+// ================= FETCH SEGURO =================
+async function fetchSeguro(url){
+
+  for(let tentativa = 1; tentativa <= 3; tentativa++){
+
+    try{
+
+      console.log(`🔄 Tentativa API ${tentativa}`)
+
+      const res = await fetch(url)
+
+      console.log("🌐 STATUS API:", res.status)
+
+      if(!res.ok){
+        throw new Error("Status inválido")
+      }
+
+      const json = await res.json()
+
+      if(json && json.empresas){
+        console.log("✅ API OK")
+        return json
+      }
+
+      console.log("⚠️ JSON inesperado")
+
+    }catch(e){
+      console.error(`❌ ERRO tentativa ${tentativa}:`, e.message)
+    }
+
+    await new Promise(r => setTimeout(r, 1500))
+  }
+
+  console.error("🚨 FALHA TOTAL NA API")
+  return null
+}
+
+// ================= BUSCAR DADOS =================
+const URL = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
+
+const data = await fetchSeguro(URL)
+
+console.log("📊 DADOS FINAIS:", JSON.stringify(data, null, 2))
+
+// ================= MONTAR MENSAGEM =================
 let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
 
-// 🔥 VALIDAÇÃO CRÍTICA
 if(!data || !data.empresas || data.empresas.length === 0){
 
   console.error("❌ API SEM DADOS OU ESTRUTURA INVÁLIDA")
@@ -2128,6 +2177,8 @@ Verifique a API ou o servidor de vendas
 
   for(const empresa of data.empresas){
 
+    console.log("🏢 PROCESSANDO:", empresa.empresa)
+
     const meta = METAS[empresa.empresa]?.prata || 0
 
     const percentual = meta > 0
@@ -2138,7 +2189,8 @@ Verifique a API ou o servidor de vendas
 
     if(empresa.variacao_semana > 5){
       status = `📈 +${empresa.variacao_semana}%`
-    } else if(empresa.variacao_semana < -5){
+    } 
+    else if(empresa.variacao_semana < -5){
       status = `📉 ${empresa.variacao_semana}%`
     }
 
@@ -2154,3 +2206,38 @@ ${status}
   }
 
 }
+
+// ================= ENVIO WHATSAPP =================
+for(const numero of admins){
+
+  try{
+
+    console.log("📤 ENVIANDO PARA:", numero)
+
+    const envio = await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,{
+      method:"POST",
+      headers:{
+        "Authorization":`Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        messaging_product:"whatsapp",
+        to:numero,
+        type:"text",
+        text:{
+          body:mensagem
+        }
+      })
+    })
+
+    const retorno = await envio.json()
+
+    console.log("✅ ENVIADO:", numero, retorno)
+
+  }catch(e){
+    console.error("❌ ERRO ENVIO:", numero, e)
+  }
+
+}
+
+console.log("🏁 RELATÓRIO FINALIZADO")
