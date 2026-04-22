@@ -629,10 +629,16 @@ if(isCupom){
 
     let empresaData = null
 
-    if(empresaFiltro){
-      console.log("🏢 USANDO DADOS DIRETOS DA API:", empresaFiltro)
-      empresaData = data.empresas?.[0]
-    }else{
+if(empresaFiltro){
+  console.log("🏢 USANDO DADOS CORRETOS DA API:", empresaFiltro)
+
+  empresaData = data.empresas?.find(
+    e => e.empresa === empresaFiltro
+  )
+
+}else{
+
+  
       console.log("🌎 USANDO DADOS GERAIS (TODAS EMPRESAS)")
       empresaData = {
         faturamento: data.faturamento,
@@ -647,9 +653,7 @@ if(isCupom){
       })
     }
 
-    const ticket = empresaData.vendas > 0
-      ? empresaData.faturamento / empresaData.vendas
-      : 0
+const ticket = empresaData.ticket_medio || 0
 
     resumoDia = {
       data: data.data,
