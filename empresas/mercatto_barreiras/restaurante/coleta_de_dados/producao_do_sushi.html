@@ -825,8 +825,30 @@ listaRegistros.innerHTML += `
   
           <img src="${prato?.foto_url || ''}">
           <div>
-            <b>${r.nome}</b><br>
-            ${r.quantidade}
+
+
+          
+<b>${r.nome}</b><br>
+
+<span style="
+  font-size:12px;
+  color:#9ca3af;
+  font-weight:600;
+">
+  Quantidade registrada:
+</span>
+
+<span style="
+  font-size:14px;
+  font-weight:800;
+  margin-left:4px;
+">
+  ${r.quantidade} unidade${r.quantidade > 1 ? 's' : ''}
+</span>
+
+
+
+            
 ${editavel ? `
   <br>
 
