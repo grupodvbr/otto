@@ -2126,45 +2126,56 @@ function formatar(v){
 
   
 
-  let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
+const hoje = new Date(
+  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+)
 
-  for(const empresa of data.empresas){
+const dataFormatada = hoje.toLocaleDateString("pt-BR")
 
-    const meta = METAS[empresa.empresa]?.prata || 0
+let mensagem = `
+*Bom dia, Sr. Leonardo*
 
-const faturamentoMes = Number(empresa.faturamento_mes || empresa.faturamento || 0)
+📅 ${dataFormatada}
 
-const percentual = meta > 0
-  ? ((faturamentoMes / meta) * 100).toFixed(0)
-  : 0
+━━━━━━━━━━━━━━━━━━
+📊 *RELATÓRIO FINANCEIRO*
+━━━━━━━━━━━━━━━━━━
+`
 
-const vendasMes = Number(empresa.vendas_mes || empresa.vendas || 0)
-const faturamentoMes2 = Number(empresa.faturamento_mes || empresa.faturamento || 0)
+for(const empresa of data.empresas){
 
-const ticketMes = vendasMes > 0
-  ? faturamentoMes2 / vendasMes
-  : 0
+  const meta = METAS[empresa.empresa]?.prata || 0
 
-    let status = "➡️ Estável"
+  const percentual = meta > 0
+    ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
+    : 0
 
-    if(empresa.variacao_semana > 5){
-      status = `📈 +${empresa.variacao_semana}%`
-    } else if(empresa.variacao_semana < -5){
-      status = `📉 ${empresa.variacao_semana}%`
-    }
+  let status = "➡️ Estável"
 
-    mensagem += `
+  if(empresa.variacao_semana > 5){
+    status = `📈 +${empresa.variacao_semana}%`
+  } else if(empresa.variacao_semana < -5){
+    status = `📉 ${empresa.variacao_semana}%`
+  }
+
+  mensagem += `
 🏢 *${empresa.empresa}*
-💰 Dia: R$ ${formatar(empresa.faturamento)}
-📅 Mês: R$ ${formatar(empresa.faturamento_mes)}
-🎯 Meta: ${percentual}%
-💳 Ticket: R$ ${formatar(empresa.ticket_medio)}
+
+💰 Faturamento (Dia): R$ ${formatar(empresa.faturamento)}
+📅 Faturamento (Mês): R$ ${formatar(empresa.faturamento_mes)}
+
+🎯 Atingimento da Meta: ${percentual}%
+💳 Ticket Médio: R$ ${formatar(empresa.ticket_medio)}
+
 ${status}
 
 `
-  }
+}
 
-  mensagem += `━━━━━━━━━━━━━━━━━━\n🤖 Sistema DV`
+mensagem += `
+━━━━━━━━━━━━━━━━━━
+*Relatório automático • Carneiro Holding*
+`
 
   for(const numero of admins){
 
