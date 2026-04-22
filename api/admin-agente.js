@@ -657,13 +657,6 @@ if(empresaFiltro){
     .toUpperCase()
 }
 
-// 🔥 CORREÇÃO DEFINITIVA
-if(empresaFiltro){
-
-  console.log("🏢 USANDO DADOS DIRETOS DA API:", empresaFiltro)
-
-
-// 🔥 TRATAMENTO CORRETO DOS DADOS
 let empresaData = null
 
 if(empresaFiltro){
