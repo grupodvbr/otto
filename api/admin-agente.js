@@ -2130,11 +2130,7 @@ const hoje = new Date(
   new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-// 🔥 CORREÇÃO: SUBTRAI 1 DIA
-const ontem = new Date(hoje)
-ontem.setDate(ontem.getDate() - 1)
-
-const dataFormatada = ontem.toLocaleDateString("pt-BR")
+const dataFormatada = hoje.toLocaleDateString("pt-BR")
 
 let mensagem = `
 *Bom dia, Sr. Leonardo*
@@ -2181,145 +2177,6 @@ mensagem += `
 *Relatório automático • Carneiro Holding*
 `
 
-
- function gerarGraficoURL(empresas){
-
-  const labels = empresas.map(e => e.empresa)
-  const dados = empresas.map(e => Number(e.faturamento))
-
-  const meta = 20000
-
-  const chartConfig = {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Faturamento",
-          data: dados,
-          borderRadius: 12,
-          borderSkipped: false,
-
-          backgroundColor: [
-            "rgba(34,197,94,0.85)",
-            "rgba(59,130,246,0.85)",
-            "rgba(245,158,11,0.85)",
-            "rgba(239,68,68,0.85)",
-            "rgba(139,92,246,0.85)"
-          ],
-
-          // 🔥 SOMBRA (EFEITO PREMIUM)
-          hoverBackgroundColor: [
-            "#22c55e",
-            "#3b82f6",
-            "#f59e0b",
-            "#ef4444",
-            "#8b5cf6"
-          ]
-        },
-
-        // 🔥 LINHA DE META
-        {
-          type: "line",
-          label: "Meta diária",
-          data: labels.map(() => meta),
-          borderColor: "#22c55e",
-          borderWidth: 2,
-          borderDash: [8,6],
-          pointRadius: 0
-        }
-      ]
-    },
-
-    options: {
-      layout: {
-        padding: {
-          top: 40,
-          bottom: 20,
-          left: 20,
-          right: 20
-        }
-      },
-
-      plugins: {
-
-        // 🔥 TÍTULO
-        title: {
-          display: true,
-          text: "DESEMPENHO DO DIA",
-          color: "#ffffff",
-          font: {
-            size: 20,
-            weight: "bold"
-          },
-          padding: {
-            bottom: 20
-          }
-        },
-
-        legend: {
-          labels: {
-            color: "#cbd5e1",
-            font: {
-              size: 12
-            }
-          }
-        },
-
-        // 🔥 VALORES NAS BARRAS
-        datalabels: {
-          anchor: "end",
-          align: "end",
-          color: "#ffffff",
-          font: {
-            weight: "bold"
-          },
-          formatter: (v) => "R$ " + v.toLocaleString("pt-BR")
-        }
-      },
-
-      scales: {
-
-        x: {
-          ticks: {
-            color: "#cbd5e1",
-            font: {
-              size: 11
-            }
-          },
-          grid: {
-            display: false
-          }
-        },
-
-        y: {
-          beginAtZero: true,
-
-          ticks: {
-            color: "#94a3b8",
-            callback: (v) => "R$ " + v.toLocaleString("pt-BR")
-          },
-
-          grid: {
-            color: "rgba(255,255,255,0.06)",
-            drawBorder: false
-          }
-        }
-      }
-    },
-
-    plugins: ["chartjs-plugin-datalabels"]
-  }
-
-  return "https://quickchart.io/chart?width=1000&height=550&backgroundColor=%23020517&c=" + encodeURIComponent(JSON.stringify(chartConfig))
-}
-
-const graficoURL = gerarGraficoURL(data.empresas)
-
-console.log("📊 GRAFICO:", graficoURL)
-
-
-  
   for(const numero of admins){
 
     console.log("📤 ENVIANDO PARA:", numero)
@@ -2335,11 +2192,8 @@ console.log("📊 GRAFICO:", graficoURL)
     body: JSON.stringify({
       messaging_product: "whatsapp",
       to: numero,
-type: "image",
-image: {
-  link: graficoURL,
-  caption: mensagem
-}
+      type: "text",
+      text: { body: mensagem }
     })
   }
 )
