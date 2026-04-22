@@ -390,7 +390,40 @@ body.travado{
   position:fixed;
   width:100%;
 }
+/* BOTÕES PREMIUM REGISTRO */
+.btn-mini{
+  padding:6px 12px;
+  font-size:12px;
+  border:none;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s ease;
+}
 
+/* EDITAR */
+.btn-editar{
+  background:rgba(59,130,246,0.15);
+  color:#3b82f6;
+  border:1px solid rgba(59,130,246,0.3);
+}
+
+.btn-editar:hover{
+  background:#3b82f6;
+  color:#fff;
+}
+
+/* EXCLUIR */
+.btn-excluir{
+  background:rgba(239,68,68,0.15);
+  color:#ef4444;
+  border:1px solid rgba(239,68,68,0.3);
+}
+
+.btn-excluir:hover{
+  background:#ef4444;
+  color:#fff;
+}
 
 
   
@@ -796,8 +829,21 @@ listaRegistros.innerHTML += `
             ${r.quantidade}
 ${editavel ? `
   <br>
-  <button onclick="editar('${r.id}')">Editar</button>
-  <button onclick="excluir('${r.id}')" style="background:#ef4444;color:#fff;margin-left:5px">Excluir</button>
+
+
+  
+<div style="display:flex; gap:8px; margin-top:6px;">
+  <button class="btn-mini btn-editar" onclick="editar('${r.id}')">
+    Editar
+  </button>
+
+  <button class="btn-mini btn-excluir" onclick="excluir('${r.id}')">
+    Excluir
+  </button>
+</div>
+
+
+
 ` : ``}
 
 
