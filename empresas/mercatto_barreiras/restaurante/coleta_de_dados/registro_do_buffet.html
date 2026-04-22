@@ -901,11 +901,6 @@ function abrirModal(id, qtd, un, tipo, tara, nome){
 document.getElementById("editQuantidade").value = formatPeso(qtd);
 document.getElementById("editTara").value = formatPeso(tara || 0);
 
-
-
-  
-  document.getElementById("editTara").value = tara || 0;
-
   // ✅ AQUI É O LUGAR CERTO
   document.getElementById("tituloEdicao").innerHTML =
     `✏️ Editando: <b>${nome}</b>`;
