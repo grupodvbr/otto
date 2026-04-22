@@ -259,6 +259,8 @@ input,select{
   padding:16px;
 
   overflow:hidden;
+
+  z-index:99999; /* 🔥 ESSENCIAL */
 }
 
 /* BOX */
@@ -484,10 +486,13 @@ async function carregar(){
 
   const usuarioLogado = localStorage.getItem("usuario_logado");
 
-  if(!usuarioLogado){
-    document.getElementById("login").style.display = "flex";
-    return;
-  }
+if(!usuarioLogado){
+  document.getElementById("login").style.display = "flex";
+
+  document.body.style.overflow = "hidden"; // 🔥 AQUI
+
+  return;
+}
 
   const { data } = await sb
     .from("buffet")
@@ -707,8 +712,7 @@ ${editavel ? `
   // força mostrar boas-vindas
   localStorage.setItem("boas_vindas_mostrada", "nao");
 
-  document.getElementById("login").style.display = "none";
-
+document.getElementById("login").style.display = "none";
   mostrarBoasVindas(user);
 }
 
