@@ -678,6 +678,30 @@ else{
     texto.includes("todas") ||
     texto.includes("soma")
 
+const pediuRelatorio =
+  texto.includes("relatorio") ||
+  texto.includes("relatório") ||
+  texto.includes("empresas") ||
+  texto.includes("todas")
+
+if(!empresaFiltro && pediuRelatorio){
+
+  console.log("📊 RELATÓRIO COMPLETO DE TODAS EMPRESAS")
+
+  const empresas = data.empresas || []
+
+  resumoDia = {
+    tipo: "MULTI_EMPRESA",
+    empresas: empresas
+  }
+
+}
+else if(!empresaFiltro){
+
+  const pediuTotal =
+    texto.includes("total") ||
+    texto.includes("soma")
+
   if(!pediuTotal){
     return res.json({
       resposta: "Informe a empresa para consultar vendas."
@@ -702,6 +726,9 @@ else{
   }
 
 }
+
+
+
 
     if(!empresaData || Number(empresaData.faturamento) <= 0){
       return res.json({
@@ -1154,7 +1181,7 @@ Identifique a empresa na pergunta:
 
 ---
 
-📌 4. DETECÇÃO DE CONSULTA GERAL (MULTI-EMPRESA)
+// 🔥 DETECÇÃO DE CONSULTA GERAL (MULTI-EMPRESA)
 
 Se o usuário disser:
 
@@ -1171,16 +1198,31 @@ Se o usuário disser:
 👉 Isso significa:
 
 → NÃO filtrar empresa  
-→ usar TOTAL da API  
+→ usar TODAS as empresas da API  
+
+⚠️ REGRA CRÍTICA:
+
+Você NÃO deve responder apenas com total.
+
+Você DEVE obrigatoriamente:
+
+✔ Listar TODAS as empresas individualmente  
+✔ Mostrar faturamento, vendas e ticket de cada uma  
+✔ Mostrar TOTAL GERAL no final  
+
+🚫 PROIBIDO:
+- responder só com total  
+- responder sem listar empresas  
+
 
 ---
 
-📌 5. PRIORIDADE DE INTERPRETAÇÃO
+// 📌 5. PRIORIDADE DE INTERPRETAÇÃO
 
 1º → Se mencionar empresa → FILTRAR  
-2º → Se mencionar "geral" ou plural → TOTAL  
-3º → Se não mencionar nada → assumir TOTAL  
-
+2º → Se pedir RELATÓRIO ou múltiplas empresas → LISTAR TODAS  
+3º → Se pedir SOMA ou TOTAL → SOMAR  
+4º → Se não mencionar nada → pedir empresa
 ---
 
 📌 6. REGRA ABSOLUTA (CRÍTICA)
