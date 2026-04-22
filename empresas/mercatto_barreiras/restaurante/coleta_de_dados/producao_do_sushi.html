@@ -851,7 +851,21 @@ async function excluir(id){
   atualizarCards();
 }
 
+document.getElementById("busca").addEventListener("input", function(){
 
+  const valor = this.value.toLowerCase().trim();
+
+  if(!valor){
+    atualizarCards(lista); // volta tudo
+    return;
+  }
+
+  const filtrado = lista.filter(p =>
+    (p.nome || "").toLowerCase().includes(valor)
+  );
+
+  atualizarCards(filtrado);
+});
   
 </script>
 
