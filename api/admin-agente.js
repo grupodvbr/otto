@@ -2085,6 +2085,14 @@ async function executarRelatorioAutomatico(){
 
   console.log("🌅 GERANDO RELATÓRIO AUTOMÁTICO...")
 
+  const METAS = {
+    "DELÍCIA GOURMET": { prata: 545000 },
+    "MERCATTO EMPORIO": { prata: 650000 },
+    "MERCATTO RESTAURANTE": { prata: 850000 },
+    "PADARIA DELÍCIA": { prata: 720000 },
+    "VILLA GOURMET": { prata: 746600 }
+  }
+
   const admins = Object.entries(USUARIOS)
     .filter(([_, u]) => u.nivel === 0)
     .map(([numero]) => numero)
@@ -2092,71 +2100,67 @@ async function executarRelatorioAutomatico(){
   const resApi = await fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia")
   const data = await resApi.json()
 
-  let mensagem = `🌅 Bom dia!\n`
+  let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
 
   for(const empresa of data.empresas){
-
-    const faturamentoDia = empresa.faturamento
-    const vendasDia = empresa.vendas
-    const ticketDia = empresa.ticket_medio
-
-    const faturamentoMes = empresa.faturamento_mes || 0
-    const vendasMes = empresa.vendas_mes || 0
 
     const meta = METAS[empresa.empresa]?.prata || 0
 
     const percentual = meta > 0
-      ? ((faturamentoMes / meta) * 100).toFixed(0)
+      ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
       : 0
 
-    const ticketMes = vendasMes > 0
-      ? faturamentoMes / vendasMes
+    const ticketMes = empresa.vendas_mes > 0
+      ? empresa.faturamento_mes / empresa.vendas_mes
       : 0
 
-    let analise = "➡️ Estável"
+    let status = "➡️ Estável"
 
     if(empresa.variacao_semana > 5){
-      analise = `📈 +${empresa.variacao_semana}% vs semana passada`
-    }
-    else if(empresa.variacao_semana < -5){
-      analise = `📉 ${empresa.variacao_semana}% vs semana passada`
+      status = `📈 +${empresa.variacao_semana}%`
+    } else if(empresa.variacao_semana < -5){
+      status = `📉 ${empresa.variacao_semana}%`
     }
 
     mensagem += `
-📊 *${empresa.empresa}*
-💰 Dia: R$ ${formatar(faturamentoDia)} | 📅 Mês: R$ ${formatar(faturamentoMes)}
-🎯 Meta: R$ ${formatar(meta)} | 📈 ${percentual}%
-💳 Ticket: R$ ${formatar(ticketDia)} (dia) | R$ ${formatar(ticketMes)} (mês)
-${analise}
+🏢 *${empresa.empresa}*
+💰 Dia: R$ ${formatar(empresa.faturamento)}
+📅 Mês: R$ ${formatar(empresa.faturamento_mes)}
+🎯 Meta: ${percentual}%
+💳 Ticket: R$ ${formatar(empresa.ticket_medio)}
+${status}
+
 `
   }
 
-  mensagem += `\n🤖 Sistema DV`
+  mensagem += `━━━━━━━━━━━━━━━━━━\n🤖 Sistema DV`
 
   for(const numero of admins){
 
-for(const numero of admins){
+    console.log("📤 ENVIANDO PARA:", numero)
 
-  console.log("📤 ENVIANDO PARA:", numero)
-
-  const response = await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: numero,
-      type: "text",
-      text: { body: mensagem }
+    const response = await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: numero,
+        type: "text",
+        text: { body: mensagem }
+      })
     })
-  })
 
-  const result = await response.json()
+    const result = await response.json()
 
-  console.log("📡 RESPOSTA WHATS:", JSON.stringify(result, null, 2))
-}
+    if(result.error){
+      console.error("❌ ERRO WHATS:", result.error)
+    }else{
+      console.log("✅ ENVIADO:", numero)
+    }
+  }
 
-console.log("✅ RELATÓRIO FINALIZADO")
+  console.log("✅ RELATÓRIO FINALIZADO")
 }
