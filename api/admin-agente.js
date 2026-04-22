@@ -2130,8 +2130,11 @@ const hoje = new Date(
   new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
 )
 
-const dataFormatada = hoje.toLocaleDateString("pt-BR")
+// 🔥 CORREÇÃO REAL
+const ontem = new Date(hoje)
+ontem.setDate(ontem.getDate() - 1)
 
+const dataFormatada = ontem.toLocaleDateString("pt-BR")
 let mensagem = `
 *Bom dia, Sr. Leonardo*
 
