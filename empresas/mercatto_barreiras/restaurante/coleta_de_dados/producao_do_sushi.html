@@ -753,15 +753,20 @@ async function carregarRegistros(){
 
       const prato = lista.find(p=>p.id===r.buffet_id);
 
-      const editavel = data === new Date().toISOString().slice(0,10);
+const hoje = new Date().toLocaleDateString("en-CA");
+const editavel = data === hoje;
 
+      
    const cor =
   tipo === "Desperdício" ? "#ef4444" :
   tipo === "Reaproveitamento" ? "#22c55e" :
   "#3b82f6";
 
 listaRegistros.innerHTML += `
-  <div class="reg-card" style="border-left:4px solid ${cor}">
+<div class="reg-card" style="
+  border-left:4px solid ${cor};
+  background: linear-gradient(90deg, ${cor}15, #111);
+">
 
 
 
