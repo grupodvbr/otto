@@ -678,30 +678,6 @@ else{
     texto.includes("todas") ||
     texto.includes("soma")
 
-const pediuRelatorio =
-  texto.includes("relatorio") ||
-  texto.includes("relatório") ||
-  texto.includes("empresas") ||
-  texto.includes("todas")
-
-if(!empresaFiltro && pediuRelatorio){
-
-  console.log("📊 RELATÓRIO COMPLETO DE TODAS EMPRESAS")
-
-  const empresas = data.empresas || []
-
-  resumoDia = {
-    tipo: "MULTI_EMPRESA",
-    empresas: empresas
-  }
-
-}
-else if(!empresaFiltro){
-
-  const pediuTotal =
-    texto.includes("total") ||
-    texto.includes("soma")
-
   if(!pediuTotal){
     return res.json({
       resposta: "Informe a empresa para consultar vendas."
@@ -727,33 +703,22 @@ else if(!empresaFiltro){
 
 }
 
-
-// 🔥 SÓ VALIDA QUANDO FOR EMPRESA ÚNICA OU TOTAL
-if(
-  !resumoDia?.tipo === "MULTI_EMPRESA" &&
-  (!empresaData || Number(empresaData.faturamento) <= 0)
-){
-  return res.json({
-    resposta: "Ainda não houve vendas registradas até agora."
-  })
-}
-
-
-  
+    if(!empresaData || Number(empresaData.faturamento) <= 0){
+      return res.json({
+        resposta: "Ainda não houve vendas registradas até agora."
+      })
+    }
 
 const ticket = empresaData.ticket_medio || 0
 
-// 🔥 NÃO SOBRESCREVER RELATÓRIO MULTI-EMPRESA
-if(!resumoDia || resumoDia.tipo !== "MULTI_EMPRESA"){
-  resumoDia = {
-    data: data.data,
-    faturamento: empresaData.faturamento,
-    vendas: empresaData.vendas,
-    ticket_medio: ticket,
-    tipo: empresaFiltro ? "EMPRESA" : "GERAL",
-    empresa: empresaFiltro
-  }
-}
+    resumoDia = {
+      data: data.data,
+      faturamento: empresaData.faturamento,
+      vendas: empresaData.vendas,
+      ticket_medio: ticket,
+      tipo: empresaFiltro ? "EMPRESA" : "GERAL",
+      empresa: empresaFiltro
+    }
 
     const analise = await openai.chat.completions.create({
       model:"gpt-4.1-mini",
@@ -1189,7 +1154,7 @@ Identifique a empresa na pergunta:
 
 ---
 
-// 🔥 DETECÇÃO DE CONSULTA GERAL (MULTI-EMPRESA)
+📌 4. DETECÇÃO DE CONSULTA GERAL (MULTI-EMPRESA)
 
 Se o usuário disser:
 
@@ -1206,31 +1171,16 @@ Se o usuário disser:
 👉 Isso significa:
 
 → NÃO filtrar empresa  
-→ usar TODAS as empresas da API  
-
-⚠️ REGRA CRÍTICA:
-
-Você NÃO deve responder apenas com total.
-
-Você DEVE obrigatoriamente:
-
-✔ Listar TODAS as empresas individualmente  
-✔ Mostrar faturamento, vendas e ticket de cada uma  
-✔ Mostrar TOTAL GERAL no final  
-
-🚫 PROIBIDO:
-- responder só com total  
-- responder sem listar empresas  
-
+→ usar TOTAL da API  
 
 ---
 
-// 📌 5. PRIORIDADE DE INTERPRETAÇÃO
+📌 5. PRIORIDADE DE INTERPRETAÇÃO
 
 1º → Se mencionar empresa → FILTRAR  
-2º → Se pedir RELATÓRIO ou múltiplas empresas → LISTAR TODAS  
-3º → Se pedir SOMA ou TOTAL → SOMAR  
-4º → Se não mencionar nada → pedir empresa
+2º → Se mencionar "geral" ou plural → TOTAL  
+3º → Se não mencionar nada → assumir TOTAL  
+
 ---
 
 📌 6. REGRA ABSOLUTA (CRÍTICA)
