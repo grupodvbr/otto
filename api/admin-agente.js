@@ -673,8 +673,10 @@ function normalizar(txt){
 let empresaData = null
 
 if(empresaFiltro){
+  console.log("🏢 USANDO DADOS DIRETOS DA API:", empresaFiltro)
   empresaData = data.empresas?.[0]
 }else{
+  console.log("🌎 USANDO DADOS GERAIS (TODAS EMPRESAS)")
   empresaData = {
     faturamento: data.faturamento,
     vendas: data.vendas,
@@ -682,35 +684,28 @@ if(empresaFiltro){
   }
 }
 
-// 🔥 BLOQUEIO DE ZERO (ESSENCIAL)
+// 🔥 BLOQUEIO DE ZERO
 if(!empresaData || Number(empresaData.faturamento) <= 0){
-  console.log("⚠️ SEM VENDAS - BLOQUEADO")
-
   return res.json({
     resposta: "Ainda não houve vendas registradas até agora."
   })
 }
 
-
+// 🔥 CALCULO DO TICKET
 const ticket = empresaData.vendas > 0
   ? empresaData.faturamento / empresaData.vendas
   : 0
 
-
-
-  
 resumoDia = {
   data: data.data,
   faturamento: empresaData.faturamento,
   vendas: empresaData.vendas,
   ticket_medio: ticket,
-  tipo: "EMPRESA",
+  tipo: empresaFiltro ? "EMPRESA" : "GERAL",
   empresa: empresaFiltro
 }
-
-  
-
-}else{
+  }
+else{
 
   console.log("🌎 USANDO DADOS GERAIS (TODAS EMPRESAS)")
 
