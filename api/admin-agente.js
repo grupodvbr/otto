@@ -671,13 +671,26 @@ function normalizar(txt){
 }
 
 // 🔥 BUSCAR EMPRESA CORRETA DENTRO DO ARRAY
-const empresaData = (data.empresas || []).find(e =>
-  normalizar(e.empresa) === normalizar(empresaFiltro)
-)
+const empresaData = (data.empresas || []).find(e => {
+  const nomeAPI = normalizar(e.empresa)
+  const nomeFiltro = normalizar(empresaFiltro)
+
+  return (
+    nomeAPI === nomeFiltro ||
+    nomeAPI.includes(nomeFiltro) ||
+    nomeFiltro.includes(nomeAPI)
+  )
+})
+
+
+  
 
 if(!empresaData){
   console.log("❌ EMPRESA NÃO ENCONTRADA:", empresaFiltro)
-  return res.json({ resposta: "Empresa não encontrada na API" })
+
+  return res.json({
+    resposta: `Não encontrei dados para ${empresaFiltro}`
+  })
 }
 
 // 🔥 CALCULAR TICKET REAL DA EMPRESA
