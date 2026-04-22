@@ -1,4 +1,17 @@
+
+
 const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args))
+
+// 🔥 AQUI
+const fs = require("fs")
+
+const OpenAI = require("openai")
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
+
+
 
 /* ================= IMPORTA AGENTE ================= */
 
@@ -93,11 +106,66 @@ if(req.method === "POST"){
       return res.status(200).end()
     }
 
-    const msg = change.messages?.[0]
-    if(!msg) return res.status(200).end()
+const msg = change.messages?.[0]
+if(!msg) return res.status(200).end()
 
 const numero = normalizar(msg.from).slice(-13)
-  const texto = msg.text?.body || "[mensagem não textual]"
+
+let texto = msg.text?.body || null
+
+// 🎤 TRATAMENTO DE ÁUDIO
+if(msg.type === "audio"){
+
+  console.log("🎤 AUDIO RECEBIDO")
+
+  const mediaId = msg.audio.id
+
+  // 1. BUSCA URL DO AUDIO
+  const mediaRes = await fetch(
+    `https://graph.facebook.com/v19.0/${mediaId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`
+      }
+    }
+  )
+
+  const mediaJson = await mediaRes.json()
+
+  // 2. BAIXA AUDIO
+  const audioBuffer = await fetch(mediaJson.url, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`
+    }
+  }).then(r => r.arrayBuffer())
+
+  // 3. SALVA TEMPORÁRIO
+  const filePath = "/tmp/audio.ogg"
+  fs.writeFileSync(filePath, Buffer.from(audioBuffer))
+
+  // 4. TRANSCRIÇÃO
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(filePath),
+    model: "gpt-4o-mini-transcribe"
+  })
+
+  texto = transcription.text
+if(!texto || texto.trim() === ""){
+  texto = "Não consegui entender o áudio"
+}
+  console.log("📝 TEXTO DO AUDIO:", texto)
+}
+
+// fallback
+if(!texto || texto.trim() === ""){
+  texto = "Não consegui entender o áudio"
+}
+
+
+
+    
+
+    
 
     console.log("📩 RECEBIDO:", texto)
     console.log("📱 NUMERO:", numero)
