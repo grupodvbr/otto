@@ -614,50 +614,6 @@ function formatarData(dataISO){
 
   
 
-if(isCupom){
-
-  try{
-
-    console.log("🔥 CONSULTANDO API DE VENDAS...")
-
-    let url = "https://revision-peripherals-glad-martha.trycloudflare.com/resumo-dia"
-
-  const MAPA_EMPRESAS = {
-  "MERCATTO EMPORIO": "VAREJO_URL_MERCATTO_EMPORIO",
-  "MERCATTO RESTAURANTE": "VAREJO_URL_MERCATTO_RESTAURANTE",
-  "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
-  "VILLA GOURMET": "VAREJO_URL_VILLA",
-  "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
-}
-
-if(empresaFiltro){
-
-  const chave = MAPA_EMPRESAS[empresaFiltro]
-
-  if(chave){
-    url += `?empresa=${chave}`
-    console.log("🏢 FILTRO APLICADO:", empresaFiltro, "→", chave)
-  }else{
-    console.log("⚠️ EMPRESA SEM MAPA:", empresaFiltro)
-  }
-
-}else{
-  console.log("🌎 SEM FILTRO (GERAL)")
-}
-
-    const resApi = await fetch(url)
-    const data = await resApi.json()
-
-    console.log("📊 RESPOSTA API:", JSON.stringify(data, null, 2))
-
- function normalizar(txt){
-  return txt
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-}
-
-let empresaData = null
 
 
 if(isCupom){
@@ -704,12 +660,9 @@ if(isCupom){
       empresa: empresaFiltro
     }
 
-    // ✅ RESPOSTA AQUI DENTRO
-    console.log("🧠 SOMENTE IA")
-
-  const analise = await openai.chat.completions.create({
-    model:"gpt-4.1-mini",
-    temperature:0.3,
+    const analise = await openai.chat.completions.create({
+      model:"gpt-4.1-mini",
+      temperature:0.3,
    messages: [
   {
     role: "system",
@@ -751,49 +704,18 @@ Empresa: ${resumoDia.empresa || "GERAL"}
 Faturamento: ${resumoDia.faturamento}
 Vendas: ${resumoDia.vendas}
 Ticket médio: ${resumoDia.ticket_medio}
-Meta: ${calcularMeta(resumoDia.empresa, resumoDia.faturamento).meta}
-Percentual da meta: ${calcularMeta(resumoDia.empresa, resumoDia.faturamento).percentual}
 `
-  }
-]
-  })
+        }
+      ]
+    })
 
-const respostaIA = analise.choices[0].message.content
+    const respostaIA = analise.choices[0].message.content
 
-function criarResumoPremium(texto){
-
-  return `
-━━━━━━━━━━━━━━━━━━
-📊 *RESUMO DO DIA*
-━━━━━━━━━━━━━━━━━━
-
-${texto}
-
-━━━━━━━━━━━━━━━━━━
-`
-}
-
-// 🔥 DETECTA SE É RELATÓRIO COMPLETO
-const isRelatorio =
-  texto.includes("resumo") ||
-  texto.includes("relatorio") ||
-  texto.includes("fechamento") ||
-  texto.includes("desempenho")
-
-if(isRelatorio){
-  // ✅ MANTÉM RESUMO BONITO
-  const respostaFormatada = criarResumoPremium(respostaIA)
-
-
-
-
-
-
-return res.json({
+    return res.json({
       resposta: respostaIA
     })
 
-  }catch(e){
+  } catch(e){
 
     console.log("❌ ERRO:", e)
 
@@ -803,9 +725,6 @@ return res.json({
 
   }
 }
-
-
-
 
 
 
