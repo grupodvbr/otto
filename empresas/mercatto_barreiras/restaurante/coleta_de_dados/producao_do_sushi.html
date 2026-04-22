@@ -420,8 +420,14 @@ async function carregarRegistros(){
           <div>
             <b>${r.nome}</b><br>
             ${r.quantidade}
-            ${editavel ? `<br><button onclick="editar('${r.id}')">Editar</button>` : ``}
-          </div>
+${editavel ? `
+  <br>
+  <button onclick="editar('${r.id}')">Editar</button>
+  <button onclick="excluir('${r.id}')" style="background:#ef4444;color:#fff;margin-left:5px">Excluir</button>
+` : ``}
+
+
+</div>
         </div>
       `;
     });
@@ -433,6 +439,67 @@ async function carregarRegistros(){
 /* INIT */
 carregar();
 
+
+
+
+  /* =========================
+   EDITAR REGISTRO
+========================= */
+async function editar(id){
+
+  const novo = prompt("Nova quantidade:");
+
+  if(novo === null) return;
+
+  if(!novo || novo <= 0){
+    alert("Valor inválido");
+    return;
+  }
+
+  const { error } = await sb
+    .from("controle_sushi")
+    .update({ quantidade: novo })
+    .eq("id", id);
+
+  if(error){
+    alert("Erro ao editar");
+    console.error(error);
+    return;
+  }
+
+  alert("Atualizado!");
+  carregarRegistros();
+  atualizarCards();
+}
+
+
+/* =========================
+   APAGAR REGISTRO
+========================= */
+async function excluir(id){
+
+  if(!confirm("Deseja apagar esse registro?")) return;
+
+  const { error } = await sb
+    .from("controle_sushi")
+    .delete()
+    .eq("id", id);
+
+  if(error){
+    alert("Erro ao apagar");
+    console.error(error);
+    return;
+  }
+
+  alert("Apagado!");
+  carregarRegistros();
+  atualizarCards();
+}
+
+
+
+
+  
 </script>
 
 </body>
