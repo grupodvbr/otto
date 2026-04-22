@@ -63,18 +63,59 @@ body{
 }
 
 /* GRID */
+/* GRID RESPONSIVO PROFISSIONAL */
 .grid{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  padding:10px;
+  gap:6px;
+  padding:8px;
 }
+
+/* 📱 CELULAR → 4 COLUNAS */
+@media (max-width: 600px){
+  .grid{
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .card img{
+    height:70px;
+  }
+
+  .card-body b{
+    font-size:10px;
+  }
+}
+
+/* 📲 TABLET → 6 COLUNAS */
+@media (min-width: 601px) and (max-width: 1024px){
+  .grid{
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .card img{
+    height:80px;
+  }
+
+  .card-body b{
+    font-size:11px;
+  }
+}
+
+/* 💻 DESKTOP */
+@media (min-width: 1025px){
+  .grid{
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+
+  
 
 .card{
   background:var(--card);
-  border-radius:14px;
+  border-radius:10px;
   overflow:hidden;
   position:relative;
+  min-width:0;
 }
 
 .card img{
