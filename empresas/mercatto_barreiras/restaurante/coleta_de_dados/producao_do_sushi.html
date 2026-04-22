@@ -16,6 +16,7 @@
   --bg:#0b1220;
   --card:#111827;
   --primary:#22c55e;
+  --blue:#2563eb;
   --danger:#ef4444;
   --text:#fff;
   --muted:#9ca3af;
@@ -55,7 +56,7 @@ body{
   margin:0 12px 12px;
   height:44px;
   border-radius:12px;
-  background:#2563eb;
+  background:var(--blue);
   color:#fff;
   border:none;
   font-weight:800;
@@ -90,8 +91,7 @@ body{
   position:absolute;
   top:6px;
   right:6px;
-  background:#22c55e;
-  color:#fff;
+  background:var(--primary);
   padding:4px 8px;
   border-radius:10px;
   font-size:11px;
@@ -114,19 +114,37 @@ body{
   color:#000;
   border-radius:20px 20px 0 0;
   padding:16px;
+  overflow:auto;
 }
 
-/* POPUP REGISTROS */
+/* REGISTROS */
 .modal-reg{
   position:fixed;
   inset:0;
-  background:#000000dd;
+  background:#000000ee;
   display:none;
   overflow:auto;
 }
 
 .box-reg{
   padding:16px;
+}
+
+.reg-card{
+  background:#111;
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+}
+
+.reg-card img{
+  width:70px;
+  height:70px;
+  border-radius:10px;
+  object-fit:cover;
 }
 
 /* INPUTS */
@@ -139,6 +157,7 @@ input,select{
   padding:10px;
 }
 
+/* BOTÕES */
 .btn{
   height:46px;
   margin-top:12px;
@@ -147,8 +166,13 @@ input,select{
   font-weight:900;
 }
 
-.salvar{ background:#22c55e; color:#fff; }
+.salvar{ background:var(--primary); color:#fff; }
 .fechar{ background:#111; color:#fff; }
+
+.titulo{
+  margin-top:20px;
+  font-weight:900;
+}
 
 </style>
 </head>
@@ -172,6 +196,8 @@ input,select{
     <h2 id="nome"></h2>
 
     <img id="foto" style="width:100%;height:160px;border-radius:12px;object-fit:cover">
+
+    <input type="file" id="uploadFoto">
 
     <p id="descricao"></p>
 
@@ -212,20 +238,22 @@ const sb = supabase.createClient(
 let lista = [];
 let atual = null;
 
-// 🔥 CARREGAR
+/* =========================
+   CARREGAR SUSHI
+========================= */
 async function carregar(){
-
   const { data } = await sb
     .from("buffet")
     .select("*")
     .eq("tipo","SUSHI");
 
   lista = data || [];
-
   atualizarCards();
 }
 
-// 🔥 PEGAR REGISTROS HOJE
+/* =========================
+   REGISTROS HOJE
+========================= */
 async function pegarHoje(){
 
   const hoje = new Date().toISOString().slice(0,10);
@@ -238,7 +266,9 @@ async function pegarHoje(){
   return data || [];
 }
 
-// 🔥 RENDER
+/* =========================
+   CARDS
+========================= */
 async function atualizarCards(){
 
   const registros = await pegarHoje();
@@ -268,13 +298,17 @@ async function atualizarCards(){
   });
 }
 
-// 🔍 BUSCA
+/* =========================
+   BUSCA
+========================= */
 busca.oninput = ()=>{
   const v = busca.value.toLowerCase();
   atualizarCards(lista.filter(p=>p.nome.toLowerCase().includes(v)));
 };
 
-// 🔥 MODAL
+/* =========================
+   MODAL
+========================= */
 function abrir(p){
   atual = p;
   modal.style.display="flex";
@@ -288,7 +322,9 @@ function fechar(){
   modal.style.display="none";
 }
 
-// 🔥 SALVAR
+/* =========================
+   SALVAR
+========================= */
 async function salvar(){
 
   const hoje = new Date().toISOString().slice(0,10);
@@ -306,7 +342,34 @@ async function salvar(){
   atualizarCards();
 }
 
-// 🔥 REGISTROS
+/* =========================
+   EDITAR FOTO
+========================= */
+uploadFoto.onchange = async (e)=>{
+
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const nomeArquivo = atual.id + ".jpg";
+
+  await sb.storage.from("buffet")
+    .upload(nomeArquivo,file,{upsert:true});
+
+  const { data } = sb.storage.from("buffet")
+    .getPublicUrl(nomeArquivo);
+
+  await sb.from("buffet")
+    .update({ foto_url:data.publicUrl })
+    .eq("id",atual.id);
+
+  foto.src = data.publicUrl;
+
+  carregar();
+};
+
+/* =========================
+   REGISTROS
+========================= */
 function abrirRegistros(){
   registros.style.display="block";
 
@@ -320,7 +383,9 @@ function fecharRegistros(){
   registros.style.display="none";
 }
 
-// 🔥 LISTA REGISTROS
+/* =========================
+   LISTA REGISTROS
+========================= */
 async function carregarRegistros(){
 
   const data = dataFiltro.value;
@@ -332,21 +397,37 @@ async function carregarRegistros(){
 
   listaRegistros.innerHTML="";
 
-  regs.forEach(r=>{
+  ["Produção","Reaproveitamento","Desperdício"].forEach(tipo=>{
 
-    const editavel = data === new Date().toISOString().slice(0,10);
+    const grupo = regs.filter(r=>r.tipo===tipo);
 
-    listaRegistros.innerHTML += `
-      <div style="background:#111;color:#fff;margin:10px;padding:10px;border-radius:10px">
-        <b>${r.nome}</b><br>
-        ${r.tipo} - ${r.quantidade}
-        ${editavel ? `<button onclick="editar('${r.id}')">Editar</button>` : ``}
-      </div>
-    `;
+    if(grupo.length===0) return;
+
+    listaRegistros.innerHTML += `<div class="titulo">${tipo}</div>`;
+
+    grupo.forEach(r=>{
+
+      const prato = lista.find(p=>p.id===r.buffet_id);
+
+      const editavel = data === new Date().toISOString().slice(0,10);
+
+      listaRegistros.innerHTML += `
+        <div class="reg-card">
+          <img src="${prato?.foto_url || ''}">
+          <div>
+            <b>${r.nome}</b><br>
+            ${r.quantidade}
+            ${editavel ? `<br><button onclick="editar('${r.id}')">Editar</button>` : ``}
+          </div>
+        </div>
+      `;
+    });
+
   });
+
 }
 
-// INIT
+/* INIT */
 carregar();
 
 </script>
