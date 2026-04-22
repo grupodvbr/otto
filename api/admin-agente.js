@@ -2096,88 +2096,13 @@ async function executarRelatorioAutomatico(){
   const admins = Object.entries(USUARIOS)
     .filter(([_, u]) => u.nivel === 0)
     .map(([numero]) => numero)
-const resApi = await fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia")
 
-console.log("🌐 STATUS API:", resApi.status)
+  const resApi = await fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia")
+  const data = await resApi.json()
 
-let data = {}
-
-try{
-  data = await resApi.json()
-}catch(e){
-  console.error("❌ ERRO AO PARSEAR JSON:", e)
-}
-
-console.log("🌅 GERANDO RELATÓRIO AUTOMÁTICO...")
-
-// ================= FORMATADOR =================
-function formatar(v){
-  return Number(v || 0).toLocaleString("pt-BR",{
-    minimumFractionDigits:2
-  })
-}
-
-// ================= FETCH SEGURO =================
-async function fetchSeguro(url){
-
-  for(let tentativa = 1; tentativa <= 3; tentativa++){
-
-    try{
-
-      console.log(`🔄 Tentativa API ${tentativa}`)
-
-      const res = await fetch(url)
-
-      console.log("🌐 STATUS API:", res.status)
-
-      if(!res.ok){
-        throw new Error("Status inválido")
-      }
-
-      const json = await res.json()
-
-      if(json && json.empresas){
-        console.log("✅ API OK")
-        return json
-      }
-
-      console.log("⚠️ JSON inesperado")
-
-    }catch(e){
-      console.error(`❌ ERRO tentativa ${tentativa}:`, e.message)
-    }
-
-    await new Promise(r => setTimeout(r, 1500))
-  }
-
-  console.error("🚨 FALHA TOTAL NA API")
-  return null
-}
-
-// ================= BUSCAR DADOS =================
-const URL = "https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia"
-
-const data = await fetchSeguro(URL)
-
-console.log("📊 DADOS FINAIS:", JSON.stringify(data, null, 2))
-
-// ================= MONTAR MENSAGEM =================
-let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
-
-if(!data || !data.empresas || data.empresas.length === 0){
-
-  console.error("❌ API SEM DADOS OU ESTRUTURA INVÁLIDA")
-
-  mensagem += `
-⚠️ Não foi possível obter os dados de vendas
-Verifique a API ou o servidor de vendas
-`
-
-}else{
+  let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
 
   for(const empresa of data.empresas){
-
-    console.log("🏢 PROCESSANDO:", empresa.empresa)
 
     const meta = METAS[empresa.empresa]?.prata || 0
 
@@ -2185,12 +2110,15 @@ Verifique a API ou o servidor de vendas
       ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
       : 0
 
+    const ticketMes = empresa.vendas_mes > 0
+      ? empresa.faturamento_mes / empresa.vendas_mes
+      : 0
+
     let status = "➡️ Estável"
 
     if(empresa.variacao_semana > 5){
       status = `📈 +${empresa.variacao_semana}%`
-    } 
-    else if(empresa.variacao_semana < -5){
+    } else if(empresa.variacao_semana < -5){
       status = `📉 ${empresa.variacao_semana}%`
     }
 
@@ -2205,39 +2133,37 @@ ${status}
 `
   }
 
-}
+  mensagem += `━━━━━━━━━━━━━━━━━━\n🤖 Sistema DV`
 
-// ================= ENVIO WHATSAPP =================
-for(const numero of admins){
-
-  try{
+  for(const numero of admins){
 
     console.log("📤 ENVIANDO PARA:", numero)
 
-    const envio = await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,{
-      method:"POST",
-      headers:{
-        "Authorization":`Bearer ${process.env.WHATSAPP_TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        messaging_product:"whatsapp",
-        to:numero,
-        type:"text",
-        text:{
-          body:mensagem
-        }
-      })
+    const response = await fetch(
+  `https://graph.facebook.com/v19.0/${process.env.OTTO_PHONE_NUMBER_ID}/messages`,
+  {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OTTO_WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: numero,
+      type: "text",
+      text: { body: mensagem }
     })
+  }
+)
 
-    const retorno = await envio.json()
+    const result = await response.json()
 
-    console.log("✅ ENVIADO:", numero, retorno)
-
-  }catch(e){
-    console.error("❌ ERRO ENVIO:", numero, e)
+    if(result.error){
+      console.error("❌ ERRO WHATS:", result.error)
+    }else{
+      console.log("✅ ENVIADO:", numero)
+    }
   }
 
+  console.log("✅ RELATÓRIO FINALIZADO")
 }
-
-console.log("🏁 RELATÓRIO FINALIZADO")
