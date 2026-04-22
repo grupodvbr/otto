@@ -96,15 +96,16 @@ body{
 /* 📱 CELULAR → 4 COLUNAS */
 @media (max-width: 600px){
   .grid{
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 🔥 menos colunas */
+    gap:10px;
   }
 
   .card img{
-    height:70px;
+    height:110px; /* 🔥 imagem maior */
   }
 
   .card-body b{
-    font-size:10px;
+    font-size:13px; /* 🔥 texto legível */
   }
 }
 
@@ -529,13 +530,13 @@ async function pegarHoje(){
 /* =========================
    CARDS
 ========================= */
-async function atualizarCards(){
+async function atualizarCards(listaFiltrada = lista){
 
   const registros = await pegarHoje();
 
   cards.innerHTML="";
 
-  lista.forEach(p=>{
+  listaFiltrada.forEach(p=>{
 
     const total = registros
       .filter(r=>r.buffet_id===p.id)
@@ -561,10 +562,17 @@ async function atualizarCards(){
 /* =========================
    BUSCA
 ========================= */
-busca.oninput = ()=>{
+busca.addEventListener("input", ()=>{
+
   const v = busca.value.toLowerCase();
-  atualizarCards(lista.filter(p=>p.nome.toLowerCase().includes(v)));
-};
+
+  const filtrados = lista.filter(p =>
+    (p.nome || "").toLowerCase().includes(v)
+  );
+
+  atualizarCards(filtrados);
+
+});
 
 /* =========================
    MODAL
