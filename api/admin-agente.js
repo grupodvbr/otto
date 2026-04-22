@@ -218,10 +218,24 @@ if(NIVEL === 2){
   empresaFiltro = usuario.empresa
 }else{
 
-// 🔥 NORMALIZA TEXTO
-const normal = texto
+let normal = texto
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
+
+// 🔥 CORREÇÃO DE FALA (STT / ÁUDIO)
+if(
+  classificacao.tipo === "vendas" && (
+    normal.includes("mercado") ||
+    normal.includes("merkado") ||
+    normal.includes("mercad") ||
+    normal.includes("mercato")
+  )
+){
+  console.log("🧠 CORREÇÃO: mercado → mercatto (contexto vendas)")
+  normal = normal.replace(/mercado|merkado|mercad|mercato/g, "mercatto")
+}
+
+  
 
 // 🔥 DETECÇÃO INTELIGENTE MERCATTO
 const isMercatto = normal.includes("mercatto")
