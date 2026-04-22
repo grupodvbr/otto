@@ -201,16 +201,17 @@ if(!texto || texto.trim() === ""){
 
     let resposta = "Erro ao processar"
 
-    const fakeReq = {
-      method: "POST",
-      headers: {
-        authorization: "Bearer " + ADMIN_TOKEN
-      },
-body: {
-  pergunta: texto,
-  numero: numero // 🔥 ESSENCIAL
+const fakeReq = {
+  method: "POST",
+  query: {}, // 🔥 CORREÇÃO CRÍTICA
+  headers: {
+    authorization: "Bearer " + ADMIN_TOKEN
+  },
+  body: {
+    pergunta: texto,
+    numero: numero
+  }
 }
-    }
 
     const fakeRes = {
       json: (data) => {
