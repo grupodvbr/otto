@@ -2096,11 +2096,35 @@ async function executarRelatorioAutomatico(){
   const admins = Object.entries(USUARIOS)
     .filter(([_, u]) => u.nivel === 0)
     .map(([numero]) => numero)
+const resApi = await fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia")
 
-  const resApi = await fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-dia")
-  const data = await resApi.json()
+console.log("🌐 STATUS API:", resApi.status)
 
-  let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
+let data = {}
+
+try{
+  data = await resApi.json()
+}catch(e){
+  console.error("❌ ERRO AO PARSEAR JSON:", e)
+}
+
+console.log("📊 DADOS API:", JSON.stringify(data, null, 2))
+
+  
+
+let mensagem = `🌅 *RELATÓRIO FINANCEIRO*\n━━━━━━━━━━━━━━━━━━\n`
+
+// 🔥 VALIDAÇÃO CRÍTICA
+if(!data || !data.empresas || data.empresas.length === 0){
+
+  console.error("❌ API SEM DADOS OU ESTRUTURA INVÁLIDA")
+
+  mensagem += `
+⚠️ Não foi possível obter os dados de vendas
+Verifique a API ou o servidor de vendas
+`
+
+}else{
 
   for(const empresa of data.empresas){
 
@@ -2108,10 +2132,6 @@ async function executarRelatorioAutomatico(){
 
     const percentual = meta > 0
       ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
-      : 0
-
-    const ticketMes = empresa.vendas_mes > 0
-      ? empresa.faturamento_mes / empresa.vendas_mes
       : 0
 
     let status = "➡️ Estável"
@@ -2133,37 +2153,4 @@ ${status}
 `
   }
 
-  mensagem += `━━━━━━━━━━━━━━━━━━\n🤖 Sistema DV`
-
-  for(const numero of admins){
-
-    console.log("📤 ENVIANDO PARA:", numero)
-
-    const response = await fetch(
-  `https://graph.facebook.com/v19.0/${process.env.OTTO_PHONE_NUMBER_ID}/messages`,
-  {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OTTO_WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: numero,
-      type: "text",
-      text: { body: mensagem }
-    })
-  }
-)
-
-    const result = await response.json()
-
-    if(result.error){
-      console.error("❌ ERRO WHATS:", result.error)
-    }else{
-      console.log("✅ ENVIADO:", numero)
-    }
-  }
-
-  console.log("✅ RELATÓRIO FINALIZADO")
 }
