@@ -2172,14 +2172,15 @@ for(const empresa of dataDia.empresas){
     ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
     : 0
 
-  let status = "➡️ Estável"
 
-  if(empresa.variacao_semana > 5){
-    status = `📈 +${empresa.variacao_semana}%`
-  } else if(empresa.variacao_semana < -5){
-    status = `📉 ${empresa.variacao_semana}%`
-  }
+let status = "➡️ Estável"
 
+if((empresa.variacao_semana || 0) > 5){
+  status = `📈 +${empresa.variacao_semana}%`
+}
+else if((empresa.variacao_semana || 0) < -5){
+  status = `📉 ${empresa.variacao_semana}%`
+}
 mensagem += `
 ━━━━━━━━━━━━━━━━━━
 🏢 *${empresa.empresa.toUpperCase()}*
