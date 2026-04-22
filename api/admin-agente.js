@@ -2135,51 +2135,65 @@ const ontem = new Date(hoje)
 ontem.setDate(ontem.getDate() - 1)
 
 const dataFormatada = ontem.toLocaleDateString("pt-BR")
+
+
+
+
+
+
+  
+
+
+  
 let mensagem = `
 *Bom dia, Sr. Leonardo*
 
-📅 ${dataFormatada}
+📊 *Relatório Executivo* — ${dataFormatada}
 
 ━━━━━━━━━━━━━━━━━━
-📊 *RELATÓRIO FINANCEIRO*
-━━━━━━━━━━━━━━━━━━
+💼 *Grupo*
+💰 R$ ${formatar(totalGrupo)}
+🧾 ${totalVendasGrupo} vendas • 💳 Ticket R$ ${formatar(ticketGrupo)}
+
+🏢 *Mercatto (Total)*
+💰 R$ ${formatar(mercattoTotal)}
+🧾 ${mercattoVendas} vendas • 💳 Ticket R$ ${formatar(ticketMercatto)}
 `
 
-for(const empresa of data.empresas){
+for(const e of data.empresas){
 
-  const meta = METAS[empresa.empresa]?.prata || 0
+  const ticket = e.vendas ? e.faturamento / e.vendas : 0
 
-  const percentual = meta > 0
-    ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
-    : 0
+  let nome = e.empresa
 
-  let status = "➡️ Estável"
-
-  if(empresa.variacao_semana > 5){
-    status = `📈 +${empresa.variacao_semana}%`
-  } else if(empresa.variacao_semana < -5){
-    status = `📉 ${empresa.variacao_semana}%`
-  }
+  if(nome === "MERCATTO EMPORIO") nome = "Empório"
+  if(nome === "MERCATTO RESTAURANTE") nome = "Restaurante"
+  if(nome === "PADARIA DELÍCIA") nome = "Padaria"
+  if(nome === "DELÍCIA GOURMET") nome = "Delícia"
+  if(nome === "VILLA GOURMET") nome = "Villa"
 
   mensagem += `
-🏢 *${empresa.empresa}*
 
-💰 Faturamento (Dia): R$ ${formatar(empresa.faturamento)}
-📅 Faturamento (Mês): R$ ${formatar(empresa.faturamento_mes)}
-
-🎯 Atingimento da Meta: ${percentual}%
-💳 Ticket Médio: R$ ${formatar(empresa.ticket_medio)}
-
-${status}
-
+🏬 *${nome}*
+💰 R$ ${formatar(e.faturamento)}
+🧾 ${e.vendas} vendas • 💳 R$ ${formatar(ticket)}
 `
 }
 
 mensagem += `
+
 ━━━━━━━━━━━━━━━━━━
-*Relatório automático • Carneiro Holding*
+Carneiro Holding • Relatório automático
 `
 
+
+
+
+
+
+
+
+  
 
   function gerarGraficoURL(empresas){
 
