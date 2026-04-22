@@ -229,6 +229,19 @@ input,select{
   font-weight:900;
 }
 
+
+
+#boasvindas{
+  animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+
+  
 </style>
 </head>
 
@@ -298,7 +311,33 @@ padding:6px;
 </div>
 
 <div id="cards" class="grid"></div>
+<div id="boasvindas" style="
+position:fixed;
+inset:0;
+background:#020617cc;
+backdrop-filter: blur(10px);
+display:none;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:10000;
+color:#fff;
+">
 
+  <img id="fotoUser" style="
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:10px;
+  ">
+
+  <h2 id="msgUser"></h2>
+
+</div>
+
+
+  
 <!-- MODAL -->
 <div id="modal" class="modal">
   <div class="modal-box">
@@ -316,6 +355,8 @@ border-radius:10px;
 object-fit:cover;
 margin-bottom:6px;
 ">
+
+
 
 
     
@@ -578,7 +619,7 @@ ${editavel ? `
   const senhaDigitada = document.getElementById("pass").value;
 
   const resposta = await sb
-    .from("usuarios_do_sistema")
+    .from("buffet_usuarios_do_sistema") // CORRIGIDO
     .select("*")
     .eq("usuario", usuarioDigitado)
     .eq("senha", senhaDigitada)
@@ -590,32 +631,68 @@ ${editavel ? `
     return;
   }
 
-  localStorage.setItem("usuario_logado", JSON.stringify(resposta.data));
+  const user = resposta.data;
+
+  // salva sessão
+  localStorage.setItem("usuario_logado", JSON.stringify(user));
+
+  // força mostrar boas-vindas
+  localStorage.setItem("boas_vindas_mostrada", "nao");
 
   document.getElementById("login").style.display = "none";
 
-  carregar();
+  mostrarBoasVindas(user);
 }
+
+
+
+
+function mostrarBoasVindas(user){
+
+  const tela = document.getElementById("boasvindas");
+
+  document.getElementById("fotoUser").src =
+    user.foto_url || "https://i.imgur.com/2DhmtJ4.png";
+
+  document.getElementById("msgUser").innerText =
+    "Bem-vindo(a), " + (user.nome || user.usuario);
+
+  tela.style.display = "flex";
+
+setTimeout(()=>{
+  tela.style.display = "none";
+  localStorage.setItem("boas_vindas_mostrada", "sim");
+}, 1500);
+}
+
+
+  
 
 function logout(){
   localStorage.removeItem("usuario_logado");
+  localStorage.removeItem("boas_vindas_mostrada"); // 🔥 importante
   location.reload();
 }
 
-
 /* INIT */
 const usuarioLogado = localStorage.getItem("usuario_logado");
+const boasVindas = localStorage.getItem("boas_vindas_mostrada");
 
 if(usuarioLogado){
 
+  const user = JSON.parse(usuarioLogado);
+
   document.getElementById("login").style.display = "none";
 
-  const dadosUsuario = JSON.parse(usuarioLogado);
-
   document.querySelector(".header").innerText =
-    "Controle Sushi - " + dadosUsuario.nome + " (" + dadosUsuario.empresa + ")";
+    "Controle Sushi - " + (user.nome || user.usuario);
 
-  carregar();
+  // 🔥 MOSTRA SÓ UMA VEZ
+  if(boasVindas !== "sim"){
+    mostrarBoasVindas(user);
+  }else{
+    carregar();
+  }
 
 }else{
   document.getElementById("login").style.display = "flex";
@@ -678,10 +755,8 @@ async function excluir(id){
 }
 
 
-
-
   
 </script>
-
 </body>
+
 </html>
