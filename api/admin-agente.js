@@ -696,8 +696,15 @@ DADOS REAIS:
 Empresa: ${resumoDia.empresa || "GERAL"}
 Faturamento: ${resumoDia.faturamento}
 Vendas: ${resumoDia.vendas}
-Ticket médio: ${resumoDia.ticket_medio}
-`
+const faturamento = Number(empresaData?.faturamento || 0)
+const vendas = Number(empresaData?.vendas || 0)
+
+const ticket = vendas > 0
+  ? Number((faturamento / vendas).toFixed(2))
+  : 0
+
+// usa o valor calculado
+Ticket médio: ${ticket}`
         }
       ]
     })
