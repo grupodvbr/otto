@@ -2135,114 +2135,51 @@ const ontem = new Date(hoje)
 ontem.setDate(ontem.getDate() - 1)
 
 const dataFormatada = ontem.toLocaleDateString("pt-BR")
-
-
-
-
-
-
-
-
-
-
-
-  let totalGrupo = 0
-let totalVendasGrupo = 0
-
-let mercattoTotal = 0
-let mercattoVendas = 0
-
-for(const e of data.empresas){
-  totalGrupo += e.faturamento
-  totalVendasGrupo += e.vendas
-
-  if(
-    e.empresa === "MERCATTO EMPORIO" ||
-    e.empresa === "MERCATTO RESTAURANTE"
-  ){
-    mercattoTotal += e.faturamento
-    mercattoVendas += e.vendas
-  }
-}
-
-const ticketGrupo = totalVendasGrupo ? totalGrupo / totalVendasGrupo : 0
-const ticketMercatto = mercattoVendas ? mercattoTotal / mercattoVendas : 0
-
-
-
-
-
 let mensagem = `
 *Bom dia, Sr. Leonardo*
 
-📊 *Relatório Executivo* • ${dataFormatada}
+📅 ${dataFormatada}
 
 ━━━━━━━━━━━━━━━━━━
-
-💼 *Grupo*
-💰 R$ ${formatar(totalGrupo)}
-🧾 ${totalVendasGrupo} vendas
-💳 Ticket médio: R$ ${formatar(ticketGrupo)}
-
-🏢 *Mercatto (Total)*
-💰 R$ ${formatar(mercattoTotal)}
-🧾 ${mercattoVendas} vendas
-💳 Ticket médio: R$ ${formatar(ticketMercatto)}
-`;
-
-  for(const e of data.empresas){
-
-  const ticket = e.vendas ? e.faturamento / e.vendas : 0
-
-  let nome = e.empresa
-
-  if(nome === "MERCATTO EMPORIO") nome = "Empório"
-  if(nome === "MERCATTO RESTAURANTE") nome = "Restaurante"
-  if(nome === "PADARIA DELÍCIA") nome = "Padaria"
-  if(nome === "DELÍCIA GOURMET") nome = "Delícia"
-  if(nome === "VILLA GOURMET") nome = "Villa"
-
-  mensagem += `
-
-🏬 *${nome}*
-💰 R$ ${formatar(e.faturamento)}
-🧾 ${e.vendas} vendas
-💳 Ticket: R$ ${formatar(ticket)}
+📊 *RELATÓRIO FINANCEIRO*
+━━━━━━━━━━━━━━━━━━
 `
-}
 
-for(const e of data.empresas){
+for(const empresa of data.empresas){
 
-  const ticket = e.vendas ? e.faturamento / e.vendas : 0
+  const meta = METAS[empresa.empresa]?.prata || 0
 
-  let nome = e.empresa
+  const percentual = meta > 0
+    ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
+    : 0
 
-  if(nome === "MERCATTO EMPORIO") nome = "Empório"
-  if(nome === "MERCATTO RESTAURANTE") nome = "Restaurante"
-  if(nome === "PADARIA DELÍCIA") nome = "Padaria"
-  if(nome === "DELÍCIA GOURMET") nome = "Delícia"
-  if(nome === "VILLA GOURMET") nome = "Villa"
+  let status = "➡️ Estável"
+
+  if(empresa.variacao_semana > 5){
+    status = `📈 +${empresa.variacao_semana}%`
+  } else if(empresa.variacao_semana < -5){
+    status = `📉 ${empresa.variacao_semana}%`
+  }
 
   mensagem += `
+🏢 *${empresa.empresa}*
 
-🏬 *${nome}*
-💰 R$ ${formatar(e.faturamento)}
-🧾 ${e.vendas} vendas
-💳 Ticket: R$ ${formatar(ticket)}
+💰 Faturamento (Dia): R$ ${formatar(empresa.faturamento)}
+📅 Faturamento (Mês): R$ ${formatar(empresa.faturamento_mes)}
+
+🎯 Atingimento da Meta: ${percentual}%
+💳 Ticket Médio: R$ ${formatar(empresa.ticket_medio)}
+
+${status}
+
 `
 }
 
 mensagem += `
-
 ━━━━━━━━━━━━━━━━━━
-*Carneiro Holding*
-Relatório automático
-`;
+*Relatório automático • Carneiro Holding*
+`
 
-
-
-
-  
 
   function gerarGraficoURL(empresas){
 
