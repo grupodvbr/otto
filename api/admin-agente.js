@@ -662,14 +662,8 @@ if(empresaFiltro){
 
   console.log("🏢 USANDO DADOS DIRETOS DA API:", empresaFiltro)
 
-  // 👉 API já está filtrada
-function normalizar(txt){
-  return txt
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-}
 
+// 🔥 TRATAMENTO CORRETO DOS DADOS
 let empresaData = null
 
 if(empresaFiltro){
@@ -684,7 +678,7 @@ if(empresaFiltro){
   }
 }
 
-// 🔥 BLOQUEIO DE ZERO
+// 🔥 BLOQUEIO SEM DADOS
 if(!empresaData || Number(empresaData.faturamento) <= 0){
   return res.json({
     resposta: "Ainda não houve vendas registradas até agora."
