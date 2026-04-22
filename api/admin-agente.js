@@ -2100,21 +2100,19 @@ async function executarRelatorioAutomatico(){
 let dataDia = null
 let dataMes = null
 
-const [resDia, resMes] = await Promise.all([
-  fetch("https://goals-continental-examinations-carrier.trycloudflare.com/cupons-ontem"),
-  fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-mes")
-])
+try{
 
-if(!resDia.ok || !resMes.ok){
-  throw new Error("Erro ao buscar APIs")
-}
+  const [resDia, resMes] = await Promise.all([
+    fetch("https://goals-continental-examinations-carrier.trycloudflare.com/cupons-ontem"),
+    fetch("https://goals-continental-examinations-carrier.trycloudflare.com/resumo-mes")
+  ])
 
-dataDia = await resDia.json()
-dataMes = await resMes.json()
+  if(!resDia.ok || !resMes.ok){
+    throw new Error("Erro ao buscar APIs")
+  }
 
-
-
-  
+  dataDia = await resDia.json()
+  dataMes = await resMes.json()
 
 }catch(e){
   console.error("❌ ERRO AO BUSCAR API:", e)
