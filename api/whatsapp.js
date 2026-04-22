@@ -27,9 +27,9 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 /* ================= ADMINS ================= */
 
 const ADMINS = [
-  "557798253249"
+  "557798253249",
+  "557799761436"
 ]
-
 // 🔥 ALERTA SEMPRE VAI PRAQUI
 const ADMIN_ALERTA = "557798253249"
 
