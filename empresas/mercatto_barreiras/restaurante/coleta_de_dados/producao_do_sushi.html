@@ -179,13 +179,17 @@ input,select{
 
 <body>
 
-<div class="header">🍣 Controle Sushi</div>
+<div class="header">Controle Sushi</div>
 
-<div class="search">
-  <input id="busca" placeholder="Buscar sushi...">
+<div class="search" style="display:flex;gap:8px">
+
+  <input id="busca" placeholder="Buscar sushi..." style="flex:1">
+
+  <button class="btn-registros" onclick="abrirRegistros()" style="margin:0;width:140px">
+    Registros
+  </button>
+
 </div>
-
-<button class="btn-registros" onclick="abrirRegistros()">Ver Registros</button>
 
 <div id="cards" class="grid"></div>
 
