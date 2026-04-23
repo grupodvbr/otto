@@ -713,44 +713,123 @@ if(tipoConsulta === "vendas"){
     let tipoBusca = "dia"
 
     // ================= DECISÃO INTELIGENTE =================
+const ehHoje =
+  texto.includes("hoje") ||
+  dataFiltro === hojeISO
 
-    if(
-      texto.includes("mes") ||
-      texto.includes("mês")
-    ){
-      url = `${API_CUPONS}/resumo-mes`
-      tipoBusca = "mes"
+// ================= MÊS COMPLETO =================
+if(
+  !ehHoje &&
+  (texto.includes("mes") || texto.includes("mês"))
+){
+
+  console.log("📊 MODO MÊS + HOJE")
+
+  tipoBusca = "mes_completo"
+
+  const resMes = await fetch(`${API_CUPONS}/resumo-mes`)
+  const dataMes = await resMes.json()
+
+  const resDia = await fetch(`${API_CUPONS}/resumo-dia`)
+  const dataDia = await resDia.json()
+
+  let empresaMes = null
+  let empresaHoje = null
+
+  if(empresaFiltro){
+
+    empresaMes = dataMes.empresas?.find(e => e.empresa === empresaFiltro)
+    empresaHoje = dataDia.empresas?.find(e => e.empresa === empresaFiltro)
+
+  }else{
+
+    empresaMes = {
+      faturamento_mes: dataMes.empresas.reduce((a,e)=>a + (e.faturamento_mes || 0),0),
+      vendas_mes: dataMes.empresas.reduce((a,e)=>a + (e.vendas_mes || 0),0)
     }
 
-    else if(
-      texto.includes("forma") ||
-      texto.includes("pagamento") ||
-      texto.includes("pix") ||
-      texto.includes("cartao") ||
-      texto.includes("cartão")
-    ){
-      url = `${API_CUPONS}/cupons-analitico?data=${dataFiltro}`
-      tipoBusca = "analitico"
+    empresaHoje = {
+      faturamento: dataDia.faturamento,
+      vendas: dataDia.vendas
     }
+  }
 
-    else if(
-      texto.includes("lista") ||
-      texto.includes("cupons") ||
-      texto.includes("vendas detalhadas")
-    ){
-      url = `${API_CUPONS}/cupons?data=${dataFiltro}`
-      tipoBusca = "lista"
-    }
+  const faturamentoMes = Number(empresaMes?.faturamento_mes || 0)
+  const faturamentoHoje = Number(empresaHoje?.faturamento || 0)
 
-    else{
-      url = `${API_CUPONS}/resumo-dia`
-      tipoBusca = "dia"
-    }
+  const vendasMes = Number(empresaMes?.vendas_mes || 0)
+  const vendasHoje = Number(empresaHoje?.vendas || 0)
+
+  const total = faturamentoMes + faturamentoHoje
+
+  const metaInfo = empresaFiltro
+    ? calcularMeta(empresaFiltro, total)
+    : { meta:0, percentual:0 }
+
+  contextos.push({
+    role:"system",
+    content: "RESUMO_MES_COMPLETO:\n" + JSON.stringify({
+      empresa: empresaFiltro || "GERAL",
+      ate_ontem: {
+        faturamento: faturamentoMes,
+        vendas: vendasMes
+      },
+      hoje: {
+        faturamento: faturamentoHoje,
+        vendas: vendasHoje
+      },
+      total: {
+        faturamento: total,
+        vendas: vendasMes + vendasHoje
+      },
+      meta: metaInfo.meta,
+      percentual_meta: metaInfo.percentual
+    })
+  })
+
+}
+
+// ================= ANALÍTICO =================
+else if(
+  texto.includes("forma") ||
+  texto.includes("pagamento") ||
+  texto.includes("pix") ||
+  texto.includes("cartao") ||
+  texto.includes("cartão")
+){
+  url = `${API_CUPONS}/cupons-analitico?data=${dataFiltro}`
+  tipoBusca = "analitico"
+}
+
+// ================= LISTA =================
+else if(
+  texto.includes("lista") ||
+  texto.includes("cupons") ||
+  texto.includes("vendas detalhadas")
+){
+  url = `${API_CUPONS}/cupons?data=${dataFiltro}`
+  tipoBusca = "lista"
+}
+
+// ================= DIA =================
+else{
+  url = `${API_CUPONS}/resumo-dia?data=${dataFiltro}`
+  tipoBusca = "dia"
+}
+
+    
+
 
     console.log("🌐 URL:", url)
 
-    const resApi = await fetch(url)
-    const data = await resApi.json()
+let data = null
+
+if(tipoBusca !== "mes_completo"){
+  console.log("🌐 URL:", url)
+
+  const resApi = await fetch(url)
+  data = await resApi.json()
+}
 
     // ================= RESUMO DIA =================
     if(tipoBusca === "dia"){
