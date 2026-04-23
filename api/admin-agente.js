@@ -144,6 +144,27 @@ const amanhaISO = amanha.toISOString().split("T")[0]
 
 const texto = pergunta.toLowerCase()
 
+
+const NUMEROS_EXTENSO = {
+  "um":1,"dois":2,"tres":3,"três":3,"quatro":4,"cinco":5,
+  "seis":6,"sete":7,"oito":8,"nove":9,"dez":10,
+  "onze":11,"doze":12,"treze":13,"quatorze":14,"quinze":15,
+  "dezesseis":16,"dezessete":17,"dezoito":18,"dezenove":19,
+  "vinte":20,"vinte e um":21,"vinte e dois":22,"vinte e tres":23,"vinte e três":23,
+  "vinte e quatro":24,"vinte e cinco":25,"vinte e seis":26,"vinte e sete":27,
+  "vinte e oito":28,"vinte e nove":29,"trinta":30,"trinta e um":31
+}
+
+
+
+
+
+
+
+
+
+
+  
 let dataFiltro = hojeISO
 
 function formatarData(date){
@@ -152,33 +173,35 @@ function formatarData(date){
 
 const hojeDate = new Date(`${hojeISO}T00:00:00`)
 
-// 🔥 PRIORIDADE 1 — PALAVRAS
-if(texto.includes("hoje")){
+// 🔥 NORMALIZA TEXTO
+let textoNormalizado = texto
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+
+// 🔥 CONVERTE EXTENSO → NÚMERO
+for(const palavra in NUMEROS_EXTENSO){
+  const valor = NUMEROS_EXTENSO[palavra]
+  textoNormalizado = textoNormalizado.replace(
+    new RegExp(`\\b${palavra}\\b`, "g"),
+    valor
+  )
+}
+
+// 🔥 AGORA SIM INTERPRETA
+
+if(textoNormalizado.includes("hoje")){
   dataFiltro = hojeISO
 }
 
-else if(texto.includes("ontem")){
+else if(textoNormalizado.includes("ontem")){
   const d = new Date(hojeDate)
   d.setDate(d.getDate() - 1)
   dataFiltro = formatarData(d)
 }
 
-else if(texto.includes("anteontem")){
-  const d = new Date(hojeDate)
-  d.setDate(d.getDate() - 2)
-  dataFiltro = formatarData(d)
-}
+else if(textoNormalizado.match(/(\d{1,2})\D+(\d{1,2})/)){
 
-else if(texto.includes("amanha") || texto.includes("amanhã")){
-  const d = new Date(hojeDate)
-  d.setDate(d.getDate() + 1)
-  dataFiltro = formatarData(d)
-}
-
-// 🔥 PRIORIDADE 2 — DATA COMPLETA (21/04, 21-04, 21 do 4)
-else if(texto.match(/(\d{1,2})\D+(\d{1,2})/)){
-
-  const match = texto.match(/(\d{1,2})\D+(\d{1,2})/)
+  const match = textoNormalizado.match(/(\d{1,2})\D+(\d{1,2})/)
 
   const dia = match[1].padStart(2,"0")
   const mes = match[2].padStart(2,"0")
@@ -186,10 +209,9 @@ else if(texto.match(/(\d{1,2})\D+(\d{1,2})/)){
   dataFiltro = `${hojeISO.slice(0,4)}-${mes}-${dia}`
 }
 
-// 🔥 PRIORIDADE 3 — DIA SOLTO (dia 21)
-else if(texto.match(/dia\s+(\d{1,2})/)){
+else if(textoNormalizado.match(/dia\s+(\d{1,2})/)){
 
-  const match = texto.match(/dia\s+(\d{1,2})/)
+  const match = textoNormalizado.match(/dia\s+(\d{1,2})/)
 
   const dia = match[1].padStart(2,"0")
   const mesAtual = hojeISO.slice(5,7)
