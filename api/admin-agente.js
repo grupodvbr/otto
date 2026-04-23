@@ -34,8 +34,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 const USUARIOS = {
   "557798253249": { nivel: 0 }, // ADMIN REAL
-  "557799761436": { nivel: 0 }, // ADMIN REAL
-  "778888888888": { nivel: 1 },
+  "557798315510": { nivel: 0 },
   "777777777777": { nivel: 2, empresa: "MERCATTO DELÍCIA" },
   "776666666666": { nivel: 3 }
 }
@@ -357,20 +356,6 @@ try {
 console.log("🧠 CLASSIFICAÇÃO:", classificacao)
 let empresaFiltro = classificacao.empresa || null
 
-// 🔥 RECUPERA MEMÓRIA AUTOMÁTICA
-if(!empresaFiltro && ultimaMemoria?.memoria_extraida?.ultima_empresa){
-  console.log("🧠 USANDO MEMÓRIA DA EMPRESA:", ultimaMemoria.memoria_extraida.ultima_empresa)
-  empresaFiltro = ultimaMemoria.memoria_extraida.ultima_empresa
-}
-
-
-
-
-  
-// 🔥 CORREÇÃO CRÍTICA
-if(empresaFiltro){
-  classificacao.geral = false
-}
 
 // NIVEL 2 → BLOQUEIA EMPRESA
 if(NIVEL === 2){
@@ -463,11 +448,6 @@ else if(
   
 let tipoConsulta = classificacao.tipo || "geral"
 
-// 🔥 RECUPERA INTENÇÃO
-if(tipoConsulta === "desconhecido" && ultimaMemoria?.memoria_extraida?.ultima_intencao){
-  console.log("🧠 USANDO MEMÓRIA DE INTENÇÃO:", ultimaMemoria.memoria_extraida.ultima_intencao)
-  tipoConsulta = ultimaMemoria.memoria_extraida.ultima_intencao
-}
 
 
 
@@ -1113,30 +1093,22 @@ else{
 let data = null
 
 if(tipoBusca !== "mes_completo"){
-console.log("🌐 URL:", url)
+  console.log("🌐 URL:", url)
 
-const resApi = await fetch(url)
-data = await resApi.json()
-
-// 🔥 LOG COMPLETO DA API
-console.log("📦 RESPOSTA API (COMPLETA):", JSON.stringify(data, null, 2))
+  const resApi = await fetch(url)
+  data = await resApi.json()
 }
 
     // ================= RESUMO DIA =================
 if(tipoBusca === "dia"){
 
-contextos.push({
-  role:"system",
-  content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
-})
+  if(!empresaFiltro){
+    contextos.push({
+      role:"system",
+      content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
+    })
+  }
 
-
-
-
-
-
-
-  
   // 🔥 TOTAL DAS EMPRESAS
   contextos.push({
     role:"system",
@@ -1172,20 +1144,9 @@ contextos.push({
 
   } else if(empresaFiltro){
 
-empresaData = data.empresas?.find(e =>
-  e.empresa
-    ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-  ===
-  empresaFiltro
-    ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-)
-
-
-
-
-    
+    empresaData = data.empresas?.find(
+      e => e.empresa === empresaFiltro
+    )
 
     if(!empresaData){
       return res.json({
@@ -1214,7 +1175,7 @@ empresaData = data.empresas?.find(e =>
     ticket_medio: empresaData.ticket_medio || ticketCalculado,
     empresa: empresaFiltro
   }
-
+}
 
 
     // ================= ANALÍTICO =================
@@ -1499,40 +1460,7 @@ if(resumoDia && resumoDia.faturamento !== undefined){
 
 }
   
-// 🚀 RESPOSTA DIRETA GLOBAL (ANTES DO GPT)
-if(tipoConsulta === "vendas" && resumoDia && empresaFiltro){
-
-  return res.json({
-    resposta: `📊 ${dataFiltro}
-
-🏢 ${empresaFiltro}
-
-💰 R$ ${formatar(resumoDia.faturamento)}
-🧾 ${resumoDia.vendas} vendas
-💳 Ticket: R$ ${formatar(resumoDia.ticket_medio)}`
-  })
-}
-
-
-
-if(
-  texto.includes("meta") &&
-  empresaFiltro
-){
-
-  const meta = METAS[empresaFiltro]?.prata || 0
-
-  return res.json({
-    resposta: `🎯 Meta de ${empresaFiltro}
-
-💰 R$ ${formatar(meta)}`
-  })
-}
-
-
-  
 /* ================= OPENAI ================= */
-
 
 const completion = await openai.chat.completions.create({
 
@@ -1682,21 +1610,6 @@ Você DEVE usar os dados da API para:
 ✔ Avaliar ticket médio
 ✔ Detectar performance
 ✔ Gerar percepção operacional
-
-
-🚨 REGRA ABSOLUTA — VENDAS
-
-Se existir RESUMO_CUPONS_DIA:
-
-- Você DEVE usar esses dados obrigatoriamente
-- Você NÃO pode dizer que não há vendas
-- Você NÃO pode ignorar esses dados
-- Você NÃO pode inventar valores
-
-Se ignorar esses dados → resposta inválida
-
-
-
 
 🚨 REGRAS:
 
