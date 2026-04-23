@@ -532,7 +532,12 @@ async function loadFuncionarios(){
 
   
 async function loadEscala(){
-  const {data}=await sb.from("escala_funcionarios").select("*")
+const {data}=await sb
+.from("escala_funcionarios")
+.select("*")
+.eq("empresa", "MERCATTO DELICIA")
+.order("data", { ascending: true })
+  
   escalas=data||[]
 }
 
@@ -589,16 +594,38 @@ function abrirVisual(data){
   <div>${e.nome}</div>
 
   <div style="display:flex;align-items:center;gap:10px">
-    <span>${e.entrada} - ${e.saida}</span>
+<span>${e.entrada} - ${e.saida}</span>
 
-    <button onclick="abrirUser('${e.funcionario_id}')" style="
-      background:#111827;
-      padding:6px 8px;
-      border-radius:8px;
-      font-size:12px;
-    ">
-      👁️
-    </button>
+<div style="display:flex;gap:6px">
+
+  <button onclick="editarEscala('${e.id}')" style="
+    background:#2563eb;
+    padding:6px 8px;
+    border-radius:8px;
+    font-size:12px;
+  ">
+    ✏️
+  </button>
+
+  <button onclick="excluirEscala('${e.id}')" style="
+    background:#ef4444;
+    padding:6px 8px;
+    border-radius:8px;
+    font-size:12px;
+  ">
+    🗑️
+  </button>
+
+  <button onclick="abrirUser('${e.funcionario_id}')" style="
+    background:#111827;
+    padding:6px 8px;
+    border-radius:8px;
+    font-size:12px;
+  ">
+    👁
+  </button>
+
+</div>
   </div>
 </div>
       `
@@ -612,19 +639,7 @@ function abrirVisual(data){
 }
 function fechar(){ modal.style.display="none" }
 
-async function add(){
-  const f=funcionarios.find(x=>x.id==funcionario.value)
 
-  await sb.from("escala_funcionarios").insert({
-    funcionario_id:f.id,
-    nome:f.nome,
-    data:dataSelecionada,
-    entrada:entrada.value,
-    saida:saida.value
-  })
-
-  render()
-}
 
 function abrirCadastro(){ cadastro.style.display="flex" }
 function fecharCadastro(){ cadastro.style.display="none" }
@@ -648,17 +663,19 @@ async function salvarFuncionario(){
   }
 
 const { data, error } = await sb
-  .from("funcionarios_mercatto")
-  .insert({
-    nome:nome.value,
-    numero:numero.value.replace(/\D/g,""),
-    sexo:sexo.value,
-    data_nascimento:nascimento.value,
-    data_contratacao:contratacao.value,
-    setor:setor.value,
-    funcao:funcao.value,
-    folga:folgasSelecionadas.join(",")
-  })
+.from("usuarios_do_sistema")
+.insert({
+  nome: nome.value,
+  telefone: numero.value.replace(/\D/g,""),
+  sexo: sexo.value,
+  data_nascimento: nascimento.value,
+  data_admissao: contratacao.value,
+  setor: setor.value,
+  cargo: funcao.value,
+  empresa: "MERCATTO DELICIA",
+  nivel_acesso: 10,
+  ativo: true
+})
 
 if(error){
   console.error("ERRO SUPABASE:", error)
@@ -666,8 +683,9 @@ if(error){
   return
 }
 
-  fecharCadastro()
-  loadFuncionarios()
+fecharCadastro()
+await loadFuncionarios()
+render()
 }
 
 /* MASCARA */
@@ -754,6 +772,30 @@ function coletarHorarios(){
 async function salvarEscala(){
 
   const f = funcionarios.find(x=>x.id == funcionario.value)
+
+  // 🔥 SE ESTIVER EDITANDO
+  if(escalaEditando){
+
+    const entrada = document.getElementById("editEntrada").value
+    const saida = document.getElementById("editSaida").value
+
+    await sb
+      .from("escala_funcionarios")
+      .update({
+        entrada,
+        saida,
+        atualizado_em: new Date().toISOString()
+      })
+      .eq("id", escalaEditando)
+
+    escalaEditando = null
+
+    fechar()
+    render()
+    return
+  }
+
+  // 🔥 NOVA ESCALA
   const lista = coletarHorarios()
 
   if(lista.length === 0){
@@ -770,30 +812,22 @@ async function salvarEscala(){
 
   for(const h of lista){
 
-    let dataFinal = dataBase
-
-    // VIRADA DE DIA (ex: 23:00 -> 02:00)
-    if(h.fim < h.inicio){
-      // continua sendo o mesmo "dia lógico"
-      // mas salva corretamente no banco
-      dataFinal = dataBase
-    }
-
-await sb.from("escala_funcionarios").insert({
-  funcionario_id: f.id,
-  nome: f.nome,
-  data: dataBase,
-  entrada: h.inicio,
-  saida: h.fim,
-  setor: f.setor // 🔥 ESSENCIAL
-})
+    await sb
+      .from("escala_funcionarios")
+      .insert({
+        funcionario_id: f.id,
+        nome: f.nome,
+        data: dataBase,
+        entrada: h.inicio,
+        saida: h.fim,
+        setor: f.setor,
+        atualizado_em: new Date().toISOString()
+      })
   }
 
   fechar()
   render()
 }
-
-
   function abrir(data){
   dataSelecionada = data
 
@@ -870,12 +904,43 @@ function fecharUser(){
   modalUser.style.display = "none"
 }
 
+async function excluirEscala(id){
+
+  if(!confirm("Deseja excluir essa escala?")) return
+
+  await sb
+    .from("escala_funcionarios")
+    .delete()
+    .eq("id", id)
+
+  render()
+}
 
 
 
 
+let escalaEditando = null
 
+function editarEscala(id){
 
+  const e = escalas.find(x => x.id == id)
+  if(!e) return
+
+  escalaEditando = e.id
+
+  document.getElementById("formEscala").style.display = "block"
+
+  funcionario.value = e.funcionario_id
+
+  blocos.innerHTML = `
+    <div class="item">
+      <span>Entrada</span>
+      <input type="time" id="editEntrada" value="${e.entrada}">
+      <span>Saída</span>
+      <input type="time" id="editSaida" value="${e.saida}">
+    </div>
+  `
+}
 
 
 
