@@ -1535,16 +1535,7 @@ const items = state.reservas.filter(r=>{
 
   return ymd(local) === ymd(d)
 });
-        // Agrupar por setor e colorir VIP vs OUTROS
-        const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
-        const groups = new Map();
-        for (const r of items) {
-          const label = (r.mesa || '—').trim();
-          const key   = norm(label);
-          groups.set(key, { label, count:(groups.get(key)?.count||0)+1 });
-        }
-        const isVipKey = k => k === 'SALA VIP' || k === 'SALA VIP 2';
-
+      
 
 
       const total = items.length
