@@ -1,6 +1,6 @@
 import fetch from "node-fetch"
 
-/* ================= METAS MENSAIS ================= */
+/* ================= METAS ================= */
 
 const METAS = {
   "MERCATTO EMPORIO": { meta: 650000 },
@@ -10,7 +10,7 @@ const METAS = {
   "DELÍCIA GOURMET": { meta: 545000 }
 }
 
-/* ================= NORMALIZAÇÃO ================= */
+/* ================= NORMALIZA ================= */
 
 function normalizar(txt){
   return txt
@@ -19,13 +19,12 @@ function normalizar(txt){
     .toUpperCase()
 }
 
-/* ================= DATA BRASIL ================= */
+/* ================= DATA BAHIA ================= */
 
 function getHoje(){
-  const agora = new Date(
+  return new Date(
     new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
   )
-  return agora
 }
 
 /* ================= META PROPORCIONAL ================= */
@@ -42,11 +41,11 @@ function calcularMetaProporcional(metaMensal){
     0
   ).getDate()
 
-  const metaDia = (metaMensal / ultimoDia) * diaAtual
+  const metaAteHoje = (metaMensal / ultimoDia) * diaAtual
 
   return {
     metaMensal,
-    metaAteHoje: metaDia
+    metaAteHoje
   }
 }
 
@@ -58,69 +57,51 @@ try{
 
   const { empresa } = req.query
 
-  /* ================= URL BASE ================= */
+  console.log("📊 CONSULTA:", empresa || "GERAL")
 
-  let url = "https://inspired-still-reflects-closes.trycloudflare.com/resumo-dia"
+  /* ================= BUSCA APIs ================= */
 
-  const MAPA = {
-    "MERCATTO EMPORIO": "VAREJO_URL_MERCATTO_EMPORIO",
-    "MERCATTO RESTAURANTE": "VAREJO_URL_MERCATTO_RESTAURANTE",
-    "PADARIA DELÍCIA": "VAREJO_URL_PADARIA",
-    "VILLA GOURMET": "VAREJO_URL_VILLA",
-    "DELÍCIA GOURMET": "VAREJO_URL_DELICIA"
+  const URL_BASE = "https://inspired-still-reflects-closes.trycloudflare.com"
+
+  const [resMes, resDia] = await Promise.all([
+    fetch(`${URL_BASE}/resumo-mes`),
+    fetch(`${URL_BASE}/resumo-dia`)
+  ])
+
+  if(!resMes.ok || !resDia.ok){
+    throw new Error("Erro nas APIs externas")
   }
 
-  /* ================= FILTRO ================= */
+  const dataMes = await resMes.json()
+  const dataDia = await resDia.json()
 
-  if(empresa && MAPA[empresa]){
-    url += `?empresa=${MAPA[empresa]}`
-  }
-
-  console.log("📡 URL FINAL:", url)
-
-  /* ================= FETCH ================= */
-
-  const response = await fetch(url)
-
-  if(!response.ok){
-    console.log("❌ ERRO HTTP:", response.status)
-    throw new Error("Erro na API externa")
-  }
-
-  const data = await response.json()
-
-  console.log("📊 RESPOSTA:", JSON.stringify(data))
-
-  if(!data){
-    return res.status(500).json({ erro: "sem resposta da API" })
-  }
+  console.log("📦 MES:", JSON.stringify(dataMes))
+  console.log("📦 DIA:", JSON.stringify(dataDia))
 
   /* ================= VARIÁVEIS ================= */
 
-  let faturamento = 0
-  let vendas = 0
-  let ticket = 0
-  let empresaFinal = empresa || "GERAL"
+  let faturamentoMes = 0
+  let vendasMes = 0
+  let faturamentoHoje = 0
+  let vendasHoje = 0
 
-  /* ================= EMPRESA ================= */
+  /* ================= COM EMPRESA ================= */
 
   if(empresa){
 
-    const empresaData = (data.empresas || []).find(e =>
+    const empresaMes = (dataMes.empresas || []).find(e =>
       normalizar(e.empresa) === normalizar(empresa)
     )
 
-    if(!empresaData){
-      console.log("❌ EMPRESA NÃO ENCONTRADA:", empresa)
-      return res.status(404).json({
-        erro: "empresa nao encontrada",
-        empresa
-      })
-    }
+    const empresaHoje = (dataDia.empresas || []).find(e =>
+      normalizar(e.empresa) === normalizar(empresa)
+    )
 
-    faturamento = empresaData.faturamento || 0
-    vendas = empresaData.vendas || 0
-    ticket = vendas > 0 ? faturamento / vendas : 0
+    faturamentoMes = empresaMes?.faturamento_mes || 0
+    vendasMes = empresaMes?.vendas_mes || 0
+
+    faturamentoHoje = empresaHoje?.faturamento || 0
+    vendasHoje = empresaHoje?.vendas || 0
 
   }
 
@@ -128,11 +109,25 @@ try{
 
   else{
 
-    faturamento = data.faturamento || 0
-    vendas = data.vendas || 0
-    ticket = data.ticket_medio || 0
+    faturamentoMes = (dataMes.empresas || [])
+      .reduce((a,e)=>a + (e.faturamento_mes || 0),0)
+
+    vendasMes = (dataMes.empresas || [])
+      .reduce((a,e)=>a + (e.vendas_mes || 0),0)
+
+    faturamentoHoje = dataDia.faturamento || 0
+    vendasHoje = dataDia.vendas || 0
 
   }
+
+  /* ================= TOTAL ================= */
+
+  const faturamentoTotal = faturamentoMes + faturamentoHoje
+  const vendasTotal = vendasMes + vendasHoje
+
+  const ticket = vendasTotal > 0
+    ? faturamentoTotal / vendasTotal
+    : 0
 
   /* ================= META ================= */
 
@@ -149,30 +144,46 @@ try{
     metaAteHoje = metaCalc.metaAteHoje
 
     percentual = metaAteHoje > 0
-      ? (faturamento / metaAteHoje) * 100
+      ? (faturamentoTotal / metaAteHoje) * 100
       : 0
   }
 
-  /* ================= RESPOSTA FINAL ================= */
+  /* ================= RESPOSTA ================= */
 
   return res.json({
-    data: data.data,
-    empresa: empresaFinal,
-    faturamento,
-    vendas,
-    ticket_medio: ticket,
 
-    meta_mensal: metaMensal,
-    meta_ate_hoje: metaAteHoje,
-    percentual
+    empresa: empresa || "GERAL",
+
+    mes: {
+      faturamento: faturamentoMes,
+      vendas: vendasMes
+    },
+
+    hoje: {
+      faturamento: faturamentoHoje,
+      vendas: vendasHoje
+    },
+
+    total: {
+      faturamento: faturamentoTotal,
+      vendas: vendasTotal,
+      ticket_medio: ticket
+    },
+
+    meta: {
+      mensal: metaMensal,
+      ate_hoje: metaAteHoje,
+      percentual: percentual
+    }
+
   })
 
 }catch(e){
 
-  console.log("❌ ERRO API VENDAS:", e)
+  console.log("❌ ERRO:", e)
 
   return res.status(500).json({
-    erro: "erro ao processar vendas"
+    erro: "erro ao buscar vendas"
   })
 
 }
