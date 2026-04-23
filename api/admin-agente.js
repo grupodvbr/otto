@@ -1106,13 +1106,18 @@ console.log("📦 RESPOSTA API (COMPLETA):", JSON.stringify(data, null, 2))
     // ================= RESUMO DIA =================
 if(tipoBusca === "dia"){
 
-  if(!empresaFiltro){
-    contextos.push({
-      role:"system",
-      content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
-    })
-  }
+contextos.push({
+  role:"system",
+  content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
+})
 
+
+
+
+
+
+
+  
   // 🔥 TOTAL DAS EMPRESAS
   contextos.push({
     role:"system",
