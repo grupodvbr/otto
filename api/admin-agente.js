@@ -956,7 +956,7 @@ function toBR(dataISO){
 
 
 
-const API_CUPONS = "https://inspired-still-reflects-closes.trycloudflare.com"
+const API_CUPONS = "https://africa-concluded-brother-entire.trycloudflare.com"
 
 if(tipoConsulta === "vendas" || tipoConsulta === "relatorio"){
   console.log("📅 DATA FINAL USADA:", dataFiltro)
@@ -2660,7 +2660,7 @@ let dataMes = null
 
 try {
 
-  const API_CUPONS = "https://inspired-still-reflects-closes.trycloudflare.com"
+  const API_CUPONS = "https://africa-concluded-brother-entire.trycloudflare.com"
 
   const hoje = new Date(
     new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
