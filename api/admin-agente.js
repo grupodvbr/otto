@@ -301,6 +301,7 @@ if(
     normal.includes("mercado") ||
     normal.includes("merkado") ||
     normal.includes("mercad") ||
+    normal.includes("mercatto") ||
     normal.includes("mercato")
   )
 ){
