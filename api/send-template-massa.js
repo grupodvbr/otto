@@ -1,3 +1,8 @@
+require("dotenv").config()
+
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args))
+
 const { createClient } = require("@supabase/supabase-js")
 
 const supabase = createClient(
@@ -7,236 +12,111 @@ const supabase = createClient(
 
 module.exports = async function(req, res){
 
-  try {
+  try{
 
-    const { telefone, template, parametros = {} } = req.body
+    const { template = "aniversario_mercatto" } = req.body
 
-    /* ================= VALIDAÇÃO ================= */
+    console.log("🚀 DISPARO EM MASSA INICIADO")
+    console.log("📦 TEMPLATE:", template)
 
-    if(!telefone || !template){
-      return res.status(400).json({
-        error: "telefone ou template não enviado"
+    /* ================= BUSCAR CLIENTES ================= */
+
+    const { data: clientes, error } = await supabase
+      .from("memoria_clientes")
+      .select("telefone,nome")
+
+    if(error){
+      console.log("❌ ERRO AO BUSCAR CLIENTES:", error)
+      return res.status(500).json({ error })
+    }
+
+    if(!clientes || !clientes.length){
+      return res.json({
+        ok:true,
+        total:0,
+        enviados:0
       })
     }
 
-    const PHONE_ID = process.env.PHONE_NUMBER_ID || "1047101948485043"
-    const TOKEN = process.env.WHATSAPP_TOKEN
+    console.log(`👥 TOTAL DE CLIENTES: ${clientes.length}`)
 
-    if(!TOKEN){
-      return res.status(500).json({
-        error: "WHATSAPP_TOKEN não configurado"
-      })
-    }
+    let enviados = 0
+    let erros = 0
 
-    const url = `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`
+    const resultados = []
 
-    console.log("📤 TEMPLATE:", template)
-    console.log("📞 TELEFONE:", telefone)
+    /* ================= LOOP ================= */
 
-    /* ================= IDIOMAS ================= */
+    for(const cliente of clientes){
 
-    const TEMPLATE_IDIOMAS = {
-      confirmao_de_reserva: "en_US",
-      reserva_especial: "en_US",
-      hello_world: "en_US"
-    }
+      const telefone = cliente.telefone
+      const nome = cliente.nome || "Cliente"
 
-    const idioma = TEMPLATE_IDIOMAS[template]
+      console.log("📤 ENVIANDO PARA:", telefone)
 
-    if(!idioma){
-      return res.status(400).json({
-        error: "Template não permitido ou idioma não configurado"
-      })
-    }
+      try{
 
-    /* ================= BUSCAR RESERVA OU USAR MODELO ================= */
+        const resp = await fetch(`${process.env.API_URL}/api/send-template`,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body: JSON.stringify({
+            telefone,
+            template,
+            parametros:{
+              nome
+            }
+          })
+        })
 
-    let dadosReserva = {}
+        const data = await resp.json()
 
-    if(template === "confirmao_de_reserva"){
-
-      const { data: reserva } = await supabase
-        .from("reservas_mercatto")
-        .select("*")
-        .eq("telefone", telefone)
-        .in("status", ["Pendente","Confirmado"])
-        .order("datahora",{ ascending:false })
-        .limit(1)
-        .maybeSingle()
-
-      if(reserva){
-
-        let dataObj = new Date(reserva.datahora)
-
-        if(isNaN(dataObj)){
-          console.log("❌ DATA INVÁLIDA:", reserva.datahora)
-          dataObj = new Date()
+        if(data.error){
+          throw new Error(JSON.stringify(data.error))
         }
 
-        dadosReserva = {
-          nome: reserva.nome,
-          data: dataObj.toLocaleDateString("pt-BR"),
-          hora: dataObj.toTimeString().substring(0,5),
-          pessoas: reserva.pessoas
-        }
+        enviados++
 
-        console.log("✅ Usando dados reais da reserva")
+        resultados.push({
+          telefone,
+          status:"ok"
+        })
 
-      }else{
+        console.log(`✅ ENVIADO: ${telefone}`)
 
-        console.log("⚠️ Cliente sem reserva — usando dados fictícios")
+      }catch(err){
 
-        dadosReserva = {
-          nome: parametros?.nome || "Cliente",
-          data: parametros?.data || "20/03",
-          hora: parametros?.hora || "20:00",
-          pessoas: parametros?.pessoas || "2"
-        }
+        erros++
 
+        resultados.push({
+          telefone,
+          status:"erro",
+          erro: err.message
+        })
+
+        console.log(`❌ ERRO: ${telefone}`, err.message)
       }
+
+      /* ⏱️ DELAY ANTI BLOQUEIO META */
+      await new Promise(r => setTimeout(r, 1200))
     }
 
-    /* ================= MONTAR TEMPLATE ================= */
-
-    let templateData = null
-
-    switch(template){
-
-      case "confirmao_de_reserva":
-
-        templateData = {
-          name: template,
-          language: { code: idioma },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                { type:"text", text: dadosReserva.nome },
-                { type:"text", text: dadosReserva.data },
-                { type:"text", text: dadosReserva.hora },
-                { type:"text", text: String(dadosReserva.pessoas) }
-              ]
-            }
-          ]
-        }
-
-      break
-
-      case "reserva_especial":
-
-        if(!parametros.video){
-          throw new Error("Template reserva_especial precisa de video")
-        }
-
-        templateData = {
-          name: template,
-          language: { code: idioma },
-          components: [
-            {
-              type: "header",
-              parameters: [
-                {
-                  type: "video",
-                  video: {
-                    link: parametros.video
-                  }
-                }
-              ]
-            }
-          ]
-        }
-
-      break
-
-      case "hello_world":
-
-        templateData = {
-          name: template,
-          language: { code: idioma }
-        }
-
-      break
-    }
-
-    /* ================= VALIDA TEMPLATE ================= */
-
-    if(!templateData){
-      return res.status(400).json({
-        error: "Template não configurado"
-      })
-    }
-
-    /* ================= PAYLOAD ================= */
-
-    const payload = {
-      messaging_product: "whatsapp",
-      to: telefone,
-      type: "template",
-      template: templateData
-    }
-
-    console.log("📦 PAYLOAD:", JSON.stringify(payload, null, 2))
-
-    /* ================= ENVIO ================= */
-
-    const resp = await fetch(url,{
-      method:"POST",
-      headers:{
-        Authorization:`Bearer ${TOKEN}`,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify(payload)
-    })
-
-    let data
-
-    try{
-      data = await resp.json()
-    }catch(e){
-      const text = await resp.text()
-      console.log("❌ ERRO META RAW:", text)
-
-      return res.status(500).json({
-        error:"Erro ao interpretar resposta da Meta"
-      })
-    }
-
-    console.log("📩 META RESPONSE:", data)
-
-    if(data.error){
-      console.log("❌ ERRO META DETALHADO:", JSON.stringify(data.error, null, 2))
-
-      return res.status(500).json({
-        error: data.error
-      })
-    }
-
-    /* ================= SALVAR CONVERSA ================= */
-
-    const messageId = data?.messages?.[0]?.id || null
-
-    await supabase
-      .from("conversas_whatsapp")
-      .insert({
-        telefone: telefone,
-        mensagem: `[TEMPLATE ENVIADO: ${template}]`,
-        role: "assistant",
-        message_id: messageId,
-        status: "sent"
-      })
-
-    /* ================= RESPOSTA ================= */
+    console.log("📊 FINALIZADO")
+    console.log("✅ ENVIADOS:", enviados)
+    console.log("❌ ERROS:", erros)
 
     return res.json({
       ok:true,
-      enviado:true,
-      template,
-      data
+      total: clientes.length,
+      enviados,
+      erros,
+      resultados
     })
 
-  } catch (err){
+  }catch(err){
 
-    console.error("🔥 ERRO:", err)
+    console.log("🔥 ERRO GERAL:", err)
 
     return res.status(500).json({
       error: err.message
