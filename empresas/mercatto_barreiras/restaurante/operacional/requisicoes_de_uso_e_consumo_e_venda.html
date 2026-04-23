@@ -600,24 +600,48 @@ async function liquidarMassa(st){
 
  if(!confirm("Marcar todos como ENTREGUE?")) return;
 
- const filtrados = dadosRequisicoes.filter(r =>
-  document.getElementById('tabelaRequisicoes').innerText.includes(r.item)
- );
+ // 🔥 pega exatamente os itens FILTRADOS na tela
+ const fs=document.getElementById('filtroStatus').value.toUpperCase();
+ const fi=document.getElementById('filtroItem').value.toLowerCase();
+ const fsol=document.getElementById('filtroSolicitante').value;
+ const fset=document.getElementById('filtroSetor').value;
 
- for(const item of filtrados){
-  await sb
+ const filtrados = dadosRequisicoes.filter(i=>{
+   const stAtual=(i.status||'').toUpperCase().trim();
+
+   if(fs !== "TODOS"){
+     if(fs === "PENDENTE" && stAtual !== "PENDENTE") return false;
+     if(fs !== "PENDENTE" && stAtual !== fs) return false;
+   }
+
+   if(fi && !i.item.toLowerCase().includes(fi)) return false;
+   if(fsol && i.solicitante !== fsol) return false;
+   if(fset && i.setor !== fset) return false;
+
+   return true;
+ });
+
+ // 🔥 UPDATE EM MASSA (MUITO MAIS RÁPIDO)
+ const ids = filtrados.map(i=>i.index);
+
+ const { error } = await sb
    .from("requisicoes")
    .update({ status: st })
-   .eq("id", item.index);
+   .in("id", ids);
 
-  item.status = st;
+ if(error){
+   console.error(error);
+   mostrarAlerta("Erro em massa");
+   return;
  }
 
+ // 🔄 Atualiza local
+ filtrados.forEach(i => i.status = st);
+
  filtrarRequisicoes();
- mostrarAlerta(`${filtrados.length} atualizados!`);
+
+ mostrarAlerta(`${filtrados.length} atualizados com sucesso!`);
 }
-
-
   
 function toggleSolicitantes(){const l=document.getElementById("lista-solicitantes");l.style.display=l.style.display==="block"?"none":"block";}
 function filtrarPorSolicitante(n){document.getElementById("filtroSolicitante").value=n;filtrarRequisicoes();document.getElementById("lista-solicitantes").style.display="none";}
@@ -661,7 +685,7 @@ async function carregarUsuarios(){
        <small>${u.setor}</small>
      </div>
      <div>
-      <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor}','${u.senha}')">✏️</button>
+      <button onclick="editarUsuario(${JSON.stringify(u)})">✏️</button>
        <button onclick="excluirUsuario('${u.id}')">🗑️</button>
      </div>
    </div>
@@ -748,23 +772,44 @@ if(!senha){
  }
 }
 
-function editarUsuario(id,nome,setor,senha){
- document.getElementById("nomeUser").value = nome;
- document.getElementById("setorUser").value = setor;
- document.getElementById("senhaUser").value = senha; // ✅ agora aparece
+function editarUsuario(u){
+ document.getElementById("nomeUser").value = u.nome;
+ document.getElementById("setorUser").value = u.setor;
+ document.getElementById("senhaUser").value = u.senha;
 
- userEditando = id;
+ userEditando = u.id;
 
  document.querySelector(".btn-save").textContent = "Atualizar Usuário";
 
  mostrarAlerta("Modo edição ativado");
 }
+
+
+
+
+  
 async function excluirUsuario(id){
  if(!confirm("Excluir usuário?")) return;
 
- await sb.from("usuarios").delete().eq("id", id);
+ const { error } = await sb
+   .from("usuarios")
+   .delete()
+   .eq("id", id);
+
+ if(error){
+   console.error(error);
+   mostrarAlerta("Erro ao excluir");
+   return;
+ }
+
+ mostrarAlerta("Usuário excluído!");
+
  carregarUsuarios();
 }
+
+
+
+  
 </script>
 
 
