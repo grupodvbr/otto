@@ -1356,10 +1356,6 @@ if(ctxProdutos) contextos.push(ctxProdutos)
 
 if(buffetLancamentos.length){
 
-
-
-
-  
   const resumo = {}
 
   buffetLancamentos.forEach(item => {
@@ -1383,12 +1379,14 @@ if(buffetLancamentos.length){
 
   const lista = Object.values(resumo)
 
-if(lista && lista.length){
-  contextos.push({
-    role:"system",
-    content: "RESUMO_REAL_BUFFET:\n" + JSON.stringify(lista)
-  })
-}
+  if(lista && lista.length){
+    contextos.push({
+      role:"system",
+      content: "RESUMO_REAL_BUFFET:\n" + JSON.stringify(lista)
+    })
+  }
+
+} // ✅ FECHAMENTO QUE FALTAVA
   
 if(musicos.length){
 
