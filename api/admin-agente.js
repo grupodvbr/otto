@@ -554,9 +554,16 @@ const acao = confirmar // 🔥 PRIMEIRO DEFINE
 // 🔥 TAREFAS
 if(acao.tabela === "assistente_otto_tarefas"){
 
+  // 🔥 GARANTE USUÁRIO CORRETO
+  const dadosTarefa = {
+    ...acao.dados,
+    usuario_id: usuarioDB.id, // 🔥 FORÇA O ID CORRETO
+    telefone: numero // 🔥 garante consistência
+  }
+
   const { error } = await supabase
     .from("assistente_otto_tarefas")
-    .insert(acao.dados)
+    .insert(dadosTarefa)
 
   if(error){
     console.error("Erro tarefa:", error)
@@ -567,6 +574,7 @@ if(acao.tabela === "assistente_otto_tarefas"){
     resposta:"✅ Tarefa criada com sucesso"
   })
 }
+  
 
   
 // 🔒 BLOQUEIO TOTAL
