@@ -2778,8 +2778,7 @@ mensagem += `
   return "https://quickchart.io/chart?c=" + encodeURIComponent(JSON.stringify(chartConfig))
 }
 
-const graficoURL = gerarGraficoURL(dataDia.empresas)
-
+const graficoURL = gerarGraficoURL(empresasDia)
 console.log("📊 GRAFICO:", graficoURL)
 
 
