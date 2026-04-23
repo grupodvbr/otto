@@ -904,13 +904,21 @@ if(!empresaData){
 
       }
 
-      resumoDia = {
-        data: data.data,
-        faturamento: empresaData.faturamento,
-        vendas: empresaData.vendas,
-        ticket_medio: empresaData.ticket_medio || 0,
-        empresa: empresaFiltro
-      }
+const faturamento = Number(empresaData.faturamento || 0)
+const vendas = Number(empresaData.vendas || 0)
+
+const ticketCalculado =
+  vendas > 0
+    ? Number((faturamento / vendas).toFixed(2))
+    : 0
+
+resumoDia = {
+  data: data.data,
+  faturamento,
+  vendas,
+  ticket_medio: empresaData.ticket_medio || ticketCalculado,
+  empresa: empresaFiltro
+}
 
     }
 
