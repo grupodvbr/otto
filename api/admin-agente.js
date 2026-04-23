@@ -1500,7 +1500,22 @@ if(resumoDia && resumoDia.faturamento !== undefined){
 
 }
   
+// 🚀 RESPOSTA DIRETA GLOBAL (ANTES DO GPT)
+if(tipoConsulta === "vendas" && resumoDia && empresaFiltro){
+
+  return res.json({
+    resposta: `📊 ${dataFiltro}
+
+🏢 ${empresaFiltro}
+
+💰 R$ ${formatar(resumoDia.faturamento)}
+🧾 ${resumoDia.vendas} vendas
+💳 Ticket: R$ ${formatar(resumoDia.ticket_medio)}`
+  })
+}
+
 /* ================= OPENAI ================= */
+
 
 const completion = await openai.chat.completions.create({
 
