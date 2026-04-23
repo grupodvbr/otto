@@ -729,7 +729,7 @@ function toBR(dataISO){
 
 const API_CUPONS = "https://inspired-still-reflects-closes.trycloudflare.com"
 
-if(tipoConsulta === "vendas"){
+if(tipoConsulta === "vendas" || tipoConsulta === "relatorio"){
   console.log("📅 DATA FINAL USADA:", dataFiltro)
   try{
 
@@ -860,6 +860,18 @@ if(tipoBusca !== "mes_completo"){
     // ================= RESUMO DIA =================
     if(tipoBusca === "dia"){
 
+
+      if(!empresaFiltro){
+  contextos.push({
+    role:"system",
+    content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
+  })
+}
+
+
+
+
+      
       let empresaData = null
 
       if(empresaFiltro === "MERCATTO"){
