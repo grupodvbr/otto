@@ -869,7 +869,6 @@ overflow:hidden;
     grid-template-columns:1fr 1fr 1fr;
   }
 }
-}
 
 @media (max-width:760px){
 
@@ -1545,39 +1544,42 @@ const items = state.reservas.filter(r=>{
           groups.set(key, { label, count:(groups.get(key)?.count||0)+1 });
         }
         const isVipKey = k => k === 'SALA VIP' || k === 'SALA VIP 2';
-        const sectorTags = Array.from(groups.entries()).map(([key, info]) => {
-          const vip = isVipKey(key);
-let css="t-outros"
 
-if(key.includes("PAULO")) css="t-vip"
-if(key.includes("SACADA")) css="t-pend"
-if(key.includes("SALAO")) css="t-done"
-  return `<span class="tag ${css}">${info.count} ${info.label}</span>`;
-        }).join('');
+
+
+      const total = items.length
 
 const pend = items.filter(r=>{
-const s = (r.status || "").trim()
+  const s = (r.status || "").trim()
   return s === "Pendente"
 }).length
 
 const conf = items.filter(r=>{
-const s = (r.status || "").trim()
+  const s = (r.status || "").trim()
   return s === "Confirmada"
 }).length
 
 const done = items.filter(r=>{
-const s = (r.status || "").trim()
+  const s = (r.status || "").trim()
   return s === "Concluída"
 }).length
-        cell.innerHTML = `
-          <div class="num">${d.getDate()}</div>
-          <div class="tags">
-           ${resumoTags}
-${pend ? `<span class="tag t-pend">Pend: ${pend}</span>` : ''}
-${conf ? `<span class="tag t-vip">Conf: ${conf}</span>` : ''}
-${done ? `<span class="tag t-done">Conc: ${done}</span>` : ''}
-          </div>
-        `;
+
+const resumoTags = `
+${total ? `<span class="tag t-outros">${total} reservas</span>` : ''}
+`
+
+cell.innerHTML = `
+  <div class="num">${d.getDate()}</div>
+  <div class="tags">
+    ${resumoTags}
+    ${pend ? `<span class="tag t-pend">P: ${pend}</span>` : ''}
+    ${conf ? `<span class="tag t-vip">C: ${conf}</span>` : ''}
+    ${done ? `<span class="tag t-done">OK: ${done}</span>` : ''}
+  </div>
+`;
+
+
+        
         cell.addEventListener('click', ()=> openDayModal(d, items));
         calGrid.appendChild(cell);
       }
