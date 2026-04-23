@@ -329,7 +329,7 @@ let empresaFiltro = classificacao.empresa || null
 
 // NIVEL 2 → BLOQUEIA EMPRESA
 if(NIVEL === 2){
-  empresaFiltro = usuario.empresa
+  empresaFiltro = EMPRESA
 }else{
 
 let normal = texto
@@ -417,6 +417,16 @@ else if(
 
   
 let tipoConsulta = classificacao.tipo || "geral"
+
+
+
+
+  // 🔥 BLOQUEIO GLOBAL DE TAREFAS
+if(tipoConsulta === "tarefas" && NIVEL !== 0){
+  return res.json({
+    resposta: "⛔ Apenas administradores nível 0 podem criar tarefas"
+  })
+}
 // 🔥 DETECTAR TAREFA
 if(
   texto.includes("lembra") ||
