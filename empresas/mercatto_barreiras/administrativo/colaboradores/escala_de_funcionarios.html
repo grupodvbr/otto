@@ -813,16 +813,18 @@ async function salvarEscala(){
   for(const h of lista){
 
     await sb
-      .from("escala_funcionarios")
-      .insert({
-        funcionario_id: f.id,
-        nome: f.nome,
-        data: dataBase,
-        entrada: h.inicio,
-        saida: h.fim,
-        setor: f.setor,
-        atualizado_em: new Date().toISOString()
-      })
+await sb
+  .from("escala_funcionarios")
+  .insert({
+    funcionario_id: f.id,
+    nome: f.nome,
+    data: dataBase,
+    entrada: h.inicio,
+    saida: h.fim,
+    setor: f.setor,
+    empresa: "MERCATTO DELICIA", // 🔥 FALTAVA ISSO
+    atualizado_em: new Date().toISOString()
+  })
   }
 
   fechar()
