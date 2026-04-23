@@ -139,7 +139,7 @@ const formatter = new Intl.DateTimeFormat("pt-BR", {
 const parts = formatter.formatToParts(agora)
 const get = type => parts.find(p => p.type === type)?.value
 
-const hojeISO = `${get("year")}-${get("month")}-${get("day")}`
+const hojeISO = getDataISO(new Date())
 const hora = `${get("hour")}:${get("minute")}:${get("second")}`
 
 function getDataISO(date){
@@ -154,8 +154,6 @@ function getDataISO(date){
   return `${get("year")}-${get("month")}-${get("day")}`
 }
 
-// 🔥 HOJE CORRETO
-const hojeISO = getDataISO(new Date())
 
 // 🔥 ONTEM CORRETO (SEM UTC BUG)
 const ontemDate = new Date()
@@ -168,10 +166,7 @@ const amanhaDate = new Date()
 amanhaDate.setDate(amanhaDate.getDate() + 1)
 
 const amanhaISO = getDataISO(amanhaDate)
-const amanha = new Date(`${hojeISO}T00:00:00`)
-amanha.setDate(amanha.getDate() + 1)
 
-const amanhaISO = amanha.toISOString().split("T")[0]
 /* ================= AGORA SIM ================= */
 
 
@@ -539,9 +534,28 @@ confirmar = last[0].acao_json
 }
 
 /* ================= CONFIRMAR AÇÃO ================= */
-
 if(confirmar){
 
+const acao = confirmar // 🔥 PRIMEIRO DEFINE
+
+// 🔥 TAREFAS
+if(acao.tabela === "assistente_otto_tarefas"){
+
+  const { error } = await supabase
+    .from("assistente_otto_tarefas")
+    .insert(acao.dados)
+
+  if(error){
+    console.error("Erro tarefa:", error)
+    throw error
+  }
+
+  return res.json({
+    resposta:"✅ Tarefa criada com sucesso"
+  })
+}
+
+  
 // 🔒 BLOQUEIO TOTAL
 if(NIVEL !== 0){
   return res.json({
@@ -2357,28 +2371,16 @@ if(matchTarefa && NIVEL === 0){
       jsonTexto = jsonTexto.substring(inicio, fim + 1)
     }
 
-    const acaoTarefa = JSON.parse(jsonTexto)
+    acao = JSON.parse(jsonTexto)
 
-    const { error } = await supabase
-      .from("assistente_otto_tarefas")
-      .insert(acaoTarefa.dados)
-
-    if(error){
-      console.error("❌ ERRO TAREFA:", error)
-      throw error
+    if(!resposta.includes("Confirme")){
+      resposta += "\n\n⚠️ Confirme para agendar esta tarefa."
     }
 
-    resposta = "✅ Tarefa agendada com sucesso"
-
   }catch(e){
-    console.error("❌ ERRO TAREFA:", e)
-    resposta = "❌ Erro ao criar tarefa"
+    console.log("Erro parse tarefa:", matchTarefa[1])
   }
 }
-
-
-
-
 /* ================= SALVAR RESPOSTA ================= */
 
 await supabase
