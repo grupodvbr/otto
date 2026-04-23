@@ -722,8 +722,12 @@ if(erroHistorico){
 const mensagens = (historico || [])
 .reverse()
 .map(m => ({
-  role: m.role,
-  content: m.mensagem + (m.acao_json ? `\n\nAÇÃO_JSON:\n${JSON.stringify(m.acao_json)}` : "")
+  role: ["system","user","assistant"].includes(m.role) ? m.role : "user",
+  content: (m.mensagem || "") + (
+    m.acao_json
+      ? `\n\nAÇÃO_JSON:\n${JSON.stringify(m.acao_json)}`
+      : ""
+  )
 }))
 // 🔥 CRIA CONTEXTO ANTES DE QUALQUER USO
 const contextos = []
@@ -1338,22 +1342,17 @@ const limite = Array.isArray(data) ? data.slice(0, 100) : data
   }
 }
 
+const ctxReservas = addContext("RESERVAS", reservas)
+if(ctxReservas) contextos.push(ctxReservas)
 
-if(reservas.length){
-  contextos.push(addContext("RESERVAS", reservas))
-}
+const ctxPedidos = addContext("PEDIDOS", pedidos)
+if(ctxPedidos) contextos.push(ctxPedidos)
 
-if(pedidos.length){
-  contextos.push(addContext("PEDIDOS", pedidos))
-}
+const ctxClientes = addContext("CLIENTES", clientes)
+if(ctxClientes) contextos.push(ctxClientes)
 
-if(clientes.length){
-  contextos.push(addContext("CLIENTES", clientes))
-}
-
-if(produtos.length){
-  contextos.push(addContext("PRODUTOS", produtos))
-}
+const ctxProdutos = addContext("PRODUTOS", produtos)
+if(ctxProdutos) contextos.push(ctxProdutos)
 
 if(buffetLancamentos.length){
 
@@ -1384,6 +1383,7 @@ if(buffetLancamentos.length){
 
   const lista = Object.values(resumo)
 
+if(lista && lista.length){
   contextos.push({
     role:"system",
     content: "RESUMO_REAL_BUFFET:\n" + JSON.stringify(lista)
