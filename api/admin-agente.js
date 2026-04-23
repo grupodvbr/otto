@@ -183,8 +183,12 @@ const texto = pergunta.toLowerCase()
   // ================= COMANDO MANUAL RELATÓRIO ADM =================
 
 if(
-  texto.includes("enviar relatorio de administrador") ||
-  texto.includes("relatório adm")
+  texto.includes("enviar relatorio") ||
+  texto.includes("enviar relatório") ||
+  texto.includes("relatorio adm") ||
+  texto.includes("relatório adm") ||
+  texto.includes("manda relatorio") ||
+  texto.includes("manda relatório")
 ){
 
   if(NIVEL !== 0){
