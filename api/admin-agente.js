@@ -954,7 +954,6 @@ resumoDia = {
   empresa: empresaFiltro
 }
 
-    }
 
     // ================= ANALÍTICO =================
 if(tipoBusca === "analitico" && data){
