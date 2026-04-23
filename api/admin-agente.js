@@ -2657,29 +2657,23 @@ async function executarRelatorioAutomatico(){
 let dataDia = null
 let dataMes = null
 
-try{
+try {
 
-// 🔥 USA SUA NOVA API
-const API_CUPONS = "https://inspired-still-reflects-closes.trycloudflare.com"
+  const API_CUPONS = "https://inspired-still-reflects-closes.trycloudflare.com"
 
-// 🔥 DATA DE ONTEM
-const hoje = new Date(
-  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-)
+  const hoje = new Date(
+    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+  )
 
-const ontem = new Date(hoje)
-ontem.setDate(ontem.getDate() - 1)
+  const ontem = new Date(hoje)
+  ontem.setDate(ontem.getDate() - 1)
 
-const dataOntem = ontem.toISOString().slice(0,10)
+  const dataOntem = ontem.toISOString().slice(0,10)
 
-// 🔥 BUSCA CORRETA
-const [resDia, resMes] = await Promise.all([
-  fetch(`${API_CUPONS}/resumo-dia?data=${dataOntem}`),
-  fetch(`${API_CUPONS}/resumo-mes`)
-])
-
-
-  
+  const [resDia, resMes] = await Promise.all([
+    fetch(`${API_CUPONS}/resumo-dia?data=${dataOntem}`),
+    fetch(`${API_CUPONS}/resumo-mes`)
+  ])
 
   if(!resDia.ok || !resMes.ok){
     throw new Error("Erro ao buscar APIs")
@@ -2688,13 +2682,14 @@ const [resDia, resMes] = await Promise.all([
   dataDia = await resDia.json()
   dataMes = await resMes.json()
 
-catch(e){
+} catch(e) {
+
   console.error("❌ ERRO AO BUSCAR API:", e)
 
   dataDia = { empresas: [] }
   dataMes = { empresas: [] }
-}
 
+}
 if(!dataDia || !dataDia.empresas || dataDia.empresas.length === 0){
   console.log("⚠️ SEM DADOS PARA RELATÓRIO")
   return
