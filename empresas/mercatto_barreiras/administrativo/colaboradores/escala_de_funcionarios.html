@@ -322,6 +322,37 @@ button:hover{
   border-radius:6px;
 }
 
+
+
+.user-card{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.user-item{
+  background:#f9fafb;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:13px;
+}
+
+.user-item b{
+  display:block;
+  font-size:11px;
+  color:#6b7280;
+}
+
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -465,17 +496,41 @@ let dataAtual=new Date()
 let funcionarios=[]
 let escalas=[]
 let dataSelecionada=null
-
 async function loadFuncionarios(){
-  const {data}=await sb.from("funcionarios_mercatto").select("*")
-  funcionarios=data||[]
+
+  const {data, error} = await sb
+    .from("usuarios_do_sistema")
+    .select("*")
+    .eq("empresa","MERCATTO DELICIA")
+    .eq("ativo", true)
+
+  if(error){
+    console.error(error)
+    return
+  }
+
+  funcionarios = data || []
 
   funcionario.innerHTML=""
+
   funcionarios.forEach(f=>{
-    funcionario.innerHTML+=`<option value="${f.id}">${f.nome}</option>`
+    funcionario.innerHTML += `
+      <option value="${f.id}">
+        ${f.nome} • ${f.cargo || '-'}
+      </option>
+    `
   })
 }
 
+
+
+
+
+
+
+
+
+  
 async function loadEscala(){
   const {data}=await sb.from("escala_funcionarios").select("*")
   escalas=data||[]
@@ -530,10 +585,22 @@ function abrirVisual(data){
 
     agrupado[setor].forEach(e=>{
       html += `
-        <div class="item">
-          <div>${e.nome}</div>
-          <span>${e.entrada} - ${e.saida}</span>
-        </div>
+       <div class="item">
+  <div>${e.nome}</div>
+
+  <div style="display:flex;align-items:center;gap:10px">
+    <span>${e.entrada} - ${e.saida}</span>
+
+    <button onclick="abrirUser('${e.funcionario_id}')" style="
+      background:#111827;
+      padding:6px 8px;
+      border-radius:8px;
+      font-size:12px;
+    ">
+      👁️
+    </button>
+  </div>
+</div>
       `
     })
   }
@@ -763,7 +830,71 @@ await sb.from("escala_funcionarios").insert({
   document.getElementById("formEscala").style.display = "block"
   blocos.innerHTML = ""
 }
-</script>
 
+
+function abrirUser(id){
+
+  const u = funcionarios.find(x => x.id == id)
+
+  if(!u) return
+
+  userDetalhe.innerHTML = `
+    <div class="user-card">
+
+      <div class="user-item"><b>Nome</b>${u.nome || '-'}</div>
+      <div class="user-item"><b>Usuário</b>${u.usuario || '-'}</div>
+      <div class="user-item"><b>Telefone</b>${u.telefone || '-'}</div>
+      <div class="user-item"><b>Empresa</b>${u.empresa || '-'}</div>
+
+      <div class="user-item"><b>Setor</b>${u.setor || '-'}</div>
+      <div class="user-item"><b>Cargo</b>${u.cargo || '-'}</div>
+
+      <div class="user-item"><b>Nível</b>${u.nivel_acesso}</div>
+      <div class="user-item"><b>Status</b>${u.ativo ? 'Ativo' : 'Inativo'}</div>
+
+      <div class="user-item"><b>Admissão</b>${u.data_admissao || '-'}</div>
+      <div class="user-item"><b>Nascimento</b>${u.data_nascimento || '-'}</div>
+
+      <div class="user-item"><b>Cidade</b>${u.cidade || '-'}</div>
+      <div class="user-item"><b>Estado</b>${u.estado || '-'}</div>
+
+      <div class="user-item form-full"><b>Observações</b>${u.observacoes || '-'}</div>
+
+    </div>
+  `
+
+  modalUser.style.display = "flex"
+}
+
+function fecharUser(){
+  modalUser.style.display = "none"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</script>
+<div id="modalUser" class="modal">
+  <div class="box">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3>👤 Dados do Colaborador</h3>
+      <button onclick="fecharUser()">✕</button>
+    </div>
+
+    <div id="userDetalhe" style="margin-top:15px"></div>
+
+  </div>
+</div>
 </body>
 </html>
