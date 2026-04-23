@@ -986,19 +986,21 @@ const ehMes =
   texto.includes("até agora") ||
   texto.includes("ate agora") ||
   texto.includes("progresso") ||
-  texto.includes("desempenho") ||
-  (classificacao.tipo === "vendas" && !texto.includes("hoje"))
+  texto.includes("desempenho") 
 
 
 
     
 const ehHoje =
-  !ehMes && (
-    texto.includes("hoje") ||
-    dataFiltro === hojeISO
-  )
+  !ehMes &&
+  texto.includes("hoje") &&
+  !texto.includes("até agora") &&
+  !texto.includes("ate agora")
+
+
+    
 // 🔥 DIAGNÓSTICO TEM PRIORIDADE TOTAL
-if(ehDiagnostico){
+if(ehDiagnostico && !ehMes){
   console.log("🧠 MODO DIAGNÓSTICO → FORÇANDO RESUMO DIA")
 
   empresaFiltro = null
@@ -1043,7 +1045,7 @@ else if(ehMes){
   const vendasMes = Number(empresaMes?.vendas_mes || 0)
   const vendasHoje = Number(empresaHoje?.vendas || 0)
 
- const total = faturamentoMes + faturamentoHoje
+ const total = faturamentoMes
 
 // 📅 DATA ATUAL
 const hoje = new Date(
@@ -1101,8 +1103,16 @@ const status = total >= metaEsperada
         faturamento: total,
         vendas: vendasMes + vendasHoje
       },
-      meta: metaInfo.meta,
-      percentual_meta: metaInfo.percentual
+
+
+      
+meta_total: meta,
+meta_esperada_ate_hoje: metaEsperada,
+
+percentual_real: percentualReal,
+percentual_esperado: percentualEsperado,
+
+status: status
     })
   })
 }
