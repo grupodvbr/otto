@@ -35,7 +35,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 const USUARIOS = {
   "557798253249": { nivel: 0 }, // ADMIN REAL
   "557799761436": { nivel: 0 }, // ADMIN REAL
-  "557798315510": { nivel: 0 },
+  "778888888888": { nivel: 1 },
   "777777777777": { nivel: 2, empresa: "MERCATTO DELÍCIA" },
   "776666666666": { nivel: 3 }
 }
@@ -357,6 +357,10 @@ try {
 console.log("🧠 CLASSIFICAÇÃO:", classificacao)
 let empresaFiltro = classificacao.empresa || null
 
+// 🔥 CORREÇÃO CRÍTICA
+if(empresaFiltro){
+  classificacao.geral = false
+}
 
 // NIVEL 2 → BLOQUEIA EMPRESA
 if(NIVEL === 2){
@@ -1094,22 +1098,30 @@ else{
 let data = null
 
 if(tipoBusca !== "mes_completo"){
-  console.log("🌐 URL:", url)
+console.log("🌐 URL:", url)
 
-  const resApi = await fetch(url)
-  data = await resApi.json()
+const resApi = await fetch(url)
+data = await resApi.json()
+
+// 🔥 LOG COMPLETO DA API
+console.log("📦 RESPOSTA API (COMPLETA):", JSON.stringify(data, null, 2))
 }
 
     // ================= RESUMO DIA =================
 if(tipoBusca === "dia"){
 
-  if(!empresaFiltro){
-    contextos.push({
-      role:"system",
-      content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
-    })
-  }
+contextos.push({
+  role:"system",
+  content: "RESUMO_EMPRESAS_DIA:\n" + JSON.stringify(data.empresas || [])
+})
 
+
+
+
+
+
+
+  
   // 🔥 TOTAL DAS EMPRESAS
   contextos.push({
     role:"system",
@@ -1145,9 +1157,20 @@ if(tipoBusca === "dia"){
 
   } else if(empresaFiltro){
 
-    empresaData = data.empresas?.find(
-      e => e.empresa === empresaFiltro
-    )
+empresaData = data.empresas?.find(e =>
+  e.empresa
+    ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+  ===
+  empresaFiltro
+    ?.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+)
+
+
+
+
+    
 
     if(!empresaData){
       return res.json({
@@ -1176,6 +1199,22 @@ if(tipoBusca === "dia"){
     ticket_medio: empresaData.ticket_medio || ticketCalculado,
     empresa: empresaFiltro
   }
+
+  // 🚀 RESPOSTA DIRETA (SEM GPT)
+if(tipoConsulta === "vendas" && empresaFiltro){
+
+  return res.json({
+    resposta: `📊 ${dataFiltro}
+
+🏢 ${empresaFiltro}
+
+💰 R$ ${formatar(faturamento)}
+🧾 ${vendas} vendas
+💳 Ticket: R$ ${formatar(ticketCalculado)}`
+  })
+}
+
+  
 }
 
 
