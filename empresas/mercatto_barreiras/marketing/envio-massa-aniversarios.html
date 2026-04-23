@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Disparo em Massa • Mercatto</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+  --bg:#0b1220;
+  --card:#111827;
+  --primary:#22c55e;
+  --danger:#ef4444;
+  --blue:#2563eb;
+  --text:#fff;
+  --muted:#9ca3af;
+}
+
+body{
+  margin:0;
+  font-family:Inter;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* HEADER */
+.header{
+  padding:20px;
+  font-size:20px;
+  font-weight:800;
+  border-bottom:1px solid #1f2937;
+}
+
+/* CARD */
+.container{
+  padding:20px;
+  display:grid;
+  gap:20px;
+}
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:16px;
+  border:1px solid #1f2937;
+}
+
+/* BOTÕES */
+button{
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn-start{ background:var(--primary); color:#000; }
+.btn-stop{ background:var(--danger); color:#fff; }
+
+/* GRID INFO */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.box{
+  background:#020617;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.box strong{
+  display:block;
+  font-size:18px;
+}
+
+/* PROGRESS */
+.progress{
+  height:12px;
+  background:#020617;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#22c55e,#4ade80);
+  transition:0.3s;
+}
+
+/* LOG */
+.log{
+  height:300px;
+  overflow:auto;
+  background:#020617;
+  padding:10px;
+  border-radius:10px;
+  font-size:13px;
+}
+
+.log div{
+  margin-bottom:6px;
+}
+
+.ok{ color:#22c55e }
+.err{ color:#ef4444 }
+.info{ color:#60a5fa }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">🚀 Disparo em Massa • Mercatto Delícia</div>
+
+<div class="container">
+
+  <!-- CONTROLE -->
+  <div class="card">
+    <button class="btn-start" onclick="iniciar()">Iniciar envio</button>
+    <button class="btn-stop" onclick="parar()">Parar</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="card grid">
+    <div class="box">
+      Total
+      <strong id="total">0</strong>
+    </div>
+    <div class="box">
+      Enviados
+      <strong id="enviados">0</strong>
+    </div>
+    <div class="box">
+      Erros
+      <strong id="erros">0</strong>
+    </div>
+    <div class="box">
+      Atual
+      <strong id="atual">-</strong>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="card">
+    <div class="progress">
+      <div class="progress-bar" id="barra"></div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="card">
+    <div class="log" id="log"></div>
+  </div>
+
+</div>
+
+<script>
+
+const API = "/api/send-template-massa"
+
+let rodando = false
+
+function log(msg, tipo="info"){
+  const el = document.createElement("div")
+  el.className = tipo
+  el.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`
+  document.getElementById("log").prepend(el)
+}
+
+function atualizarBarra(total,enviados){
+  const perc = total ? (enviados/total)*100 : 0
+  document.getElementById("barra").style.width = perc + "%"
+}
+
+async function iniciar(){
+
+  if(rodando) return
+
+  rodando = true
+
+  log("🚀 Iniciando envio em massa...")
+
+  try{
+
+    const res = await fetch(API,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({})
+    })
+
+    const data = await res.json()
+
+    document.getElementById("total").innerText = data.total
+
+    let enviados = 0
+    let erros = 0
+
+    for(const item of data.resultados){
+
+      if(!rodando){
+        log("⛔ Envio interrompido","err")
+        break
+      }
+
+      document.getElementById("atual").innerText = item.telefone
+
+      if(item.status === "ok"){
+        enviados++
+        log(`✅ ${item.telefone} enviado`, "ok")
+      }else{
+        erros++
+        log(`❌ ${item.telefone} erro: ${item.erro}`, "err")
+      }
+
+      document.getElementById("enviados").innerText = enviados
+      document.getElementById("erros").innerText = erros
+
+      atualizarBarra(data.total, enviados)
+
+      await new Promise(r => setTimeout(r, 200)) // animação
+    }
+
+    log("🎯 Finalizado")
+
+  }catch(err){
+    log("🔥 ERRO GERAL: "+err.message,"err")
+  }
+
+  rodando = false
+}
+
+function parar(){
+  rodando = false
+}
+
+</script>
+
+</body>
+</html>
