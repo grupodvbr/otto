@@ -202,7 +202,7 @@ if(textoNormalizado.includes("hoje")){
 else if(textoNormalizado.includes("ontem")){
   const d = new Date(hojeDate)
   d.setDate(d.getDate() - 1)
-  dataFiltro = formatarData(d)
+dataFiltro = toISO(d)
 }
 
 else if(textoNormalizado.match(/(\d{1,2})\D+(?:de\s*)?(\d{1,2})/)){
@@ -693,10 +693,36 @@ function formatar(v){
 }
 
 function formatarData(dataISO){
+
+  // 🔥 SE VIER DATE → CONVERTE
+  if(dataISO instanceof Date){
+    return dataISO.toISOString().slice(0,10)
+  }
+
+  // 🔥 SE NÃO FOR STRING → EVITA QUEBRAR
+  if(typeof dataISO !== "string"){
+    console.log("⚠️ formatarData recebeu inválido:", dataISO)
+    return null
+  }
+
+  // 🔥 SE FOR STRING VÁLIDA
+  if(dataISO.includes("-")){
+    const [ano, mes, dia] = dataISO.split("-")
+    return `${dia}/${mes}/${ano}`
+  }
+
+  return dataISO
+}
+
+  function toISO(date){
+  return date.toISOString().slice(0,10)
+}
+
+function toBR(dataISO){
+  if(typeof dataISO !== "string") return "-"
   const [ano, mes, dia] = dataISO.split("-")
   return `${dia}/${mes}/${ano}`
 }
-
   
 
 
