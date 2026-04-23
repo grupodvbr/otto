@@ -34,6 +34,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 const USUARIOS = {
   "557798253249": { nivel: 0 }, // ADMIN REAL
+  "557799761436": { nivel: 0 }, // ADMIN REAL
   "778888888888": { nivel: 1 },
   "777777777777": { nivel: 2, empresa: "MERCATTO DELÍCIA" },
   "776666666666": { nivel: 3 }
@@ -178,6 +179,33 @@ const amanhaISO = getDataISO(amanhaDate)
 
 const texto = pergunta.toLowerCase()
 
+
+
+  // ================= COMANDO MANUAL RELATÓRIO ADM =================
+
+if(
+  texto.includes("enviar relatorio de administrador") ||
+  texto.includes("relatório adm")
+){
+
+  if(NIVEL !== 0){
+    return res.json({
+      resposta: "⛔ Apenas administradores nível 0 podem enviar o relatório"
+    })
+  }
+
+  console.log("📤 RELATÓRIO MANUAL DISPARADO POR:", NOME)
+
+  await executarRelatorioAutomatico()
+
+  return res.json({
+    resposta: "📊 Relatório enviado para todos administradores com sucesso"
+  })
+}
+
+
+
+  
 
 const NUMEROS_EXTENSO = {
   "um":1,"dois":2,"tres":3,"três":3,"quatro":4,"cinco":5,
@@ -2628,26 +2656,10 @@ let dataMes = null
 
 try{
 
-const API = "https://inspired-still-reflects-closes.trycloudflare.com"
-
-// 🔥 DATA DE ONTEM CORRETA (BAHIA)
-const hoje = new Date(
-  new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
-)
-
-const ontem = new Date(hoje)
-ontem.setDate(ontem.getDate() - 1)
-
-const ontemISO = ontem.toISOString().slice(0,10)
-
-// 🔥 FETCH CORRETO
-const [resDia, resMes] = await Promise.all([
-  fetch(`${API}/resumo-dia?data=${ontemISO}`),
-  fetch(`${API}/resumo-mes`)
-])
-
-
-  
+  const [resDia, resMes] = await Promise.all([
+    fetch("https://revision-peripherals-glad-martha.trycloudflare.com/cupons-ontem"),
+    fetch("https://revision-peripherals-glad-martha.trycloudflare.com/resumo-mes")
+  ])
 
   if(!resDia.ok || !resMes.ok){
     throw new Error("Erro ao buscar APIs")
@@ -2661,13 +2673,10 @@ const [resDia, resMes] = await Promise.all([
   return
 }
 
-if(!dataDia){
-  console.log("⚠️ SEM DADOS DA API")
+if(!dataDia || !dataDia.empresas || dataDia.empresas.length === 0){
+  console.log("⚠️ SEM DADOS PARA RELATÓRIO")
   return
 }
-
-const empresasDia = dataDia.empresas || []
-  
 
 function formatar(v){
   return Number(v || 0).toLocaleString("pt-BR",{minimumFractionDigits:2})
@@ -2778,7 +2787,8 @@ mensagem += `
   return "https://quickchart.io/chart?c=" + encodeURIComponent(JSON.stringify(chartConfig))
 }
 
-const graficoURL = gerarGraficoURL(empresasDia)
+const graficoURL = gerarGraficoURL(dataDia.empresas)
+
 console.log("📊 GRAFICO:", graficoURL)
 
 
