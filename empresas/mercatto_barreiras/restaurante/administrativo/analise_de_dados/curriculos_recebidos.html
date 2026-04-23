@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Painel RH • Grupo DV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:#0b0e14;
+  color:#fff;
+}
+
+header{
+  padding:20px;
+  font-weight:800;
+  font-size:20px;
+  background:#111827;
+}
+
+.container{
+  padding:20px;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+
+input,select{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#1f2937;
+  color:#fff;
+}
+
+.card{
+  background:#111827;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.view{background:#2563eb;color:#fff}
+.status{background:#f59e0b;color:#000}
+
+</style>
+</head>
+
+<body>
+
+<header>Painel RH</header>
+
+<div class="container">
+
+<div class="filters">
+<input id="busca" placeholder="Buscar nome...">
+
+<select id="empresaFiltro">
+<option value="">Empresa</option>
+<option>MERCATTO DELÍCIA</option>
+<option>VILLA GOURMET</option>
+<option>PADARIA DELÍCIA</option>
+<option>M.KIDS</option>
+<option>DELÍCIA GOURMET</option>
+</select>
+
+<select id="sexoFiltro">
+<option value="">Sexo</option>
+<option>Masculino</option>
+<option>Feminino</option>
+<option>Outro</option>
+</select>
+
+<select id="idadeFiltro">
+<option value="">Faixa Etária</option>
+<option value="18-25">18-25</option>
+<option value="26-35">26-35</option>
+<option value="36-50">36-50</option>
+</select>
+
+<input id="areaFiltro" placeholder="Área">
+
+<input type="date" id="dataFiltro">
+
+</div>
+
+<div id="lista"></div>
+
+</div>
+
+<script>
+const client = window.supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+async function carregar(){
+  let { data } = await client
+    .from("curriculo_candidatos")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  render(data);
+}
+
+function render(data){
+  const lista = document.getElementById("lista");
+
+  const busca = document.getElementById("busca").value.toLowerCase();
+  const empresa = document.getElementById("empresaFiltro").value;
+  const sexo = document.getElementById("sexoFiltro").value;
+  const idade = document.getElementById("idadeFiltro").value;
+  const area = document.getElementById("areaFiltro").value.toLowerCase();
+  const dataFiltro = document.getElementById("dataFiltro").value;
+
+  lista.innerHTML = "";
+
+  data
+  .filter(c=>{
+    if(busca && !c.nome.toLowerCase().includes(busca)) return false;
+    if(empresa && c.empresa !== empresa) return false;
+    if(sexo && c.sexo !== sexo) return false;
+    if(area && !c.area_interesse.toLowerCase().includes(area)) return false;
+
+    if(idade){
+      const [min,max] = idade.split("-").map(Number);
+      if(c.idade < min || c.idade > max) return false;
+    }
+
+    if(dataFiltro){
+      const d = new Date(c.created_at).toISOString().slice(0,10);
+      if(d !== dataFiltro) return false;
+    }
+
+    return true;
+  })
+  .forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <div class="row">
+        <div>
+          <b>${c.nome}</b><br>
+          ${c.idade} anos • ${c.sexo}<br>
+          ${c.empresa}<br>
+          Área: ${c.area_interesse}
+        </div>
+
+        <div>
+          <button class="view" onclick="abrir('${c.arquivo_url}')">Ver CV</button>
+          <br>
+          <select onchange="status('${c.id}',this.value)">
+            <option ${c.status==='NOVO'?'selected':''}>NOVO</option>
+            <option ${c.status==='EM_ANALISE'?'selected':''}>EM_ANALISE</option>
+            <option ${c.status==='APROVADO'?'selected':''}>APROVADO</option>
+            <option ${c.status==='REPROVADO'?'selected':''}>REPROVADO</option>
+          </select>
+        </div>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+function abrir(url){
+  window.open(url,"_blank");
+}
+
+async function status(id,novo){
+  await client
+    .from("curriculo_candidatos")
+    .update({status:novo})
+    .eq("id",id);
+}
+
+document.querySelectorAll("input,select").forEach(e=>{
+  e.addEventListener("input",carregar);
+});
+
+carregar();
+</script>
+
+</body>
+</html>
