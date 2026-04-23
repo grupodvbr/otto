@@ -738,13 +738,31 @@ if(tipoConsulta === "vendas" || tipoConsulta === "relatorio"){
     let url = ""
     let tipoBusca = "dia"
 
-    // ================= DECISÃO INTELIGENTE =================
+// ================= DECISÃO INTELIGENTE =================
+
+// 🔥 DIAGNÓSTICO / RELATÓRIO (PRIORIDADE MÁXIMA)
+const ehDiagnostico =
+  texto.includes("diagnostico") ||
+  texto.includes("diagnóstico") ||
+  texto.includes("relatorio") ||
+  texto.includes("relatório") ||
+  texto.includes("resumo")
+
 const ehHoje =
   texto.includes("hoje") ||
   dataFiltro === hojeISO
 
-// ================= MÊS COMPLETO =================
-if(
+// 🔥 DIAGNÓSTICO TEM PRIORIDADE TOTAL
+if(ehDiagnostico){
+  console.log("🧠 MODO DIAGNÓSTICO → FORÇANDO RESUMO DIA")
+
+  empresaFiltro = null
+  url = `${API_CUPONS}/resumo-dia?data=${dataFiltro}`
+  tipoBusca = "dia"
+}
+
+// ================= MÊS =================
+else if(
   !ehHoje &&
   (texto.includes("mes") || texto.includes("mês"))
 ){
@@ -763,12 +781,9 @@ if(
   let empresaHoje = null
 
   if(empresaFiltro){
-
     empresaMes = dataMes.empresas?.find(e => e.empresa === empresaFiltro)
     empresaHoje = dataDia.empresas?.find(e => e.empresa === empresaFiltro)
-
   }else{
-
     empresaMes = {
       faturamento_mes: dataMes.empresas.reduce((a,e)=>a + (e.faturamento_mes || 0),0),
       vendas_mes: dataMes.empresas.reduce((a,e)=>a + (e.vendas_mes || 0),0)
@@ -812,7 +827,6 @@ if(
       percentual_meta: metaInfo.percentual
     })
   })
-
 }
 
 // ================= ANALÍTICO =================
@@ -837,12 +851,11 @@ else if(
   tipoBusca = "lista"
 }
 
-// ================= DIA =================
+// ================= PADRÃO =================
 else{
   url = `${API_CUPONS}/resumo-dia?data=${dataFiltro}`
   tipoBusca = "dia"
 }
-
     
 
 
@@ -868,7 +881,16 @@ if(tipoBusca !== "mes_completo"){
   })
 }
 
+// 🔥 COLOCA EXATAMENTE AQUI
+    contextos.push({
+      role:"system",
+      content: "TOTAL_EMPRESAS_DIA:\n" + JSON.stringify({
+        faturamento_total: (data.empresas || []).reduce((a,e)=>a + (e.faturamento || 0),0),
+        vendas_total: (data.empresas || []).reduce((a,e)=>a + (e.vendas || 0),0)
+      })
+    })
 
+  }
 
 
       
