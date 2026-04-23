@@ -946,10 +946,14 @@ const ehDiagnostico =
   texto.includes("relatório") ||
   texto.includes("resumo")
 
-const ehHoje =
-  texto.includes("hoje") ||
-  dataFiltro === hojeISO
+const ehMes =
+  texto.includes("mes") || texto.includes("mês")
 
+const ehHoje =
+  !ehMes && (
+    texto.includes("hoje") ||
+    dataFiltro === hojeISO
+  )
 // 🔥 DIAGNÓSTICO TEM PRIORIDADE TOTAL
 if(ehDiagnostico){
   console.log("🧠 MODO DIAGNÓSTICO → FORÇANDO RESUMO DIA")
@@ -960,10 +964,7 @@ if(ehDiagnostico){
 }
 
 // ================= MÊS =================
-else if(
-  !ehHoje &&
-  (texto.includes("mes") || texto.includes("mês"))
-){
+else if(ehMes){
 
   console.log("📊 MODO MÊS + HOJE")
 
