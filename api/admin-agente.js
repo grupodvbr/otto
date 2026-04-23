@@ -1122,44 +1122,58 @@ if(tipoBusca === "dia"){
   // 🔥 AGORA FICA DENTRO (ANTES ESTAVA FORA ❌)
   let empresaData = null
 
-  if(empresaFiltro === "MERCATTO"){
+ // 🔥 CORREÇÃO FINAL
 
-    const empresas = data.empresas || []
+if(classificacao.geral === true){
+  
+  // 🔥 SOMA TOTAL (GERAL)
+  const empresas = data.empresas || []
 
-    const emporio = empresas.find(e => e.empresa === "MERCATTO EMPORIO")
-    const restaurante = empresas.find(e => e.empresa === "MERCATTO RESTAURANTE")
+  const faturamento = empresas.reduce((a,e)=>a + Number(e.faturamento || 0),0)
+  const vendas = empresas.reduce((a,e)=>a + Number(e.vendas || 0),0)
 
-    const faturamento =
-      Number(emporio?.faturamento || 0) +
-      Number(restaurante?.faturamento || 0)
+  const ticket = vendas > 0 ? Number((faturamento / vendas).toFixed(2)) : 0
 
-    const vendas =
-      Number(emporio?.vendas || 0) +
-      Number(restaurante?.vendas || 0)
+  empresaData = { faturamento, vendas, ticket_medio: ticket }
 
-    const ticket = vendas > 0
-      ? Number((faturamento / vendas).toFixed(2))
-      : 0
+} else if(empresaFiltro === "MERCATTO"){
 
-    empresaData = { faturamento, vendas, ticket_medio: ticket }
+  const empresas = data.empresas || []
 
-  } else if(empresaFiltro){
+  const emporio = empresas.find(e => e.empresa === "MERCATTO EMPORIO")
+  const restaurante = empresas.find(e => e.empresa === "MERCATTO RESTAURANTE")
 
-    empresaData = data.empresas?.find(
-      e => e.empresa === empresaFiltro
-    )
+  const faturamento =
+    Number(emporio?.faturamento || 0) +
+    Number(restaurante?.faturamento || 0)
 
-    if(!empresaData){
-      return res.json({
-        resposta: `⚠️ Não encontrei dados de vendas para ${empresaFiltro} no dia ${dataFiltro}`
-      })
-    }
+  const vendas =
+    Number(emporio?.vendas || 0) +
+    Number(restaurante?.vendas || 0)
 
-  } else {
+  const ticket = vendas > 0
+    ? Number((faturamento / vendas).toFixed(2))
+    : 0
 
-    empresaData = data
+  empresaData = { faturamento, vendas, ticket_medio: ticket }
 
+} else if(empresaFiltro){
+
+  empresaData = data.empresas?.find(
+    e => e.empresa === empresaFiltro
+  )
+
+  if(!empresaData){
+    return res.json({
+      resposta: `⚠️ Não encontrei dados para ${empresaFiltro}`
+    })
   }
+
+} else {
+
+  empresaData = data
+
+}
 
   const faturamento = Number(empresaData.faturamento || 0)
   const vendas = Number(empresaData.vendas || 0)
