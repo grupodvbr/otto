@@ -80,16 +80,34 @@ if(!numero){
   return res.json({ resposta: "Erro interno: número não identificado" })
 }
 
-const usuario = USUARIOS[numero]
+// 🔥 BUSCAR USUÁRIO REAL NO BANCO
+const { data: usuarioDB } = await supabase
+  .from("usuarios_do_sistema")
+  .select("*")
+  .eq("telefone", numero)
+  .eq("ativo", true)
+  .single()
 
-if(!usuario){
-  console.log("⛔ ACESSO NEGADO:", numero)
-  return res.json({ resposta: "⛔ Usuário sem acesso" })
+if(!usuarioDB){
+  console.log("⛔ USUÁRIO NÃO CADASTRADO OU INATIVO:", numero)
+
+  return res.json({
+    resposta: "⛔ Usuário não autorizado ou inativo"
+  })
 }
 
-const NIVEL = usuario.nivel
+// 🔐 NÍVEL REAL
+const NIVEL = usuarioDB.nivel_acesso
 
-console.log("👤 USUARIO:", numero)
+// 👤 NOME REAL
+const NOME = usuarioDB.nome
+
+// 🏢 EMPRESA
+const EMPRESA = usuarioDB.empresa
+
+console.log("👤 USUARIO:", NOME)
+console.log("📱 TELEFONE:", numero)
+console.log("🏢 EMPRESA:", EMPRESA)
 console.log("🔐 NIVEL:", NIVEL)
 
 
@@ -645,7 +663,8 @@ await supabase
 .insert({
   role:"user",
   mensagem:pergunta,
-  telefone: numero
+  telefone: numero,
+  nome: NOME
 })
 /* ================= HISTÓRICO ================= */
 
@@ -685,7 +704,17 @@ let cupons = []
   let resumoDia = null
   const contextos = []
 
-
+// 🔥 CONTEXTO DO USUÁRIO (LOCAL EXATO)
+contextos.push({
+  role: "system",
+  content: `USUARIO_ATUAL:
+${JSON.stringify({
+  nome: NOME,
+  telefone: numero,
+  empresa: EMPRESA,
+  nivel: NIVEL
+})}`
+})
 
 // 🔥 BUSCAR USUÁRIOS DO SISTEMA (PARA TAREFAS)
 const { data: usuariosSistema } = await supabase
