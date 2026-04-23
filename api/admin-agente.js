@@ -124,10 +124,32 @@ const get = type => parts.find(p => p.type === type)?.value
 const hojeISO = `${get("year")}-${get("month")}-${get("day")}`
 const hora = `${get("hour")}:${get("minute")}:${get("second")}`
 
-const ontem = new Date(`${hojeISO}T00:00:00`)
-ontem.setDate(ontem.getDate() - 1)
+function getDataISO(date){
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bahia",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date)
 
-const ontemISO = ontem.toISOString().split("T")[0]
+  const get = t => parts.find(p => p.type === t)?.value
+  return `${get("year")}-${get("month")}-${get("day")}`
+}
+
+// 🔥 HOJE CORRETO
+const hojeISO = getDataISO(new Date())
+
+// 🔥 ONTEM CORRETO (SEM UTC BUG)
+const ontemDate = new Date()
+ontemDate.setDate(ontemDate.getDate() - 1)
+
+const ontemISO = getDataISO(ontemDate)
+
+// 🔥 AMANHÃ
+const amanhaDate = new Date()
+amanhaDate.setDate(amanhaDate.getDate() + 1)
+
+const amanhaISO = getDataISO(amanhaDate)
 const amanha = new Date(`${hojeISO}T00:00:00`)
 amanha.setDate(amanha.getDate() + 1)
 
