@@ -1168,31 +1168,15 @@ if(tipoBusca === "dia"){
       ? Number((faturamento / vendas).toFixed(2))
       : 0
 
-// 🔥 BUSCA MÊS JUNTO
-const resMes = await fetch(`${API_CUPONS}/resumo-mes`)
-const dataMes = await resMes.json()
-
-let faturamentoMes = 0
-
-if(empresaFiltro){
-  const empresaMes = dataMes.empresas?.find(e => e.empresa === empresaFiltro)
-  faturamentoMes = Number(empresaMes?.faturamento_mes || 0)
-}else{
-  faturamentoMes = (dataMes.empresas || [])
-    .reduce((a,e)=>a + (e.faturamento_mes || 0),0)
+  resumoDia = {
+    data: data.data,
+    faturamento,
+    vendas,
+    ticket_medio: empresaData.ticket_medio || ticketCalculado,
+    empresa: empresaFiltro
+  }
 }
 
-resumoDia = {
-  data: data.data,
-  faturamento,
-  vendas,
-  ticket_medio: empresaData.ticket_medio || ticketCalculado,
-  empresa: empresaFiltro,
-  faturamento_mes: faturamentoMes // 🔥 AGORA EXISTE
-}
-
-
-  
 
     // ================= ANALÍTICO =================
 if(tipoBusca === "analitico" && data){
@@ -1457,13 +1441,8 @@ if(musicos.length){
   })
 }
 if(resumoDia && resumoDia.faturamento !== undefined){
-
-  const faturamentoTotalMes = 
-    Number(resumoDia.faturamento || 0) + 
-    Number(resumoDia.faturamento_mes || 0)
-
   const metaInfo = resumoDia.empresa
-    ? calcularMeta(resumoDia.empresa, faturamentoTotalMes)
+    ? calcularMeta(resumoDia.empresa, resumoDia.faturamento)
     : null
 
   contextos.push({
@@ -1474,13 +1453,13 @@ if(resumoDia && resumoDia.faturamento !== undefined){
       faturamento: Number(resumoDia.faturamento || 0),
       vendas: Number(resumoDia.vendas || 0),
       ticket_medio: Number(resumoDia.ticket_medio || 0),
-
-      faturamento_total_mes: faturamentoTotalMes,
       meta: metaInfo?.meta || 0,
       percentual_meta: metaInfo?.percentual || 0
     })
   })
+
 }
+  
 /* ================= OPENAI ================= */
 
 const completion = await openai.chat.completions.create({
@@ -1525,37 +1504,104 @@ Use apenas esses dados. Não inventar.
 {
 role:"system",
 content:`
-🚨 REGRA CRÍTICA DE META (OBRIGATÓRIA)
+🔥 MÓDULO DE INTELIGÊNCIA — CONSULTA DE VENDAS (VERSÃO PROFISSIONAL)
 
-A meta é SEMPRE MENSAL.
+Você é responsável por identificar perguntas relacionadas a vendas, faturamento e resultados financeiros.
 
-NUNCA usar:
-- meta diária
-- meta proporcional do dia
-- comparação com faturamento do dia
+Sua função NÃO é responder com criatividade.
+Sua função é CLASSIFICAR corretamente a intenção.
 
-SEMPRE usar:
+---
 
-faturamento_total_mes = faturamento_mes + faturamento_hoje
+📊 1. IDENTIFICAÇÃO DE CONSULTA DE VENDAS
 
-E calcular:
+Considere como consulta de vendas QUALQUER pergunta relacionada a:
 
-percentual_meta = faturamento_total_mes / meta
+- faturamento
+- vendas
+- receita
+- caixa
+- movimento
+- resultado financeiro
+- quanto vendeu
+- quanto fez
+- quanto entrou
+- quanto faturou
+- quanto deu
+- resumo do dia
 
-⚠️ PROIBIDO:
-- usar apenas o valor do dia
-- chamar de "meta diária"
-- calcular percentual com base no dia
+---
 
-✅ CORRETO:
-"Meta mensal: R$ X"
-"Percentual da meta: X%"
+📌 2. VARIAÇÕES DE PERGUNTAS (TODAS SÃO VENDAS)
 
-Se essa regra não for seguida, a resposta está ERRADA.
+Você deve reconhecer automaticamente:
 
+- quanto vendeu hoje
+- quanto o mercatto vendeu hoje
+- quanto fez hoje
+- quanto entrou hoje
+- faturamento de hoje
+- vendas de hoje
+- resultado de hoje
+- movimento de hoje
+- como está o caixa hoje
+- quanto deu hoje
+- resumo de vendas
+- quanto foi hoje
+- quanto saiu hoje
+- quanto arrecadou hoje
 
+Mesmo sem a palavra "venda", considere como vendas.
 
+---
 
+📌 3. DETECÇÃO DE EMPRESA
+
+Identifique a empresa na pergunta:
+
+- "mercatto" → MERCATTO DELÍCIA
+- "padaria" → PADARIA DELÍCIA
+- "villa" → VILLA GOURMET
+- "delicia" ou "gourmet" → DELÍCIA GOURMET
+- "kids" → M.KIDS
+
+---
+
+📌 4. DETECÇÃO DE CONSULTA GERAL (MULTI-EMPRESA)
+
+Se o usuário disser:
+
+- nas empresas
+- todas as empresas
+- geral
+- total
+- consolidado
+- tudo
+- todas
+- geral do dia
+- total do dia
+
+👉 Isso significa:
+
+→ NÃO filtrar empresa  
+→ usar TOTAL da API  
+
+---
+
+📌 5. PRIORIDADE DE INTERPRETAÇÃO
+
+1º → Se mencionar empresa → FILTRAR  
+2º → Se mencionar "geral" ou plural → TOTAL  
+3º → Se não mencionar nada → assumir TOTAL  
+
+---
+
+📌 6. REGRA ABSOLUTA (CRÍTICA)
+
+Para qualquer pergunta de vendas:
+
+🚫 NÃO usar GPT para calcular  
+🔥 MÓDULO DE ANÁLISE DE VENDAS (INTELIGENTE)
 
 Você DEVE usar os dados da API para:
 
