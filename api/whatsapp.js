@@ -190,7 +190,17 @@ if(req.method === "POST"){
       return res.status(200).end()
     }
 
-    const agenteTipo = (usuario.agente || "admin").toLowerCase()
+let agenteTipo = "admin"
+
+// 🔥 REGRA: NIVEL 0 SEMPRE ADMIN
+if(usuario.nivel_acesso === 0){
+  agenteTipo = "admin"
+}else{
+  agenteTipo = (usuario.agente || "admin").toLowerCase()
+}
+    
+    
+    
     const nivel = usuario.nivel_acesso
 
     console.log("👤 USUARIO:", usuario.nome)
