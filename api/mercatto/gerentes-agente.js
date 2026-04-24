@@ -10,31 +10,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-/* ================= MEMORIA ================= */
-
 const TABELA_MEMORIA = "conversas_gerentes_mercatto"
 
-/* ================= SALVAR ================= */
+/* ================= MEMORIA ================= */
 
-async function salvarMensagem({ telefone, mensagem, role, usuario }){
+async function salvarMensagem({ telefone, mensagem, role, usuario, acao = null, dados_acao = null }){
 
   await supabase.from(TABELA_MEMORIA).insert({
     telefone,
     mensagem,
     role,
     nome_usuario: usuario?.nome,
-    empresa: usuario?.empresa
+    empresa: usuario?.empresa,
+    acao,
+    dados_acao
   })
-
 }
 
-/* ================= HISTORICO ================= */
-
 async function buscarHistorico(telefone){
-
   const { data } = await supabase
     .from(TABELA_MEMORIA)
-    .select("mensagem, role")
+    .select("*")
     .eq("telefone", telefone)
     .order("created_at", { ascending: false })
     .limit(30)
@@ -42,35 +38,28 @@ async function buscarHistorico(telefone){
   return (data || []).reverse()
 }
 
-/* ================= CRUD MUSICOS ================= */
+/* ================= MUSICOS ================= */
 
-async function listarMusicos(empresa){
+async function buscarPorNome(empresa, nome){
 
   const { data } = await supabase
     .from("agenda_musicos")
     .select("*")
     .eq("empresa", empresa)
-    .order("data", { ascending: true })
+    .ilike("cantor", `%${nome}%`)
 
   return data || []
 }
 
-async function inserirMusico(dados){
-  return await supabase.from("agenda_musicos").insert(dados)
-}
-
-async function atualizarMusico(id, dados){
-  return await supabase
-    .from("agenda_musicos")
-    .update(dados)
-    .eq("id", id)
-}
-
-async function deletarMusico(id){
+async function deletarPorId(id){
   return await supabase
     .from("agenda_musicos")
     .delete()
     .eq("id", id)
+}
+
+async function inserirMusico(dados){
+  return await supabase.from("agenda_musicos").insert(dados)
 }
 
 /* ================= HANDLER ================= */
@@ -81,8 +70,10 @@ module.exports = async function handler(req, res){
 
     const { pergunta, numero, usuario } = req.body
 
-    const nivel = usuario?.nivel_acesso || 0
-    const empresa = usuario?.empresa
+    const empresa = usuario.empresa
+    const nivel = usuario.nivel_acesso
+
+    const texto = pergunta.toLowerCase()
 
     /* ================= SALVA USER ================= */
 
@@ -97,93 +88,95 @@ module.exports = async function handler(req, res){
 
     const historico = await buscarHistorico(numero)
 
-    const contexto = historico.map(m => ({
-      role: m.role,
-      content: m.mensagem
-    }))
+    /* ================= REVERTER ================= */
 
-    /* ================= PROMPT ================= */
+    if(texto.includes("reverter")){
 
-    const systemPrompt = `
-Você é um GERENTE do sistema Mercatto.
+      const ultimaAcao = historico.reverse().find(m => m.acao === "delete")
 
-Você tem acesso TOTAL à agenda de músicos da empresa ${empresa}.
+      if(!ultimaAcao){
+        return res.json({ resposta: "❌ Nenhuma exclusão recente encontrada." })
+      }
 
-Funções:
-- Listar agenda
-- Inserir músico
-- Atualizar músico
-- Deletar músico
+      const dados = ultimaAcao.dados_acao
 
-Regras:
+      await inserirMusico(dados)
 
-- Nunca invente dados
-- Sempre confirme antes de deletar
-- Sempre use a empresa ${empresa}
-- Responda de forma objetiva
+      const resposta = "♻️ Exclusão revertida com sucesso."
 
-Se o usuário enviar imagem:
-Pergunte:
-"Deseja usar essa imagem como poster do músico?"
-`
-
-    /* ================= IA ================= */
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...contexto,
-        { role: "user", content: pergunta }
-      ]
-    })
-
-    let resposta = completion.choices[0].message.content
-
-    const texto = pergunta.toLowerCase()
-
-    /* ================= LISTAR ================= */
-
-    if(texto.includes("agenda") || texto.includes("listar")){
-
-      const dados = await listarMusicos(empresa)
-
-      resposta = `📅 Agenda ${empresa}:\n\n` + dados.map(m =>
-        `${m.data} - ${m.cantor} (${m.hora})`
-      ).join("\n")
-    }
-
-    /* ================= INSERIR ================= */
-
-    if(texto.includes("inserir") && nivel >= 1){
-
-      await inserirMusico({
-        empresa,
-        cantor: "Novo músico",
-        data: new Date(),
-        hora: "20:00",
-        valor: 0,
-        estilo: "A definir"
+      await salvarMensagem({
+        telefone: numero,
+        mensagem: resposta,
+        role: "assistant",
+        usuario
       })
 
-      resposta = "✅ Músico inserido com sucesso"
-    }
-
-    /* ================= ATUALIZAR ================= */
-
-    if(texto.includes("atualizar") && nivel >= 1){
-
-      resposta = "✏️ Informe o ID do músico e os novos dados."
+      return res.json({ resposta })
     }
 
     /* ================= DELETAR ================= */
 
     if(texto.includes("deletar") && nivel >= 1){
 
-      resposta = "⚠️ Confirme o ID do músico para exclusão."
+      const nomeMatch = pergunta.replace(/deletar/i, "").trim()
+
+      const encontrados = await buscarPorNome(empresa, nomeMatch)
+
+      if(encontrados.length === 0){
+        return res.json({ resposta: "❌ Nenhum músico encontrado." })
+      }
+
+      if(encontrados.length === 1){
+
+        const musico = encontrados[0]
+
+        await deletarPorId(musico.id)
+
+        await salvarMensagem({
+          telefone: numero,
+          mensagem: `Excluído ${musico.cantor}`,
+          role: "assistant",
+          usuario,
+          acao: "delete",
+          dados_acao: musico
+        })
+
+        return res.json({
+          resposta: `🗑️ ${musico.cantor} removido com sucesso.`
+        })
+      }
+
+      /* MULTIPLOS RESULTADOS */
+
+      const lista = encontrados.map(m =>
+        `${m.cantor} - ${m.data} (${m.hora})`
+      ).join("\n")
+
+      return res.json({
+        resposta: `⚠️ Encontrei vários resultados:\n\n${lista}\n\nInforme a data para excluir.`
+      })
     }
 
-    /* ================= SALVA RESPOSTA ================= */
+    /* ================= IA NORMAL ================= */
+
+    const contexto = historico.map(m => ({
+      role: m.role,
+      content: m.mensagem
+    }))
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "system",
+          content: `Você é gerente da empresa ${empresa}. Responda de forma objetiva.`
+        },
+        ...contexto,
+        { role: "user", content: pergunta }
+      ]
+    })
+
+    const resposta = completion.choices[0].message.content
 
     await salvarMensagem({
       telefone: numero,
@@ -196,7 +189,7 @@ Pergunte:
 
   }catch(e){
 
-    console.error("❌ ERRO GERENTE:", e)
+    console.error("❌ ERRO:", e)
 
     return res.json({
       resposta: "Erro interno no agente gerente"
