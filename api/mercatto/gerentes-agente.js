@@ -212,87 +212,81 @@ if(
 
 
 
-/* ================= UPDATE ================= */
+/* ================= UPDATE INTELIGENTE ================= */
 
 if(
   texto.includes("atualiza") ||
   texto.includes("alterar") ||
   texto.includes("muda") ||
-  texto.includes("editar")
+  texto.includes("coloca")
 ){
 
-  console.log("🧠 INTENÇÃO: ATUALIZAR")
+  console.log("🧠 UPDATE INTELIGENTE")
 
-  // extrai nome
-  const nomeMatch = pergunta.match(/(?:do|de|para)\s+([a-zA-ZÀ-ÿ\s]+)/i)
+  // tenta pegar nome
+  const nomeMatch = pergunta.match(/pedro|rafa|guthierry|kauan|sofia|alan|daniel|leandro/i)
 
-  // extrai data
+  if(nomeMatch){
+    contextoAtual.cantor = nomeMatch[0]
+  }
+
+  // data
   const dataMatch = pergunta.match(/\b(\d{2}\/\d{2})\b/)
+  if(dataMatch){
+    const [dia, mes] = dataMatch[1].split("/")
+    contextoAtual.data = `${hoje.slice(0,4)}-${mes}-${dia}`
+  }
 
-  // extrai hora
+  // hora
   const horaMatch = pergunta.match(/\b(\d{1,2}:\d{2})\b/)
-
-  // extrai valor
-  const valorMatch = pergunta.match(/\b(\d+)\s*(reais|r\$)?\b/i)
-
-  const nome = nomeMatch ? nomeMatch[1].trim() : null
-  let data = dataMatch ? dataMatch[1] : null
-  const hora = horaMatch ? horaMatch[1] : null
-  const valor = valorMatch ? Number(valorMatch[1]) : null
-
-  // trata data
-  if(data){
-    const [dia, mes] = data.split("/")
-    data = `${hoje.slice(0,4)}-${mes}-${dia}`
+  if(horaMatch){
+    contextoAtual.hora = horaMatch[1]
   }
 
-  console.log("📥 EXTRAIDO:", { nome, data, hora, valor })
-
-  if(!nome){
-    return res.json({ resposta: "⚠️ Informe o nome do músico." })
+  // valor
+  const valorMatch = pergunta.match(/\b(\d+)\b/)
+  if(valorMatch){
+    contextoAtual.valor = Number(valorMatch[1])
   }
 
-  // busca registros
+  console.log("📌 CONTEXTO:", contextoAtual)
+
+  if(!contextoAtual.cantor){
+    return res.json({
+      resposta: "⚠️ Qual músico você quer alterar?"
+    })
+  }
+
   const encontrados = base.filter(m =>
-    normalize(m.cantor).includes(normalize(nome))
+    normalize(m.cantor).includes(normalize(contextoAtual.cantor))
   )
 
   if(encontrados.length === 0){
     return res.json({ resposta: "❌ Músico não encontrado." })
   }
 
-  if(encontrados.length > 1 && !data){
-
-    const lista = encontrados.map(m =>
-      `${m.cantor} - ${m.data}`
-    ).join("\n")
-
-    return res.json({
-      resposta: `⚠️ Mais de um encontrado:\n\n${lista}\n\nInforme a data.`
-    })
-  }
-
   let alvo = null
 
-  if(data){
-    alvo = encontrados.find(m => m.data === data)
+  if(contextoAtual.data){
+    alvo = encontrados.find(m => m.data === contextoAtual.data)
   } else {
     alvo = encontrados[0]
   }
 
   if(!alvo){
-    return res.json({ resposta: "❌ Registro não encontrado para essa data." })
+    return res.json({
+      resposta: "❌ Não encontrei esse show na data."
+    })
   }
 
-  // monta update
   const updateData = {}
 
-  if(hora) updateData.hora = hora
-  if(valor !== null) updateData.valor = valor
+  if(contextoAtual.hora) updateData.hora = contextoAtual.hora
+  if(contextoAtual.valor !== null) updateData.valor = contextoAtual.valor
 
   if(Object.keys(updateData).length === 0){
     return res.json({
-      resposta: "⚠️ Informe o que deseja alterar (hora ou valor)."
+      resposta: "⚠️ O que deseja alterar?"
     })
   }
 
@@ -302,12 +296,9 @@ if(
     .eq("id", alvo.id)
 
   return res.json({
-    resposta: `✏️ ${alvo.cantor} atualizado com sucesso.`
+    resposta: `✅ ${alvo.cantor} atualizado (${JSON.stringify(updateData)})`
   })
 }
-
-
-
 
 
 
