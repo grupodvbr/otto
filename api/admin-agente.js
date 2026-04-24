@@ -908,15 +908,42 @@ const METAS = {
 }
 
 function calcularMeta(empresa, valor){
+
   const meta = METAS[empresa]
-  if(!meta) return { meta:0, percentual:0 }
+  if(!meta) return { meta:0, percentual:0, esperado:0, status:"-" }
+
+  const hoje = new Date(
+    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+  )
+
+  const diaAtual = hoje.getDate()
+
+  const diasNoMes = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth() + 1,
+    0
+  ).getDate()
+
+  const percentualReal = (valor / meta.prata) * 100
+  const percentualEsperado = (diaAtual / diasNoMes) * 100
+
+  let status = "Dentro da meta"
+
+  if(percentualReal < percentualEsperado){
+    status = "Abaixo da meta"
+  }
+
+  if(percentualReal > percentualEsperado){
+    status = "Acima da meta"
+  }
 
   return {
     meta: meta.prata,
-    percentual: (valor / meta.prata) * 100
+    percentual: percentualReal,
+    esperado: percentualEsperado,
+    status
   }
 }
-
 function formatar(v){
   return Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2})
 }
