@@ -10,6 +10,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
+/* ================= NORMALIZA ================= */
+
+function normalize(str){
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+}
+
+/* ================= HANDLER ================= */
+
 module.exports = async function handler(req, res){
 
   try{
@@ -17,7 +28,7 @@ module.exports = async function handler(req, res){
     const { pergunta, usuario } = req.body
 
     const empresa = usuario.empresa
-    const numero = req.body.numero
+    const texto = pergunta.toLowerCase()
 
     console.log("📩 PERGUNTA:", pergunta)
     console.log("🏢 EMPRESA:", empresa)
@@ -28,68 +39,122 @@ module.exports = async function handler(req, res){
       timeZone: "America/Bahia"
     })
 
+    const mesAtual = hoje.slice(0,7)
+
     console.log("📅 HOJE:", hoje)
+    console.log("📅 MÊS:", mesAtual)
 
-    /* ================= BUSCA BASE ================= */
+    /* ================= BUSCA TOTAL ================= */
 
-    const { data: base } = await supabase
+    const { data: raw, error } = await supabase
       .from("agenda_musicos")
       .select("*")
-      .eq("empresa", empresa)
 
-    console.log("📊 TOTAL:", base?.length)
+    if(error){
+      console.log("❌ ERRO BANCO:", error)
+    }
 
-    /* ================= TOOLS ================= */
+    /* ================= FILTRO EMPRESA ================= */
 
-    const tools = [
+    const empresaNorm = normalize(empresa)
 
-      {
-        type: "function",
-        function: {
-          name: "listar_musicos",
-          description: "Lista músicos por data ou todos",
-          parameters: {
-            type: "object",
-            properties: {
-              data: { type: "string" }
-            }
-          }
-        }
-      },
+    const base = (raw || []).filter(m =>
+      normalize(m.empresa).includes(empresaNorm)
+    )
 
-      {
-        type: "function",
-        function: {
-          name: "deletar_musico",
-          description: "Remove músico por id",
-          parameters: {
-            type: "object",
-            properties: {
-              id: { type: "string" }
-            },
-            required: ["id"]
-          }
-        }
-      },
+    console.log("📊 TOTAL EMPRESA:", base.length)
 
-      {
-        type: "function",
-        function: {
-          name: "inserir_musico",
-          description: "Cria novo músico",
-          parameters: {
-            type: "object",
-            properties: {
-              cantor: { type: "string" },
-              data: { type: "string" },
-              hora: { type: "string" }
-            },
-            required: ["cantor", "data", "hora"]
-          }
-        }
+    /* ================= HOJE ================= */
+
+    if(texto.includes("hoje") || texto === "oi" || texto === "ola"){
+
+      const lista = base.filter(m => m.data === hoje)
+
+      console.log("📅 HOJE ENCONTRADOS:", lista.length)
+
+      if(lista.length === 0){
+        return res.json({ resposta: "📭 Nenhum músico hoje." })
       }
 
-    ]
+      const resposta = lista.map(m =>
+        `🎤 ${m.cantor.trim()} - ${m.hora}`
+      ).join("\n")
+
+      return res.json({
+        resposta: `📅 Músicos de hoje:\n\n${resposta}`
+      })
+    }
+
+    /* ================= MÊS ================= */
+
+    if(texto.includes("mes")){
+
+      const lista = base.filter(m => m.data.startsWith(mesAtual))
+
+      console.log("📅 MÊS ENCONTRADOS:", lista.length)
+
+      if(lista.length === 0){
+        return res.json({ resposta: "📭 Nenhum músico no mês." })
+      }
+
+      const resposta = lista.map(m =>
+        `${m.data} - 🎤 ${m.cantor.trim()} (${m.hora})`
+      ).join("\n")
+
+      return res.json({
+        resposta: `📅 Músicos do mês:\n\n${resposta}`
+      })
+    }
+
+    /* ================= AGENDA COMPLETA ================= */
+
+    if(texto.includes("agenda")){
+
+      const resposta = base.map(m =>
+        `${m.data} - 🎤 ${m.cantor.trim()} (${m.hora})`
+      ).join("\n")
+
+      return res.json({
+        resposta: `📅 Agenda completa:\n\n${resposta}`
+      })
+    }
+
+    /* ================= DELETE ================= */
+
+    if(texto.includes("deletar")){
+
+      const nome = pergunta.replace(/deletar/i,"").trim()
+
+      const encontrados = base.filter(m =>
+        normalize(m.cantor).includes(normalize(nome))
+      )
+
+      if(encontrados.length === 0){
+        return res.json({ resposta: "❌ Nenhum encontrado." })
+      }
+
+      if(encontrados.length === 1){
+
+        const m = encontrados[0]
+
+        await supabase
+          .from("agenda_musicos")
+          .delete()
+          .eq("id", m.id)
+
+        return res.json({
+          resposta: `🗑️ ${m.cantor} removido.`
+        })
+      }
+
+      const lista = encontrados.map(m =>
+        `${m.cantor} - ${m.data}`
+      ).join("\n")
+
+      return res.json({
+        resposta: `⚠️ Mais de um encontrado:\n\n${lista}\n\nInforme a data.`
+      })
+    }
 
     /* ================= IA ================= */
 
@@ -99,114 +164,21 @@ module.exports = async function handler(req, res){
         {
           role: "system",
           content: `
-Você é o gerente inteligente da empresa ${empresa}.
-
+Empresa: ${empresa}
 Data atual: ${hoje}
 
-DADOS REAIS:
-${JSON.stringify(base?.slice(0, 50), null, 2)}
+DADOS:
+${JSON.stringify(base.slice(0,50), null, 2)}
 
-REGRAS:
-
-- Nunca invente dados
-- Sempre usar os dados acima
-- Se usuário disser "hoje" → usar ${hoje}
-- Se disser "agenda" → listar tudo
-- Se disser "deletar" → escolher registro correto
-- Se disser "oi" ou algo vago → mostrar músicos de hoje
-- Nunca perguntar coisas óbvias
-
-Você decide e usa as funções quando necessário.
+Use apenas esses dados.
+Nunca invente.
 `
         },
         { role: "user", content: pergunta }
-      ],
-      tools,
-      tool_choice: "auto"
+      ]
     })
 
-    const msg = completion.choices[0].message
-
-    console.log("🧠 IA DECISÃO:", msg)
-
-    /* ================= EXECUÇÃO ================= */
-
-    if(msg.tool_calls){
-
-      const call = msg.tool_calls[0]
-      const name = call.function.name
-      const args = JSON.parse(call.function.arguments || "{}")
-
-      console.log("⚙️ TOOL:", name)
-      console.log("📥 ARGS:", args)
-
-      /* ===== LISTAR ===== */
-
-      if(name === "listar_musicos"){
-
-        const dataFiltro = args.data || hoje
-
-        const lista = base.filter(m => m.data === dataFiltro)
-
-        if(lista.length === 0){
-          return res.json({ resposta: "📭 Nenhum músico." })
-        }
-
-        const resposta = lista.map(m =>
-          `🎤 ${m.cantor.trim()} - ${m.hora}`
-        ).join("\n")
-
-        return res.json({
-          resposta: `📅 Agenda:\n\n${resposta}`
-        })
-      }
-
-      /* ===== DELETE ===== */
-
-      if(name === "deletar_musico"){
-
-        await supabase
-          .from("agenda_musicos")
-          .delete()
-          .eq("id", args.id)
-
-        return res.json({
-          resposta: "🗑️ Removido com sucesso."
-        })
-      }
-
-      /* ===== INSERT ===== */
-
-      if(name === "inserir_musico"){
-
-        await supabase.from("agenda_musicos").insert({
-          empresa,
-          cantor: args.cantor,
-          data: args.data,
-          hora: args.hora,
-          valor: 0
-        })
-
-        return res.json({
-          resposta: "✅ Inserido com sucesso."
-        })
-      }
-    }
-
-    /* ================= FALLBACK ================= */
-
-    let resposta = msg.content
-
-    if(!resposta || resposta.trim().length < 2){
-
-      const hojeLista = base.filter(m => m.data === hoje)
-
-      const lista = hojeLista.map(m =>
-        `🎤 ${m.cantor.trim()} - ${m.hora}`
-      ).join("\n")
-
-      resposta = `📅 Músicos de hoje:\n\n${lista}`
-    }
+    const resposta = completion.choices[0].message.content
 
     return res.json({ resposta })
 
@@ -215,7 +187,7 @@ Você decide e usa as funções quando necessário.
     console.error("❌ ERRO:", e)
 
     return res.json({
-      resposta: "Erro interno no sistema"
+      resposta: "Erro interno"
     })
   }
 }
