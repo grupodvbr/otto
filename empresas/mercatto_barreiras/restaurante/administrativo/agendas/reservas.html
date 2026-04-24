@@ -2564,6 +2564,16 @@ updateSummary()
 
 
 
+
+
+
+
+
+
+    
+
+
+
     
 function gerarPDFMes(){
 
@@ -2579,15 +2589,22 @@ function gerarPDFMes(){
     return d.getMonth() === state.mes && d.getFullYear() === ano;
   });
 
-  // ===== STATUS =====
-  const concluidas = reservas.filter(r=>r.status === "Concluída").length;
-  const canceladas = reservas.filter(r=>r.status === "Cancelada").length;
-  const pendentes = reservas.filter(r=>r.status === "Pendente").length;
-  const confirmadas = reservas.filter(r=>r.status === "Confirmada").length;
+  // ===== TOTAL DE PESSOAS =====
+  const totalPessoas = reservas.reduce((acc,r)=> acc + Number(r.pessoas || 0), 0);
 
-  // ===== VALORES =====
-  const totalEstimado = reservas.reduce((a,r)=>a+parseBRL(r.valorEstimado||0),0);
-  const totalFinal = reservas.reduce((a,r)=>a+parseBRL(r.valorFinalPago||0),0);
+  // ===== AGRUPAR POR ÁREA =====
+  const areas = {};
+
+  reservas.forEach(r=>{
+    const area = r.mesa || "Não definido";
+    const pessoas = Number(r.pessoas || 0);
+
+    if(!areas[area]){
+      areas[area] = 0;
+    }
+
+    areas[area] += pessoas;
+  });
 
   // ===== LOGO =====
   const img = new Image();
@@ -2596,9 +2613,16 @@ function gerarPDFMes(){
 
   img.onload = ()=>{
 
-    // ===== HEADER PREMIUM =====
-    doc.setFillColor(10,15,25);
-    doc.rect(0,0,210,32,"F");
+    // ===== HEADER COM DEGRADE =====
+    const headerHeight = 32;
+
+    for(let i = 0; i < headerHeight; i++){
+      const r = 10 + i * 1.2;
+      const g = 15 + i * 1.2;
+      const b = 25 + i * 1.5;
+      doc.setFillColor(r, g, b);
+      doc.rect(0, i, 210, 1, "F");
+    }
 
     doc.addImage(img,"PNG",14,6,38,18);
 
@@ -2608,67 +2632,68 @@ function gerarPDFMes(){
     doc.text("Relatório de Reservas", 60, 14);
 
     doc.setFontSize(10);
-    doc.setTextColor(200,200,200);
+    doc.setTextColor(210,210,210);
     doc.text(`${mesNome} de ${ano}`, 60, 21);
 
     let y = 42;
 
-    // ===== CARDS CLEAN =====
-    function card(x, label, value){
-      doc.setFillColor(245,245,245);
-      doc.roundedRect(x, y, 45, 18, 3,3,"F");
+    // ===== TOTAL DE PESSOAS =====
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12);
+    doc.setTextColor(0,0,0);
+    doc.text("Total de Pessoas no Mês", 14, y);
 
-      doc.setTextColor(100,100,100);
-      doc.setFontSize(8);
-      doc.text(label, x+4, y+6);
+    y += 8;
 
-      doc.setTextColor(20,20,20);
-      doc.setFontSize(12);
-      doc.setFont("helvetica","bold");
-      doc.text(String(value), x+4, y+13);
-    }
+    doc.setFontSize(20);
+    doc.setTextColor(20,20,20);
+    doc.text(String(totalPessoas), 14, y);
 
-    card(14, "Concluídas", concluidas);
-    card(62, "Pendentes", pendentes);
-    card(110, "Confirmadas", confirmadas);
-    card(158, "Canceladas", canceladas);
+    y += 12;
 
-    y += 26;
-
-    // ===== DIVISÓRIA =====
-    doc.setDrawColor(220,220,220);
-    doc.line(14, y, 196, y);
-
-    y += 10;
-
-    // ===== RESUMO =====
+    // ===== ÁREAS =====
     doc.setFont("helvetica","bold");
     doc.setFontSize(11);
     doc.setTextColor(0,0,0);
-    doc.text("Resumo Financeiro", 14, y);
+    doc.text("Distribuição por Área", 14, y);
 
-    y += 6;
+    y += 8;
 
     doc.setFont("helvetica","normal");
     doc.setFontSize(10);
 
-    doc.text(`Estimado: ${formatBRL(totalEstimado)}`, 14, y);
-    y += 5;
-    doc.text(`Recebido: ${formatBRL(totalFinal)}`, 14, y);
+    Object.entries(areas).forEach(([area, total])=>{
 
-    y += 12;
+      if(y > 270){
+        doc.addPage();
+        y = 20;
+      }
 
-    // ===== TÍTULO LISTA =====
+      doc.setDrawColor(230,230,230);
+      doc.line(14, y-3, 196, y-3);
+
+      doc.setTextColor(0,0,0);
+      doc.text(area, 14, y);
+
+      doc.setTextColor(80,80,80);
+      doc.text(`${total} pessoas`, 160, y);
+
+      y += 10;
+
+    });
+
+    y += 10;
+
+    // ===== LISTA =====
     doc.setFont("helvetica","bold");
     doc.setFontSize(11);
     doc.text("Reservas do período", 14, y);
 
     y += 6;
 
-    // ===== LISTA CLEAN =====
     doc.setFontSize(9);
 
-    reservas.forEach((r,i)=>{
+    reservas.forEach(r=>{
 
       if(y > 270){
         doc.addPage();
@@ -2677,22 +2702,17 @@ function gerarPDFMes(){
 
       const data = new Date(r.datahora).toLocaleString("pt-BR");
 
-      // linha sutil
       doc.setDrawColor(230,230,230);
       doc.line(14, y-3, 196, y-3);
 
-      // nome
       doc.setFont("helvetica","bold");
       doc.setTextColor(0,0,0);
       doc.text(r.nome || "-", 14, y);
 
-      // info
       doc.setFont("helvetica","normal");
       doc.setTextColor(90,90,90);
-
       doc.text(`${data} • ${r.pessoas} pessoas • ${r.mesa}`, 14, y+4);
 
-      // status (lado direito)
       let statusColor = [120,120,120];
 
       if(r.status === "Cancelada") statusColor = [220,38,38];
@@ -2716,7 +2736,10 @@ function gerarPDFMes(){
     );
 
     doc.save(`relatorio_${mesNome}_${ano}.pdf`);
+  };
 
+  img.onerror = ()=>{
+    alert("Erro ao carregar logo.");
   };
 
 }
