@@ -2573,8 +2573,6 @@ updateSummary()
     
 
 
-
-    
 function gerarPDFMes(){
 
   const { jsPDF } = window.jspdf;
@@ -2589,55 +2587,75 @@ function gerarPDFMes(){
     return d.getMonth() === state.mes && d.getFullYear() === ano;
   });
 
-  // ===== TOTAL DE PESSOAS =====
+  // ================= DADOS =================
   const totalPessoas = reservas.reduce((acc,r)=> acc + Number(r.pessoas || 0), 0);
 
-  // ===== AGRUPAR POR ÁREA =====
-  const areas = {};
+  const statusCount = {
+    concluida: reservas.filter(r=>r.status==="Concluída").length,
+    pendente: reservas.filter(r=>r.status==="Pendente").length,
+    confirmada: reservas.filter(r=>r.status==="Confirmada").length,
+    cancelada: reservas.filter(r=>r.status==="Cancelada").length
+  };
 
+  const areas = {};
   reservas.forEach(r=>{
     const area = r.mesa || "Não definido";
     const pessoas = Number(r.pessoas || 0);
-
-    if(!areas[area]){
-      areas[area] = 0;
-    }
-
-    areas[area] += pessoas;
+    areas[area] = (areas[area] || 0) + pessoas;
   });
 
-  // ===== LOGO =====
+  // ================= LOGO =================
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.src = "https://raw.githubusercontent.com/grupodvbr/otto/main/logo/mercatto.png";
 
   img.onload = ()=>{
 
-    // ===== HEADER COM DEGRADE =====
-    const headerHeight = 32;
-
-    for(let i = 0; i < headerHeight; i++){
-      const r = 10 + i * 1.2;
-      const g = 15 + i * 1.2;
-      const b = 25 + i * 1.5;
-      doc.setFillColor(r, g, b);
-      doc.rect(0, i, 210, 1, "F");
+    // ================= HEADER DEGRADE =================
+    const h = 35;
+    for(let i=0;i<h;i++){
+      const r = 5 + i*1.5;
+      const g = 8 + i*1.5;
+      const b = 15 + i*2;
+      doc.setFillColor(r,g,b);
+      doc.rect(0,i,210,1,"F");
     }
 
-    doc.addImage(img,"PNG",14,6,38,18);
+    doc.addImage(img,"PNG",14,7,38,18);
 
     doc.setTextColor(255,255,255);
     doc.setFont("helvetica","bold");
-    doc.setFontSize(15);
-    doc.text("Relatório de Reservas", 60, 14);
+    doc.setFontSize(16);
+    doc.text("Relatório de Reservas", 60, 15);
 
     doc.setFontSize(10);
-    doc.setTextColor(210,210,210);
-    doc.text(`${mesNome} de ${ano}`, 60, 21);
+    doc.setTextColor(200,200,200);
+    doc.text(`${mesNome} de ${ano}`, 60, 22);
 
-    let y = 42;
+    let y = 45;
 
-    // ===== TOTAL DE PESSOAS =====
+    // ================= CARDS STATUS =================
+    function card(x, label, value, color){
+      doc.setFillColor(...color);
+      doc.roundedRect(x,y,45,20,4,4,"F");
+
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(9);
+      doc.text(label, x+4, y+8);
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica","bold");
+      doc.text(String(value), x+4, y+16);
+    }
+
+    card(14,"Concluídas",statusCount.concluida,[34,197,94]);
+    card(62,"Pendentes",statusCount.pendente,[245,158,11]);
+    card(110,"Confirmadas",statusCount.confirmada,[59,130,246]);
+    card(158,"Canceladas",statusCount.cancelada,[220,38,38]);
+
+    y += 30;
+
+    // ================= TOTAL PESSOAS =================
     doc.setFont("helvetica","bold");
     doc.setFontSize(12);
     doc.setTextColor(0,0,0);
@@ -2645,49 +2663,46 @@ function gerarPDFMes(){
 
     y += 8;
 
-    doc.setFontSize(20);
-    doc.setTextColor(20,20,20);
+    doc.setFontSize(24);
     doc.text(String(totalPessoas), 14, y);
 
     y += 12;
 
-    // ===== ÁREAS =====
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(11);
-    doc.setTextColor(0,0,0);
+    // ================= ÁREAS =================
+    doc.setFontSize(12);
     doc.text("Distribuição por Área", 14, y);
 
     y += 8;
 
-    doc.setFont("helvetica","normal");
     doc.setFontSize(10);
 
-    Object.entries(areas).forEach(([area, total])=>{
+    Object.entries(areas).forEach(([area,total])=>{
 
       if(y > 270){
         doc.addPage();
         y = 20;
       }
 
-      doc.setDrawColor(230,230,230);
-      doc.line(14, y-3, 196, y-3);
+      doc.setDrawColor(220,220,220);
+      doc.line(14,y-3,196,y-3);
 
       doc.setTextColor(0,0,0);
-      doc.text(area, 14, y);
+      doc.text(area,14,y);
 
-      doc.setTextColor(80,80,80);
-      doc.text(`${total} pessoas`, 160, y);
+      doc.setTextColor(100,100,100);
+      doc.text(`${total} pessoas`,160,y);
 
       y += 10;
 
     });
 
-    y += 10;
+    y += 8;
 
-    // ===== LISTA =====
+    // ================= LISTA =================
     doc.setFont("helvetica","bold");
-    doc.setFontSize(11);
-    doc.text("Reservas do período", 14, y);
+    doc.setFontSize(12);
+    doc.setTextColor(0,0,0);
+    doc.text("Reservas do período",14,y);
 
     y += 6;
 
@@ -2703,43 +2718,34 @@ function gerarPDFMes(){
       const data = new Date(r.datahora).toLocaleString("pt-BR");
 
       doc.setDrawColor(230,230,230);
-      doc.line(14, y-3, 196, y-3);
+      doc.line(14,y-3,196,y-3);
 
       doc.setFont("helvetica","bold");
       doc.setTextColor(0,0,0);
-      doc.text(r.nome || "-", 14, y);
+      doc.text(r.nome || "-",14,y);
 
       doc.setFont("helvetica","normal");
       doc.setTextColor(90,90,90);
-      doc.text(`${data} • ${r.pessoas} pessoas • ${r.mesa}`, 14, y+4);
+      doc.text(`${data} • ${r.pessoas} pessoas • ${r.mesa}`,14,y+4);
 
-      let statusColor = [120,120,120];
+      let cor = [120,120,120];
+      if(r.status==="Cancelada") cor=[220,38,38];
+      if(r.status==="Concluída") cor=[34,197,94];
+      if(r.status==="Pendente") cor=[245,158,11];
 
-      if(r.status === "Cancelada") statusColor = [220,38,38];
-      if(r.status === "Concluída") statusColor = [22,163,74];
-      if(r.status === "Pendente") statusColor = [245,158,11];
-
-      doc.setTextColor(...statusColor);
-      doc.text(r.status, 160, y);
+      doc.setTextColor(...cor);
+      doc.text(r.status,160,y);
 
       y += 12;
 
     });
 
-    // ===== RODAPÉ =====
+    // ================= RODAPÉ =================
     doc.setFontSize(8);
-    doc.setTextColor(150,150,150);
-    doc.text(
-      "Mercatto Delícia • Relatório gerado automaticamente",
-      14,
-      285
-    );
+    doc.setTextColor(140,140,140);
+    doc.text("Mercatto Delícia • Relatório executivo",14,285);
 
     doc.save(`relatorio_${mesNome}_${ano}.pdf`);
-  };
-
-  img.onerror = ()=>{
-    alert("Erro ao carregar logo.");
   };
 
 }
