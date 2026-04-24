@@ -14,6 +14,17 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 module.exports = async function handler(req, res){
 
+let LOG = {
+  telefone: null,
+  pergunta: null,
+  usuario: null,
+  dados: null,
+  prompt: null,
+  resposta: null,
+  acao: null,
+  erro: null
+}
+
 try{
 
 /* ================= AUTH ================= */
@@ -31,8 +42,11 @@ const body = typeof req.body === "string"
 const pergunta = body?.pergunta || ""
 const numero = body?.numero
 
+LOG.pergunta = pergunta
+LOG.telefone = numero
+
 if(!numero){
-  return res.json({ resposta: "Número não informado" })
+  throw new Error("Número não informado")
 }
 
 /* ================= USUARIO ================= */
@@ -45,16 +59,16 @@ const { data: usuario } = await supabase
   .maybeSingle()
 
 if(!usuario){
-  return res.json({ resposta: "Usuário não autorizado" })
+  throw new Error("Usuário não autorizado")
 }
 
-const NIVEL = usuario.nivel_acesso
+LOG.usuario = usuario
 
-if(NIVEL !== 0){
-  return res.json({ resposta: "⛔ Apenas nível 0 permitido" })
+if(usuario.nivel_acesso !== 0){
+  throw new Error("Usuário sem permissão")
 }
 
-/* ================= BUSCA GLOBAL (SEM FILTRO) ================= */
+/* ================= BUSCA TOTAL ================= */
 
 const [
   reservas,
@@ -67,16 +81,28 @@ const [
   prompts
 ] = await Promise.all([
 
-  supabase.from("reservas_mercatto").select("*").limit(1000),
-  supabase.from("pedidos").select("*").limit(1000),
-  supabase.from("memoria_clientes").select("*").limit(1000),
-  supabase.from("produtos").select("*").limit(1000),
-  supabase.from("buffet_lancamentos").select("*").limit(1000),
-  supabase.from("agenda_musicos").select("*").limit(1000),
+  supabase.from("reservas_mercatto").select("*").limit(2000),
+  supabase.from("pedidos").select("*").limit(2000),
+  supabase.from("memoria_clientes").select("*").limit(2000),
+  supabase.from("produtos").select("*").limit(2000),
+  supabase.from("buffet_lancamentos").select("*").limit(2000),
+  supabase.from("agenda_musicos").select("*").limit(2000),
   supabase.from("usuarios_do_sistema").select("*"),
   supabase.from("prompt_agente").select("*").eq("ativo", true).order("ordem",{ascending:true})
 
 ])
+
+const dadosBrutos = {
+  reservas: reservas.data || [],
+  pedidos: pedidos.data || [],
+  clientes: clientes.data || [],
+  produtos: produtos.data || [],
+  buffet: buffet.data || [],
+  musicos: musicos.data || [],
+  usuarios: usuariosSistema.data || []
+}
+
+LOG.dados = dadosBrutos
 
 /* ================= PROMPT ================= */
 
@@ -84,66 +110,83 @@ const promptFinal = (prompts.data || [])
   .map(p => p.prompt)
   .join("\n\n")
 
-/* ================= CONTEXTO ================= */
+LOG.prompt = promptFinal
+
+/* ================= CONTEXTO INTELIGENTE ================= */
 
 const contextos = [
-  {
-    role:"system",
-    content:`
-USUARIO:
-${JSON.stringify(usuario)}
 
-⚠️ REGRA:
-- Você deve usar APENAS os dados abaixo
+{
+role:"system",
+content:`
+🔥 MOTOR OTTO — ACESSO TOTAL
+
+Você possui acesso COMPLETO aos dados abaixo.
+
+📊 TABELAS DISPONÍVEIS:
+
+1. RESERVAS → reservas_mercatto
+- dados de reservas, clientes, valores, datas
+
+2. PEDIDOS → pedidos
+- vendas realizadas
+
+3. CLIENTES → memoria_clientes
+- histórico e dados de clientes
+
+4. PRODUTOS → produtos
+- cardápio e custos
+
+5. BUFFET → buffet_lancamentos
+- produção e consumo
+
+6. MUSICOS → agenda_musicos
+- agenda de shows
+
+7. USUARIOS → usuarios_do_sistema
+- equipe
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 SUA FUNÇÃO:
+
+- Entender o que o usuário quer
+- Buscar nos dados corretos
+- Analisar como executivo
 - Nunca inventar
-- Toda lógica está nos prompts
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 REGRAS:
+
+- Use SOMENTE os dados fornecidos
+- Se não houver dados → fazer análise inteligente
+- Nunca retornar resposta vazia
+- Sempre interpretar cenário
+
 `
-  },
+},
 
-  {
-    role:"system",
-    content:"RESERVAS:\n" + JSON.stringify(reservas.data || [])
-  },
+{
+role:"system",
+content:`USUARIO:\n${JSON.stringify(usuario)}`
+},
 
-  {
-    role:"system",
-    content:"PEDIDOS:\n" + JSON.stringify(pedidos.data || [])
-  },
+{
+role:"system",
+content:`DADOS:\n${JSON.stringify(dadosBrutos)}`
+},
 
-  {
-    role:"system",
-    content:"CLIENTES:\n" + JSON.stringify(clientes.data || [])
-  },
+{
+role:"system",
+content:`PROMPT_MASTER:\n${promptFinal}`
+},
 
-  {
-    role:"system",
-    content:"PRODUTOS:\n" + JSON.stringify(produtos.data || [])
-  },
+{
+role:"user",
+content: pergunta
+}
 
-  {
-    role:"system",
-    content:"BUFFET:\n" + JSON.stringify(buffet.data || [])
-  },
-
-  {
-    role:"system",
-    content:"MUSICOS:\n" + JSON.stringify(musicos.data || [])
-  },
-
-  {
-    role:"system",
-    content:"USUARIOS_SISTEMA:\n" + JSON.stringify(usuariosSistema.data || [])
-  },
-
-  {
-    role:"system",
-    content:`PROMPT_MASTER:\n${promptFinal}`
-  },
-
-  {
-    role:"user",
-    content: pergunta
-  }
 ]
 
 /* ================= GPT ================= */
@@ -155,17 +198,16 @@ const completion = await openai.chat.completions.create({
 })
 
 let resposta = completion.choices[0].message.content
+LOG.resposta = resposta
 
-/* ================= DETECTAR AÇÃO ================= */
+/* ================= AÇÃO ================= */
 
 let acao = null
 
 const match = resposta.match(/AÇÃO_JSON:\s*([\s\S]*)/)
 
 if(match){
-
   try{
-
     let json = match[1]
       .replace(/```json/g,"")
       .replace(/```/g,"")
@@ -177,32 +219,33 @@ if(match){
     json = json.substring(inicio, fim + 1)
 
     acao = JSON.parse(json)
+    LOG.acao = acao
 
   }catch(e){
-    console.log("Erro parse ação")
+    LOG.erro = "Erro parse ação"
   }
 }
 
 /* ================= SALVAR CHAT ================= */
 
-await supabase
-.from("assistente_otto_chat")
-.insert({
+await supabase.from("assistente_otto_chat").insert({
   role: "user",
   mensagem: pergunta,
   telefone: numero,
   usuario_id: usuario.id
 })
 
-await supabase
-.from("assistente_otto_chat")
-.insert({
+await supabase.from("assistente_otto_chat").insert({
   role: "assistant",
   mensagem: resposta,
   telefone: numero,
   usuario_id: usuario.id,
   acao_json: acao
 })
+
+/* ================= SALVAR LOG ================= */
+
+await supabase.from("assistente_otto_logs").insert(LOG)
 
 /* ================= RESPOSTA ================= */
 
@@ -214,6 +257,10 @@ return res.json({
 }catch(e){
 
 console.error("ERRO:", e)
+
+LOG.erro = e.message
+
+await supabase.from("assistente_otto_logs").insert(LOG)
 
 return res.status(500).json({
   erro: "erro interno"
