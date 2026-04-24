@@ -17,9 +17,9 @@ module.exports = async function handler(req, res){
     const { pergunta, usuario } = req.body
 
     const empresa = usuario.empresa
-    const texto = pergunta.toLowerCase()
+    const numero = req.body.numero
 
-    console.log("🧠 PERGUNTA:", pergunta)
+    console.log("📩 PERGUNTA:", pergunta)
     console.log("🏢 EMPRESA:", empresa)
 
     /* ================= DATA ================= */
@@ -28,48 +28,68 @@ module.exports = async function handler(req, res){
       timeZone: "America/Bahia"
     })
 
-    console.log("📅 DATA HOJE:", hoje)
+    console.log("📅 HOJE:", hoje)
 
-    /* ================= BUSCA ================= */
+    /* ================= BUSCA BASE ================= */
 
-    const { data, error } = await supabase
+    const { data: base } = await supabase
       .from("agenda_musicos")
       .select("*")
       .eq("empresa", empresa)
 
-    if(error){
-      console.log("❌ ERRO BANCO:", error)
-    }
+    console.log("📊 TOTAL:", base?.length)
 
-    console.log("📊 TOTAL REGISTROS:", data?.length || 0)
+    /* ================= TOOLS ================= */
 
-    console.log("📦 DADOS BRUTOS:")
-    console.log(JSON.stringify(data, null, 2))
+    const tools = [
 
-    /* ================= FILTRO HOJE ================= */
+      {
+        type: "function",
+        function: {
+          name: "listar_musicos",
+          description: "Lista músicos por data ou todos",
+          parameters: {
+            type: "object",
+            properties: {
+              data: { type: "string" }
+            }
+          }
+        }
+      },
 
-    const hojeFiltrado = (data || []).filter(m => m.data === hoje)
+      {
+        type: "function",
+        function: {
+          name: "deletar_musico",
+          description: "Remove músico por id",
+          parameters: {
+            type: "object",
+            properties: {
+              id: { type: "string" }
+            },
+            required: ["id"]
+          }
+        }
+      },
 
-    console.log("📅 REGISTROS HOJE:", hojeFiltrado.length)
-
-    /* ================= RESPOSTA INTELIGENTE ================= */
-
-    if(texto.includes("oi") || texto.includes("olá") || texto.trim().length <= 3){
-
-      if(hojeFiltrado.length === 0){
-        return res.json({
-          resposta: "📅 Não há músicos hoje."
-        })
+      {
+        type: "function",
+        function: {
+          name: "inserir_musico",
+          description: "Cria novo músico",
+          parameters: {
+            type: "object",
+            properties: {
+              cantor: { type: "string" },
+              data: { type: "string" },
+              hora: { type: "string" }
+            },
+            required: ["cantor", "data", "hora"]
+          }
+        }
       }
 
-      const lista = hojeFiltrado.map(m =>
-        `🎤 ${m.cantor.trim()} - ${m.hora}`
-      ).join("\n")
-
-      return res.json({
-        resposta: `📅 Músicos de hoje:\n\n${lista}`
-      })
-    }
+    ]
 
     /* ================= IA ================= */
 
@@ -79,29 +99,123 @@ module.exports = async function handler(req, res){
         {
           role: "system",
           content: `
-Empresa: ${empresa}
+Você é o gerente inteligente da empresa ${empresa}.
+
+Data atual: ${hoje}
 
 DADOS REAIS:
-${JSON.stringify(data.slice(0,20), null, 2)}
+${JSON.stringify(base?.slice(0, 50), null, 2)}
 
-Use esses dados para responder.
-Nunca invente.
+REGRAS:
+
+- Nunca invente dados
+- Sempre usar os dados acima
+- Se usuário disser "hoje" → usar ${hoje}
+- Se disser "agenda" → listar tudo
+- Se disser "deletar" → escolher registro correto
+- Se disser "oi" ou algo vago → mostrar músicos de hoje
+- Nunca perguntar coisas óbvias
+
+Você decide e usa as funções quando necessário.
 `
         },
         { role: "user", content: pergunta }
-      ]
+      ],
+      tools,
+      tool_choice: "auto"
     })
 
-    const resposta = completion.choices[0].message.content
+    const msg = completion.choices[0].message
+
+    console.log("🧠 IA DECISÃO:", msg)
+
+    /* ================= EXECUÇÃO ================= */
+
+    if(msg.tool_calls){
+
+      const call = msg.tool_calls[0]
+      const name = call.function.name
+      const args = JSON.parse(call.function.arguments || "{}")
+
+      console.log("⚙️ TOOL:", name)
+      console.log("📥 ARGS:", args)
+
+      /* ===== LISTAR ===== */
+
+      if(name === "listar_musicos"){
+
+        const dataFiltro = args.data || hoje
+
+        const lista = base.filter(m => m.data === dataFiltro)
+
+        if(lista.length === 0){
+          return res.json({ resposta: "📭 Nenhum músico." })
+        }
+
+        const resposta = lista.map(m =>
+          `🎤 ${m.cantor.trim()} - ${m.hora}`
+        ).join("\n")
+
+        return res.json({
+          resposta: `📅 Agenda:\n\n${resposta}`
+        })
+      }
+
+      /* ===== DELETE ===== */
+
+      if(name === "deletar_musico"){
+
+        await supabase
+          .from("agenda_musicos")
+          .delete()
+          .eq("id", args.id)
+
+        return res.json({
+          resposta: "🗑️ Removido com sucesso."
+        })
+      }
+
+      /* ===== INSERT ===== */
+
+      if(name === "inserir_musico"){
+
+        await supabase.from("agenda_musicos").insert({
+          empresa,
+          cantor: args.cantor,
+          data: args.data,
+          hora: args.hora,
+          valor: 0
+        })
+
+        return res.json({
+          resposta: "✅ Inserido com sucesso."
+        })
+      }
+    }
+
+    /* ================= FALLBACK ================= */
+
+    let resposta = msg.content
+
+    if(!resposta || resposta.trim().length < 2){
+
+      const hojeLista = base.filter(m => m.data === hoje)
+
+      const lista = hojeLista.map(m =>
+        `🎤 ${m.cantor.trim()} - ${m.hora}`
+      ).join("\n")
+
+      resposta = `📅 Músicos de hoje:\n\n${lista}`
+    }
 
     return res.json({ resposta })
 
   }catch(e){
 
-    console.error("❌ ERRO GERAL:", e)
+    console.error("❌ ERRO:", e)
 
     return res.json({
-      resposta: "Erro interno"
+      resposta: "Erro interno no sistema"
     })
   }
 }
