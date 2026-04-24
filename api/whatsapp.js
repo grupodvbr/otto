@@ -1,21 +1,29 @@
-
-
 const fetch = (...args) => import("node-fetch").then(({default: fetch}) => fetch(...args))
-
-// 🔥 AQUI
 const fs = require("fs")
 
 const OpenAI = require("openai")
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+/* ================= SUPABASE ================= */
 
+const { createClient } = require("@supabase/supabase-js")
 
-/* ================= IMPORTA AGENTE ================= */
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE
+)
+
+/* ================= AGENTES ================= */
 
 const adminAgente = require("./admin-agente")
+const gerenteAgente = require("./gerentes-agente")
+
+const AGENTES = {
+  admin: adminAgente,
+  gerente: gerenteAgente
+}
 
 /* ================= ENV ================= */
 
@@ -24,19 +32,31 @@ const TOKEN = process.env.OTTO_WHATSAPP_TOKEN
 const PHONE_ID = process.env.OTTO_PHONE_NUMBER_ID
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
-/* ================= ADMINS ================= */
-
-const ADMINS = [
-  "557798253249",
-  "557799761436"
-]
-// 🔥 ALERTA SEMPRE VAI PRAQUI
 const ADMIN_ALERTA = "557798253249"
 
-/* ================= NORMALIZA NUMERO ================= */
+/* ================= UTILS ================= */
 
 function normalizar(numero){
   return (numero || "").replace(/\D/g, "")
+}
+
+/* ================= BUSCAR USUARIO ================= */
+
+async function buscarUsuarioPorTelefone(numero){
+
+  const { data, error } = await supabase
+    .from("usuarios_do_sistema")
+    .select("*")
+    .eq("telefone", numero)
+    .eq("ativo", true)
+    .single()
+
+  if(error){
+    console.log("❌ ERRO BUSCAR USUARIO:", error)
+    return null
+  }
+
+  return data
 }
 
 /* ================= ENVIO WHATSAPP ================= */
@@ -63,7 +83,7 @@ async function enviarMensagem(para, texto){
 
     const data = await response.json()
 
-    console.log("📤 ENVIO META:", {
+    console.log("📤 ENVIO:", {
       para,
       sucesso: response.ok,
       respostaMeta: data
@@ -89,7 +109,6 @@ if(req.method === "GET"){
     return res.status(200).send(req.query["hub.challenge"])
   }
 
-  console.log("❌ VERIFY TOKEN INVALIDO")
   return res.status(403).end()
 }
 
@@ -106,112 +125,113 @@ if(req.method === "POST"){
       return res.status(200).end()
     }
 
-const msg = change.messages?.[0]
-if(!msg) return res.status(200).end()
+    const msg = change.messages?.[0]
+    if(!msg) return res.status(200).end()
 
-const numero = normalizar(msg.from).slice(-13)
+    const numero = normalizar(msg.from).slice(-13)
 
-let texto = msg.text?.body || null
+    let texto = msg.text?.body || null
 
-// 🎤 TRATAMENTO DE ÁUDIO
-if(msg.type === "audio"){
+    /* ================= AUDIO ================= */
 
-  console.log("🎤 AUDIO RECEBIDO")
+    if(msg.type === "audio"){
 
-  const mediaId = msg.audio.id
+      console.log("🎤 AUDIO RECEBIDO")
 
-  // 1. BUSCA URL DO AUDIO
-  const mediaRes = await fetch(
-    `https://graph.facebook.com/v19.0/${mediaId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${TOKEN}`
-      }
+      const mediaId = msg.audio.id
+
+      const mediaRes = await fetch(
+        `https://graph.facebook.com/v19.0/${mediaId}`,
+        {
+          headers: { Authorization: `Bearer ${TOKEN}` }
+        }
+      )
+
+      const mediaJson = await mediaRes.json()
+
+      const audioBuffer = await fetch(mediaJson.url, {
+        headers: { Authorization: `Bearer ${TOKEN}` }
+      }).then(r => r.arrayBuffer())
+
+      const filePath = "/tmp/audio.ogg"
+      fs.writeFileSync(filePath, Buffer.from(audioBuffer))
+
+      const transcription = await openai.audio.transcriptions.create({
+        file: fs.createReadStream(filePath),
+        model: "gpt-4o-mini-transcribe"
+      })
+
+      texto = transcription.text || "Não consegui entender o áudio"
     }
-  )
 
-  const mediaJson = await mediaRes.json()
-
-  // 2. BAIXA AUDIO
-  const audioBuffer = await fetch(mediaJson.url, {
-    headers: {
-      Authorization: `Bearer ${TOKEN}`
+    if(!texto || texto.trim() === ""){
+      texto = "Não consegui entender a mensagem"
     }
-  }).then(r => r.arrayBuffer())
-
-  // 3. SALVA TEMPORÁRIO
-  const filePath = "/tmp/audio.ogg"
-  fs.writeFileSync(filePath, Buffer.from(audioBuffer))
-
-  // 4. TRANSCRIÇÃO
-  const transcription = await openai.audio.transcriptions.create({
-    file: fs.createReadStream(filePath),
-    model: "gpt-4o-mini-transcribe"
-  })
-
-  texto = transcription.text
-if(!texto || texto.trim() === ""){
-  texto = "Não consegui entender o áudio"
-}
-  console.log("📝 TEXTO DO AUDIO:", texto)
-}
-
-// fallback
-if(!texto || texto.trim() === ""){
-  texto = "Não consegui entender o áudio"
-}
-
-
-
-    
-
-    
 
     console.log("📩 RECEBIDO:", texto)
     console.log("📱 NUMERO:", numero)
 
-    /* ================= VALIDA ADMIN ================= */
+    /* ================= BUSCA USUARIO ================= */
 
-    const ehAdmin = ADMINS.includes(numero)
+    const usuario = await buscarUsuarioPorTelefone(numero)
 
-    console.log("🔐 EH ADMIN:", ehAdmin)
+    if(!usuario){
 
-    /* ======================================================
-       ❌ NÃO ADMIN → ALERTA E IGNORA
-    ====================================================== */
-
-    if(!ehAdmin){
-
-      console.log("⛔ NÃO ADMIN - ALERTANDO")
+      console.log("⛔ USUÁRIO NÃO CADASTRADO")
 
       await enviarMensagem(
         ADMIN_ALERTA,
-`🚨 CONTATO NÃO AUTORIZADO
+`🚨 USUÁRIO NÃO CADASTRADO
 
-📱 Número: ${numero}
-💬 Mensagem: ${texto}`
+📱 ${numero}
+💬 ${texto}`
       )
 
       return res.status(200).end()
     }
 
-    /* ======================================================
-       🧠 CHAMA SEU AGENTE (LOCAL)
-    ====================================================== */
+    const agenteTipo = (usuario.agente || "admin").toLowerCase()
+    const nivel = usuario.nivel_acesso
+
+    console.log("👤 USUARIO:", usuario.nome)
+    console.log("🔑 NIVEL:", nivel)
+    console.log("🤖 AGENTE:", agenteTipo)
+
+    const agenteSelecionado = AGENTES[agenteTipo]
+
+    if(!agenteSelecionado){
+
+      console.log("⛔ AGENTE NÃO CONFIGURADO")
+
+      await enviarMensagem(
+        ADMIN_ALERTA,
+`🚨 AGENTE INVÁLIDO
+
+👤 ${usuario.nome}
+📱 ${numero}
+🤖 agente: ${usuario.agente}`
+      )
+
+      return res.status(200).end()
+    }
+
+    /* ================= PREPARA REQ ================= */
 
     let resposta = "Erro ao processar"
 
-const fakeReq = {
-  method: "POST",
-  query: {}, // 🔥 CORREÇÃO CRÍTICA
-  headers: {
-    authorization: "Bearer " + ADMIN_TOKEN
-  },
-  body: {
-    pergunta: texto,
-    numero: numero
-  }
-}
+    const fakeReq = {
+      method: "POST",
+      query: {},
+      headers: {
+        authorization: "Bearer " + ADMIN_TOKEN
+      },
+      body: {
+        pergunta: texto,
+        numero: numero,
+        usuario: usuario,
+        nivel: nivel
+      }
+    }
 
     const fakeRes = {
       json: (data) => {
@@ -222,17 +242,17 @@ const fakeReq = {
       })
     }
 
-    await adminAgente(fakeReq, fakeRes)
+    /* ================= EXECUTA AGENTE ================= */
+
+    await agenteSelecionado(fakeReq, fakeRes)
 
     console.log("🧠 RESPOSTA:", resposta)
 
-    /* ======================================================
-       📤 ENVIA RESPOSTA WHATSAPP
-    ====================================================== */
+    /* ================= ENVIA RESPOSTA ================= */
 
     await enviarMensagem(numero, resposta)
 
-    console.log("✅ RESPONDIDO COM SUCESSO")
+    console.log("✅ RESPONDIDO")
 
     return res.status(200).end()
 
