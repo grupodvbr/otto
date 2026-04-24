@@ -2779,8 +2779,15 @@ const diasNoMes = new Date(
   0
 ).getDate()
 
-const faturamentoTotal = Number(empresa.faturamento_mes || 0)
+const faturamentoMes = Number(empresa.faturamento_mes || 0)
+const faturamentoDia = Number(empresa.faturamento || 0)
 
+// 🔥 AGORA SIM CORRETO (MÊS + DIA ATUAL)
+const faturamentoTotal = faturamentoMes + faturamentoDia
+
+
+
+  
 const percentualReal = meta > 0
   ? (faturamentoTotal / meta) * 100
   : 0
@@ -2814,10 +2821,10 @@ mensagem += `
 🏢 *${empresa.empresa.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━
 
-💰 Dia        : R$ ${formatar(empresa.faturamento)}
-📅 Mês        : R$ ${formatar(empresa.faturamento_mes)}
-💳 Ticket     : R$ ${formatar(empresa.ticket_medio)}
-🎯 Meta       : R$ ${formatar(meta)} - ${percentual}%
+🎯 Meta       : R$ ${formatar(meta)}
+📊 Atingido   : ${percentualReal.toFixed(0)}%
+📈 Esperado   : ${percentualEsperado.toFixed(0)}%
+🚦 Status     : ${statusMeta}
 
 📊 Desempenho : ${status}
 
