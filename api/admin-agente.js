@@ -1168,15 +1168,31 @@ if(tipoBusca === "dia"){
       ? Number((faturamento / vendas).toFixed(2))
       : 0
 
-  resumoDia = {
-    data: data.data,
-    faturamento,
-    vendas,
-    ticket_medio: empresaData.ticket_medio || ticketCalculado,
-    empresa: empresaFiltro
-  }
+// 🔥 BUSCA MÊS JUNTO
+const resMes = await fetch(`${API_CUPONS}/resumo-mes`)
+const dataMes = await resMes.json()
+
+let faturamentoMes = 0
+
+if(empresaFiltro){
+  const empresaMes = dataMes.empresas?.find(e => e.empresa === empresaFiltro)
+  faturamentoMes = Number(empresaMes?.faturamento_mes || 0)
+}else{
+  faturamentoMes = (dataMes.empresas || [])
+    .reduce((a,e)=>a + (e.faturamento_mes || 0),0)
 }
 
+resumoDia = {
+  data: data.data,
+  faturamento,
+  vendas,
+  ticket_medio: empresaData.ticket_medio || ticketCalculado,
+  empresa: empresaFiltro,
+  faturamento_mes: faturamentoMes // 🔥 AGORA EXISTE
+}
+
+
+  
 
     // ================= ANALÍTICO =================
 if(tipoBusca === "analitico" && data){
@@ -1441,8 +1457,13 @@ if(musicos.length){
   })
 }
 if(resumoDia && resumoDia.faturamento !== undefined){
+
+  const faturamentoTotalMes = 
+    Number(resumoDia.faturamento || 0) + 
+    Number(resumoDia.faturamento_mes || 0)
+
   const metaInfo = resumoDia.empresa
-    ? calcularMeta(resumoDia.empresa, resumoDia.faturamento)
+    ? calcularMeta(resumoDia.empresa, faturamentoTotalMes)
     : null
 
   contextos.push({
@@ -1453,19 +1474,13 @@ if(resumoDia && resumoDia.faturamento !== undefined){
       faturamento: Number(resumoDia.faturamento || 0),
       vendas: Number(resumoDia.vendas || 0),
       ticket_medio: Number(resumoDia.ticket_medio || 0),
-const faturamentoTotalMes = 
-  Number(resumoDia.faturamento || 0) + 
-  Number(resumoDia.faturamento_mes || 0)
 
-const metaInfo = resumoDia.empresa
-  ? calcularMeta(resumoDia.empresa, faturamentoTotalMes)
-  : null
-      
+      faturamento_total_mes: faturamentoTotalMes,
+      meta: metaInfo?.meta || 0,
+      percentual_meta: metaInfo?.percentual || 0
     })
   })
-
 }
-  
 /* ================= OPENAI ================= */
 
 const completion = await openai.chat.completions.create({
