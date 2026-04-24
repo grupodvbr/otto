@@ -2713,8 +2713,12 @@ mensagem += `
 💰 Dia        : R$ ${formatar(empresa.faturamento)}
 📅 Mês        : R$ ${formatar(faturamentoTotalMes)}
 💳 Ticket     : R$ ${formatar(ticketDia)}
-🎯 Prata      : R$ ${formatar(metaPrata)} - ${percentualPrata}%
-🥇 Ouro       : R$ ${formatar(metaOuro)} - ${percentualOuro}%
+🎯 Meta Prata : R$ ${formatar(metaPrata)}
+📊 Atingido   : ${percentualPrata}%
+
+🥇 Meta Ouro  : R$ ${formatar(metaOuro)}
+📊 Atingido   : ${percentualOuro}%
+
 📊 Desempenho : ${status}
 
 `
