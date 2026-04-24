@@ -155,23 +155,32 @@ if(acaoPendente){
 
     if(texto.includes("hoje") || texto === "oi" || texto === "ola"){
 
-      const lista = base.filter(m => m.data === hoje)
+  const lista = base.filter(m => m.data === hoje)
 
-      console.log("📅 HOJE ENCONTRADOS:", lista.length)
+  console.log("📅 HOJE ENCONTRADOS:", lista.length)
 
-      if(lista.length === 0){
-        return res.json({ resposta: "📭 Nenhum músico hoje." })
-      }
+  if(lista.length === 0){
+    return res.json({ resposta: "📭 Nenhum músico hoje." })
+  }
 
-      const resposta = lista.map(m =>
-        `🎤 ${m.cantor.trim()} - ${m.hora}`
-      ).join("\n")
+  // 🔥 SALVA CONTEXTO DO ÚLTIMO
+  const ultimo = lista[lista.length - 1]
 
-      return res.json({
-        resposta: `📅 Músicos de hoje:\n\n${resposta}`
-      })
-    }
+  global.contextoUsuarios[numero] = {
+    cantor: ultimo.cantor,
+    data: ultimo.data,
+    hora: ultimo.hora,
+    valor: ultimo.valor
+  }
 
+  const resposta = lista.map(m =>
+    `🎤 ${m.cantor.trim()} - ${m.hora}`
+  ).join("\n")
+
+  return res.json({
+    resposta: `📅 Músicos de hoje:\n\n${resposta}`
+  })
+}
     /* ================= MÊS ================= */
 
     if(texto.includes("mes")){
@@ -193,6 +202,46 @@ if(acaoPendente){
       })
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+    /* ================= VALOR DO MÚSICO ================= */
+
+if(texto.includes("valor")){
+
+  if(!contextoAtual.cantor){
+    return res.json({ resposta: "⚠️ Qual músico?" })
+  }
+
+  const encontrado = base.find(m =>
+    normalize(m.cantor).includes(normalize(contextoAtual.cantor))
+  )
+
+  if(!encontrado){
+    return res.json({ resposta: "❌ Não encontrei esse músico." })
+  }
+
+  // 🔥 ATUALIZA CONTEXTO
+  global.contextoUsuarios[numero] = {
+    cantor: encontrado.cantor,
+    data: encontrado.data,
+    hora: encontrado.hora,
+    valor: encontrado.valor
+  }
+
+  return res.json({
+    resposta: `💰 Valor do ${encontrado.cantor} em ${encontrado.data} às ${encontrado.hora}:\nR$ ${encontrado.valor}`
+  })
+}
     /* ================= AGENDA COMPLETA ================= */
 
     if(texto.includes("agenda")){
@@ -337,7 +386,7 @@ if(
   }
 
   // valor
-  const valorMatch = pergunta.match(/\b(\d+)\b/)
+const valorMatch = pergunta.match(/(\d+)\s*(reais|r\$)?/i)
   if(valorMatch){
     contextoAtual.valor = Number(valorMatch[1])
   }
@@ -347,10 +396,18 @@ if(
 
   console.log("📌 CONTEXTO:", contextoAtual)
 
-  if(!contextoAtual.cantor){
+if(!contextoAtual.cantor){
+
+  // 🔥 tenta pegar do histórico automaticamente
+  const ultimo = base[base.length - 1]
+
+  if(ultimo){
+    contextoAtual.cantor = ultimo.cantor
+    contextoAtual.data = ultimo.data
+  }else{
     return res.json({ resposta: "⚠️ Qual músico?" })
   }
-
+}
   const encontrados = base.filter(m =>
     normalize(m.cantor).includes(normalize(contextoAtual.cantor))
   )
