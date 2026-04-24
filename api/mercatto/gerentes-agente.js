@@ -212,7 +212,117 @@ if(
 
 
 
+/* ================= UPDATE ================= */
 
+if(
+  texto.includes("atualiza") ||
+  texto.includes("alterar") ||
+  texto.includes("muda") ||
+  texto.includes("editar")
+){
+
+  console.log("🧠 INTENÇÃO: ATUALIZAR")
+
+  // extrai nome
+  const nomeMatch = pergunta.match(/(?:do|de|para)\s+([a-zA-ZÀ-ÿ\s]+)/i)
+
+  // extrai data
+  const dataMatch = pergunta.match(/\b(\d{2}\/\d{2})\b/)
+
+  // extrai hora
+  const horaMatch = pergunta.match(/\b(\d{1,2}:\d{2})\b/)
+
+  // extrai valor
+  const valorMatch = pergunta.match(/\b(\d+)\s*(reais|r\$)?\b/i)
+
+  const nome = nomeMatch ? nomeMatch[1].trim() : null
+  let data = dataMatch ? dataMatch[1] : null
+  const hora = horaMatch ? horaMatch[1] : null
+  const valor = valorMatch ? Number(valorMatch[1]) : null
+
+  // trata data
+  if(data){
+    const [dia, mes] = data.split("/")
+    data = `${hoje.slice(0,4)}-${mes}-${dia}`
+  }
+
+  console.log("📥 EXTRAIDO:", { nome, data, hora, valor })
+
+  if(!nome){
+    return res.json({ resposta: "⚠️ Informe o nome do músico." })
+  }
+
+  // busca registros
+  const encontrados = base.filter(m =>
+    normalize(m.cantor).includes(normalize(nome))
+  )
+
+  if(encontrados.length === 0){
+    return res.json({ resposta: "❌ Músico não encontrado." })
+  }
+
+  if(encontrados.length > 1 && !data){
+
+    const lista = encontrados.map(m =>
+      `${m.cantor} - ${m.data}`
+    ).join("\n")
+
+    return res.json({
+      resposta: `⚠️ Mais de um encontrado:\n\n${lista}\n\nInforme a data.`
+    })
+  }
+
+  let alvo = null
+
+  if(data){
+    alvo = encontrados.find(m => m.data === data)
+  } else {
+    alvo = encontrados[0]
+  }
+
+  if(!alvo){
+    return res.json({ resposta: "❌ Registro não encontrado para essa data." })
+  }
+
+  // monta update
+  const updateData = {}
+
+  if(hora) updateData.hora = hora
+  if(valor !== null) updateData.valor = valor
+
+  if(Object.keys(updateData).length === 0){
+    return res.json({
+      resposta: "⚠️ Informe o que deseja alterar (hora ou valor)."
+    })
+  }
+
+  await supabase
+    .from("agenda_musicos")
+    .update(updateData)
+    .eq("id", alvo.id)
+
+  return res.json({
+    resposta: `✏️ ${alvo.cantor} atualizado com sucesso.`
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 
