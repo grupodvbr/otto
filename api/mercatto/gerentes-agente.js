@@ -77,6 +77,44 @@ module.exports = async function handler(req, res){
 
     const hist = await historico(numero)
 
+
+/* ================= HOJE ================= */
+
+if(texto.includes("hoje")){
+
+  const hoje = new Date().toISOString().split("T")[0]
+
+  const { data } = await supabase
+    .from("agenda_musicos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("data", hoje)
+
+  if(!data || data.length === 0){
+    return res.json({
+      resposta: "📅 Não há músicos agendados para hoje."
+    })
+  }
+
+  const lista = data.map(m =>
+    `🎤 ${m.cantor} - ${m.hora}`
+  ).join("\n")
+
+  return res.json({
+    resposta: `📅 Músicos de hoje:\n\n${lista}`
+  })
+}
+
+
+
+
+
+
+
+
+
+
+    
     /* ================= REVERSÃO ================= */
 
     if(texto.includes("reverter") || texto.includes("desfazer")){
