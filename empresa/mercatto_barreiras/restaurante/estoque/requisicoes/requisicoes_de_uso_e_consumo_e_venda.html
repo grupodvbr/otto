@@ -378,11 +378,12 @@ body.dark .card-status span {
 
 <div class="resumo">
   <div class="card-status" style="background:#f9f9f9">🕓 PENDENTE <span id="countPendente">0</span></div>
-  <div class="card-status" style="background:#d1ecf1">🛒 CARRINHO <span id="countCarrinho">0</span></div>
+ <div class="card-status">📥 RECEBIDA <span id="countRecebida">0</span></div>
   <div class="card-status" style="background:#fff3cd">💰 COMPRADO <span id="countComprado">0</span></div>
   <div class="card-status" style="background:#f8d7da">❌ NEGADO <span id="countNegado">0</span></div>
   <div class="card-status" style="background:#d4edda">✅ ENTREGUE <span id="countEntregue">0</span></div>
-  <div class="card-status" style="background:#ede7f6">🚫 SEM ESTOQUE <span id="countSemEstoque">0</span></div>
+  <div class="card-status">🔍 CONFERIDA <span id="countConferida">0</span></div>
+
 </div>
 
 <div id="overlay-carregando">
@@ -394,15 +395,18 @@ body.dark .card-status span {
   <input type="date" id="dataInicio" onchange="filtrarRequisicoes()">
   <input type="date" id="dataFim" onchange="filtrarRequisicoes()">
   <input type="text" id="filtroItem" placeholder="Item ou Observação" oninput="filtrarRequisicoes()">
-  <select id="filtroSolicitante" onchange="filtrarRequisicoes()"><option value="">Todos os Solicitantes</option></select>
+  <select id="filtroSolicitante" onchange="filtrarRequisicoes()">
+  <option value="">Todos os Solicitantes</option></select>
+  
   <select id="filtroStatus" onchange="filtrarRequisicoes()">
     <option value="PENDENTE" selected>PENDENTE</option>
     <option value="TODOS">TODOS</option>
     <option value="COMPRADO">COMPRADO</option>
-    <option value="NO CARRINHO">NO CARRINHO</option>
-    <option value="NEGADO">NEGADO</option>
+    <option value="RECEBIDA">RECEBIDA</option>
+    <option value="CONFERIDA">CONFERIDA</option>
     <option value="ENTREGUE">ENTREGUE</option>
-    <option value="SEM ESTOQUE">SEM ESTOQUE</option>
+    <option value="NEGADO">NEGADO</option>
+
   </select>
   <select id="filtroSetor" onchange="filtrarRequisicoes()"><option value="">Todos os Setores</option></select>
   <select id="filtroExibicao" onchange="filtrarRequisicoes()">
@@ -430,8 +434,8 @@ body.dark .card-status span {
 
 <script>
 const sb = supabase.createClient(
- "https://mybsriouiwqsdufujbsc.supabase.co",
- "sb_publishable_AUyBEIVCAMUoXwDKUmlqSw_v8EY8rVN"
+ "https://dxkszikemntfusfyrzos.supabase.co",
+ "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 let userEditando = null;  
 let dadosRequisicoes=[];
@@ -460,10 +464,10 @@ async function carregarRequisicoes(){
 
   
 const { data, error } = await sb
-.from("requisicoes")
+.from("mercatto_requisicoes")
 .select("*")
-.order("created_at", { ascending: false })
-.limit(20);
+.order("criado_em", { ascending: false })
+  .limit(20);
 
 if(error){
  console.error(error);
@@ -474,12 +478,12 @@ if(error){
 
 dadosRequisicoes = (data || []).map(r => ({
   index: r.id,
-  dataHora: formatarDataHora(r.created_at),
+  dataHora: formatarDataHora(r.criado_em),
   item: r.produto,
   unidade: r.unidade,
   qtd: parseInt(r.quantidade),
   setor: r.setor,
-  solicitante: r.usuario,
+  solicitante: r.solicitante,
   observacoes: r.observacoes,
   status: r.status || "PENDENTE"
 }));
@@ -501,7 +505,7 @@ function filtrarRequisicoes(){
  const fs=document.getElementById('filtroStatus').value.toUpperCase(),fi=document.getElementById('filtroItem').value.toLowerCase(),
  fsol=document.getElementById('filtroSolicitante').value,fset=document.getElementById('filtroSetor').value,
  din=parseData(document.getElementById('dataInicio').value),df=parseData(document.getElementById('dataFim').value),
- modo=document.getElementById('filtroExibicao').value,validos=['COMPRADO','NO CARRINHO','NEGADO','ENTREGUE','SEM ESTOQUE'];
+ modo=document.getElementById('filtroExibicao').value,validos=['COMPRADO','RECEBIDA','CONFERIDA','ENTREGUE','NEGADO'];
  const filtrados=dadosRequisicoes.filter(i=>{
   const st=(i.status||'').toUpperCase().trim();const pendente=!validos.includes(st);
   if(fs!=='TODOS'){if(fs==='PENDENTE'&&!pendente)return false;if(fs!=='PENDENTE'&&st!==fs)return false;}
@@ -519,44 +523,62 @@ function renderizarTabela(lista,modo='setor'){
   t.insertAdjacentHTML('beforeend',`<tr><td colspan="8">${modo==='setor'?'Setor':'Solicitante'}: ${k}</td></tr>`);
   g[k].forEach(i=>{
    const st=(i.status||'').toUpperCase().trim();
-   const pendente=!['COMPRADO','NO CARRINHO','NEGADO','ENTREGUE','SEM ESTOQUE'].includes(st);
+   const pendente=!['COMPRADO','RECEBIDA','CONFERIDA','ENTREGUE','NEGADO'].includes(st);
    t.insertAdjacentHTML('beforeend',`
     <tr>
      <td>${i.dataHora}</td><td>${i.item}</td><td>${i.qtd}</td><td>${i.unidade}</td>
      <td>${i.setor}</td><td>${i.solicitante}</td><td>${i.observacoes}</td>
+
+
+
+     
      <td><select class="status" onchange="atualizarStatus('${i.index}',this.value)">
-       <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
-       <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
-       <option value="NO CARRINHO" ${st==='NO CARRINHO'?'selected':''}>NO CARRINHO</option>
-       <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
-       <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
-       <option value="SEM ESTOQUE" ${st==='SEM ESTOQUE'?'selected':''}>SEM ESTOQUE</option>
-     </select></td></tr>`);
+  <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
+  <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
+  <option value="RECEBIDA" ${st==='RECEBIDA'?'selected':''}>RECEBIDA</option>
+  <option value="CONFERIDA" ${st==='CONFERIDA'?'selected':''}>CONFERIDA</option>
+  <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
+  <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
+</select>
+     
+     
+     
+     </td></tr>`);
   });
  }
 }
 async function atualizarStatus(i,st){
 
- mostrarAlerta("Atualizando...");
+  mostrarAlerta("Atualizando...");
 
- const { error } = await sb
-  .from("requisicoes")
-  .update({ status: st })
-  .eq("id", i);
+  let payload = { status: st };
 
- if(error){
-  console.error(error);
-  mostrarAlerta("Erro ao atualizar");
-  return;
- }
+  // 🔥 REGISTROS AUTOMÁTICOS
+  if(st === "RECEBIDA"){
+    payload.data_recebimento = new Date().toISOString();
+  }
 
- const it = dadosRequisicoes.find(r=>r.index===i);
- if(it) it.status = st;
+  if(st === "CONFERIDA"){
+    payload.data_conferencia = new Date().toISOString();
+  }
 
- filtrarRequisicoes();
- mostrarAlerta("Status atualizado!");
+  const { error } = await sb
+    .from("mercatto_requisicoes")
+    .update(payload)
+    .eq("id", i);
+
+  if(error){
+    console.error(error);
+    mostrarAlerta("Erro ao atualizar");
+    return;
+  }
+
+  const it = dadosRequisicoes.find(r=>r.index===i);
+  if(it) it.status = st;
+
+  filtrarRequisicoes();
+  mostrarAlerta("Status atualizado!");
 }
-
 
 
 
@@ -565,13 +587,14 @@ async function liquidarMassa(st){
 
  if(!confirm("Marcar todos como ENTREGUE?")) return;
 
- const filtrados = dadosRequisicoes.filter(r =>
-  document.getElementById('tabelaRequisicoes').innerText.includes(r.item)
- );
+const filtrados = dadosRequisicoes.filter(r=>{
+  const st = (r.status || '').toUpperCase();
+  return st !== "ENTREGUE";
+});
 
  for(const item of filtrados){
   await sb
-   .from("requisicoes")
+   .from("mercatto_requisicoes")
    .update({ status: st })
    .eq("id", item.index);
 
@@ -586,12 +609,36 @@ async function liquidarMassa(st){
   
 function toggleSolicitantes(){const l=document.getElementById("lista-solicitantes");l.style.display=l.style.display==="block"?"none":"block";}
 function filtrarPorSolicitante(n){document.getElementById("filtroSolicitante").value=n;filtrarRequisicoes();document.getElementById("lista-solicitantes").style.display="none";}
-function atualizarResumo(){const c={PENDENTE:0,"NO CARRINHO":0,COMPRADO:0,NEGADO:0,ENTREGUE:0,"SEM ESTOQUE":0};
- dadosRequisicoes.forEach(r=>{const s=(r.status||'').toUpperCase().trim();if(c[s]!=null)c[s]++;else c.PENDENTE++;});
- countPendente.textContent=c.PENDENTE;countCarrinho.textContent=c["NO CARRINHO"];
- countComprado.textContent=c.COMPRADO;countNegado.textContent=c.NEGADO;
- countEntregue.textContent=c.ENTREGUE;countSemEstoque.textContent=c["SEM ESTOQUE"];
+function atualizarResumo(){
+  const c = {
+    PENDENTE:0,
+    COMPRADO:0,
+    RECEBIDA:0,
+    CONFERIDA:0,
+    ENTREGUE:0,
+    NEGADO:0
+  };
+
+  dadosRequisicoes.forEach(r=>{
+    const s = (r.status || '').toUpperCase().trim();
+    if(c[s] != null) c[s]++;
+    else c.PENDENTE++;
+  });
+
+  countPendente.textContent = c.PENDENTE;
+  countComprado.textContent = c.COMPRADO;
+  countNegado.textContent = c.NEGADO;
+  countEntregue.textContent = c.ENTREGUE;
+
+  // 🔥 FALTAVA ISSO
+  countRecebida.textContent = c.RECEBIDA;
+  countConferida.textContent = c.CONFERIDA;
 }
+
+
+
+
+  
 function mostrarAlerta(m){const a=document.getElementById("alertaStatus");a.textContent=m;a.style.display="block";setTimeout(()=>a.style.display="none",2500);}
 function gerarRelatorio(){let html="<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><h2>Relatório</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data</th><th>Item</th><th>Qtd</th><th>Unid</th><th>Setor</th><th>Solicitante</th><th>Obs</th></tr></thead><tbody>";
  Array.from(document.querySelectorAll("#tabelaRequisicoes tr")).forEach(tr=>{const tds=Array.from(tr.children).map(td=>td.innerText);if(tds.length===8)html+="<tr>"+tds.slice(0,7).map(td=>`<td>${td}</td>`).join("")+"</tr>";});
