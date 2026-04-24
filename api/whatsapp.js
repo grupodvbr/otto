@@ -22,19 +22,19 @@ const adminAgente = require("./admin-agente")
 function carregarAgente(empresa, nome){
   try{
 
-    const empresaPath = (empresa || "")
-      .toLowerCase()
-      .replace(/\s+/g, "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove acento
+    let empresaPath = "mercatto" // força manual
 
-    const path = require.resolve(`./${empresaPath}/${nome}-agente`)
+    let agenteNome = nome === "gerente"
+      ? "gerentes"
+      : nome
+
+    const path = require.resolve(`./${empresaPath}/${agenteNome}-agente`)
     delete require.cache[path]
 
     return require(path)
 
   }catch(e){
-    console.log(`⚠️ agente ${nome} não encontrado na empresa ${empresa}`)
+    console.log(`⚠️ agente ${nome} não encontrado`)
     return null
   }
 }
