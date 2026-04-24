@@ -551,15 +551,21 @@ function renderizarTabela(lista,modo='setor'){
     ${i.qtd}
   </td>
 
-  <!-- AJUSTE -->
-  <td>
-    ${i.status === 'PENDENTE' 
-      ? `<button onclick="abrirAjuste('${i.index}')"
-           style="padding:4px 8px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer">
-           Ajustar
-         </button>`
-      : '-'}
-  </td>
+
+
+
+
+
+
+
+
+
+
+ <td>
+  ${i.status === 'PENDENTE' 
+    ? "<button onclick=\"abrirAjuste('" + i.index + "')\" style=\"padding:4px 8px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer\">Ajustar</button>"
+    : '-'}
+</td>
 
   <td>${i.unidade}</td>
   <td>${i.setor}</td>
