@@ -367,9 +367,13 @@ let normal = texto
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
 
-// 🔥 CORREÇÃO DE FALA (STT / ÁUDIO)
+
+// 🔥 CORREÇÃO DE FALA (LOCAL EXATO)
 if(
-  classificacao.tipo === "vendas" && (
+  (
+    classificacao.tipo === "vendas" ||
+    texto.includes("meta")
+  ) && (
     normal.includes("mercado") ||
     normal.includes("merkado") ||
     normal.includes("mercad") ||
@@ -377,10 +381,9 @@ if(
     normal.includes("mercato")
   )
 ){
-  console.log("🧠 CORREÇÃO: mercado → mercatto (contexto vendas)")
+  console.log("🧠 CORREÇÃO: mercado → mercatto (contexto vendas/meta)")
   normal = normal.replace(/mercado|merkado|mercad|mercato/g, "mercatto")
 }
-
   
 
 // 🔥 DETECÇÃO INTELIGENTE MERCATTO
@@ -494,7 +497,17 @@ if(tipoAcao !== "consulta"){
 if(texto.includes("reserva")){
   tipoConsulta = "reservas"
 }
+// 🔥 CORREÇÃO META → VENDAS (LOCAL EXATO)
+if(
+  texto.includes("meta") ||
+  texto.includes("objetivo") ||
+  texto.includes("meta mensal")
+){
+  tipoConsulta = "vendas"
+}
 
+
+  
 if(texto.includes("pedido")){
   tipoConsulta = "pedidos"
 }
@@ -1523,7 +1536,30 @@ status_meta: metaInfo?.status || "-"
   })
 
 }
-  
+  // 🔥 RESPOSTA DIRETA DE META (LOCAL EXATO)
+if(texto.includes("meta")){
+
+  if(!empresaFiltro){
+    return res.json({
+      resposta: "⚠️ Informe a empresa para consultar a meta"
+    })
+  }
+
+  const meta = METAS[empresaFiltro]
+
+  if(!meta){
+    return res.json({
+      resposta: `⚠️ Não há meta cadastrada para ${empresaFiltro}`
+    })
+  }
+
+  return res.json({
+    resposta: `🎯 Meta mensal de ${empresaFiltro}:
+
+🥈 Prata: R$ ${Number(meta.prata).toLocaleString("pt-BR")}
+🥇 Ouro: R$ ${Number(meta.ouro || 0).toLocaleString("pt-BR")}`
+  })
+}
 /* ================= OPENAI ================= */
 
 const completion = await openai.chat.completions.create({
