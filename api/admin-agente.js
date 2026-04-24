@@ -900,13 +900,12 @@ if(tipoConsulta === "pedidos"){
 }
 
 const METAS = {
-  "DELÍCIA GOURMET": { prata: 545000 },
-  "MERCATTO EMPORIO": { prata: 650000 },
-  "MERCATTO RESTAURANTE": { prata: 850000 },
-  "PADARIA DELÍCIA": { prata: 720000 },
-  "VILLA GOURMET": { prata: 746600 }
+  "DELÍCIA GOURMET": { prata: 545000, ouro: 650000 },
+  "MERCATTO EMPORIO": { prata: 650000, ouro: 780000 },
+  "MERCATTO RESTAURANTE": { prata: 850000, ouro: 1000000 },
+  "PADARIA DELÍCIA": { prata: 720000, ouro: 850000 },
+  "VILLA GOURMET": { prata: 746600, ouro: 900000 }
 }
-
 function calcularMeta(empresa, valor){
   const meta = METAS[empresa]
   if(!meta) return { meta:0, percentual:0 }
@@ -2643,13 +2642,13 @@ async function executarRelatorioAutomatico(){
 
   console.log("🌅 GERANDO RELATÓRIO AUTOMÁTICO...")
 
-  const METAS = {
-    "DELÍCIA GOURMET": { prata: 545000 },
-    "MERCATTO EMPORIO": { prata: 650000 },
-    "MERCATTO RESTAURANTE": { prata: 850000 },
-    "PADARIA DELÍCIA": { prata: 720000 },
-    "VILLA GOURMET": { prata: 746600 }
-  }
+const METAS = {
+  "DELÍCIA GOURMET": { prata: 545000, ouro: 650000 },
+  "MERCATTO EMPORIO": { prata: 650000, ouro: 780000 },
+  "MERCATTO RESTAURANTE": { prata: 850000, ouro: 1000000 },
+  "PADARIA DELÍCIA": { prata: 720000, ouro: 850000 },
+  "VILLA GOURMET": { prata: 746600, ouro: 900000 }
+}
 
   const admins = Object.entries(USUARIOS)
     .filter(([_, u]) => u.nivel === 0)
@@ -2738,12 +2737,23 @@ let mensagem = `
 
 for(const empresa of dataDia.empresas){
 
-  const meta = METAS[empresa.empresa]?.prata || 0
+// 🔥 TOTAL REAL DO MÊS
+const faturamentoTotalMes = 
+  Number(empresa.faturamento_mes || 0) + 
+  Number(empresa.faturamento || 0)
 
-  const percentual = meta > 0
-    ? ((empresa.faturamento_mes / meta) * 100).toFixed(0)
-    : 0
+// 🎯 METAS
+const metaPrata = METAS[empresa.empresa]?.prata || 0
+const metaOuro = METAS[empresa.empresa]?.ouro || 0
 
+// 📊 PERCENTUAIS
+const percentualPrata = metaPrata > 0
+  ? ((faturamentoTotalMes / metaPrata) * 100).toFixed(0)
+  : 0
+
+const percentualOuro = metaOuro > 0
+  ? ((faturamentoTotalMes / metaOuro) * 100).toFixed(0)
+  : 0
 
 let status = "Estável"
 
@@ -2759,10 +2769,10 @@ mensagem += `
 ━━━━━━━━━━━━━━━━━━
 
 💰 Dia        : R$ ${formatar(empresa.faturamento)}
-📅 Mês        : R$ ${formatar(empresa.faturamento_mes)}
+📅 Mês        : R$ ${formatar(faturamentoTotalMes)}
 💳 Ticket     : R$ ${formatar(empresa.ticket_medio)}
-🎯 Meta       : R$ ${formatar(meta)} - ${percentual}%
-
+🎯 Prata      : R$ ${formatar(metaPrata)} - ${percentualPrata}%
+🥇 Ouro       : R$ ${formatar(metaOuro)} - ${percentualOuro}%
 📊 Desempenho : ${status}
 
 `
