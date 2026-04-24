@@ -10,18 +10,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-
-
-
-
-// ================= MEMÓRIA =================
-
-global.contextoUsuarios = global.contextoUsuarios || {}
-global.acoesPendentes = global.acoesPendentes || {}
-
-
-
-
 /* ================= NORMALIZA ================= */
 
 function normalize(str){
@@ -31,16 +19,6 @@ function normalize(str){
     .replace(/[\u0300-\u036f]/g, "")
 }
 
-
-
-
-
-
-
-
-
-
-
 /* ================= HANDLER ================= */
 
 module.exports = async function handler(req, res){
@@ -49,74 +27,8 @@ module.exports = async function handler(req, res){
 
     const { pergunta, usuario } = req.body
 
-
-const numero = usuario.telefone || "default"
-
-let contextoAtual = global.contextoUsuarios[numero] || {
-  cantor: null,
-  data: null,
-  hora: null,
-  valor: null
-}
-
-let acaoPendente = global.acoesPendentes[numero] || null
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     const empresa = usuario.empresa
-    const texto = pergunta.toLowerCase()
 
-/* ================= CONFIRMAÇÃO ================= */
-
-if(acaoPendente){
-
-  if(["sim","isso","confirmo"].includes(texto)){
-
-    console.log("✅ CONFIRMADO")
-
-    if(acaoPendente.tipo === "update"){
-
-      await supabase
-        .from("agenda_musicos")
-        .update(acaoPendente.dados)
-        .eq("id", acaoPendente.id)
-
-      delete global.acoesPendentes[numero]
-
-      return res.json({
-        resposta: `✅ ${acaoPendente.cantor} atualizado com sucesso.`
-      })
-    }
-  }
-
-  if(["não","cancelar"].includes(texto)){
-
-    delete global.acoesPendentes[numero]
-
-    return res.json({
-      resposta: "❌ Operação cancelada."
-    })
-  }
-}
-
-
-
-
-
-
-    
     console.log("📩 PERGUNTA:", pergunta)
     console.log("🏢 EMPRESA:", empresa)
 
@@ -126,12 +38,7 @@ if(acaoPendente){
       timeZone: "America/Bahia"
     })
 
-    const mesAtual = hoje.slice(0,7)
-
-    console.log("📅 HOJE:", hoje)
-    console.log("📅 MÊS:", mesAtual)
-
-    /* ================= BUSCA TOTAL ================= */
+    /* ================= BUSCA BASE ================= */
 
     const { data: raw, error } = await supabase
       .from("agenda_musicos")
@@ -141,445 +48,286 @@ if(acaoPendente){
       console.log("❌ ERRO BANCO:", error)
     }
 
-    /* ================= FILTRO EMPRESA ================= */
-
-    const empresaNorm = normalize(empresa)
-
     const base = (raw || []).filter(m =>
-      normalize(m.empresa).includes(empresaNorm)
+      normalize(m.empresa).includes(normalize(empresa))
     )
 
-    console.log("📊 TOTAL EMPRESA:", base.length)
+    console.log("📊 TOTAL:", base.length)
 
-    /* ================= HOJE ================= */
+    /* ================= TOOLS ================= */
 
-    if(texto.includes("hoje") || texto === "oi" || texto === "ola"){
+    const tools = [
 
-  const lista = base.filter(m => m.data === hoje)
+      {
+        type: "function",
+        function: {
+          name: "listar_musicos",
+          description: "Lista músicos",
+          parameters: { type: "object", properties: {} }
+        }
+      },
 
-  console.log("📅 HOJE ENCONTRADOS:", lista.length)
+      {
+        type: "function",
+        function: {
+          name: "inserir_musico",
+          description: "Inserir músico",
+          parameters: {
+            type: "object",
+            properties: {
+              cantor: { type: "string" },
+              data: { type: "string" },
+              hora: { type: "string" },
+              valor: { type: "number" },
+              estilo: { type: "string" }
+            },
+            required: ["cantor","data","hora"]
+          }
+        }
+      },
 
-  if(lista.length === 0){
-    return res.json({ resposta: "📭 Nenhum músico hoje." })
-  }
+      {
+        type: "function",
+        function: {
+          name: "atualizar_musico",
+          description: "Atualizar músico",
+          parameters: {
+            type: "object",
+            properties: {
+              cantor: { type: "string" },
+              data: { type: "string" },
+              valor: { type: "number" },
+              hora: { type: "string" },
+              estilo: { type: "string" }
+            },
+            required: ["cantor"]
+          }
+        }
+      },
 
-  // 🔥 SALVA CONTEXTO DO ÚLTIMO
-  const ultimo = lista[lista.length - 1]
-
-  global.contextoUsuarios[numero] = {
-    cantor: ultimo.cantor,
-    data: ultimo.data,
-    hora: ultimo.hora,
-    valor: ultimo.valor
-  }
-
-  const resposta = lista.map(m =>
-    `🎤 ${m.cantor.trim()} - ${m.hora}`
-  ).join("\n")
-
-  return res.json({
-    resposta: `📅 Músicos de hoje:\n\n${resposta}`
-  })
-}
-    /* ================= MÊS ================= */
-
-    if(texto.includes("mes")){
-
-      const lista = base.filter(m => m.data.startsWith(mesAtual))
-
-      console.log("📅 MÊS ENCONTRADOS:", lista.length)
-
-      if(lista.length === 0){
-        return res.json({ resposta: "📭 Nenhum músico no mês." })
+      {
+        type: "function",
+        function: {
+          name: "deletar_musico",
+          description: "Remover músico",
+          parameters: {
+            type: "object",
+            properties: {
+              cantor: { type: "string" },
+              data: { type: "string" }
+            },
+            required: ["cantor"]
+          }
+        }
       }
 
-      const resposta = lista.map(m =>
-        `${m.data} - 🎤 ${m.cantor.trim()} (${m.hora})`
-      ).join("\n")
+    ]
 
-      return res.json({
-        resposta: `📅 Músicos do mês:\n\n${resposta}`
-      })
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* ================= VALOR DO MÚSICO ================= */
-
-if(texto.includes("valor")){
-
-  if(!contextoAtual.cantor){
-    return res.json({ resposta: "⚠️ Qual músico?" })
-  }
-
-  const encontrado = base.find(m =>
-    normalize(m.cantor).includes(normalize(contextoAtual.cantor))
-  )
-
-  if(!encontrado){
-    return res.json({ resposta: "❌ Não encontrei esse músico." })
-  }
-
-  // 🔥 ATUALIZA CONTEXTO
-  global.contextoUsuarios[numero] = {
-    cantor: encontrado.cantor,
-    data: encontrado.data,
-    hora: encontrado.hora,
-    valor: encontrado.valor
-  }
-
-  return res.json({
-    resposta: `💰 Valor do ${encontrado.cantor} em ${encontrado.data} às ${encontrado.hora}:\nR$ ${encontrado.valor}`
-  })
-}
-    /* ================= AGENDA COMPLETA ================= */
-
-    if(texto.includes("agenda")){
-
-      const resposta = base.map(m =>
-        `${m.data} - 🎤 ${m.cantor.trim()} (${m.hora})`
-      ).join("\n")
-
-      return res.json({
-        resposta: `📅 Agenda completa:\n\n${resposta}`
-      })
-    }
-
-    /* ================= DELETE ================= */
-
-    if(texto.includes("deletar")){
-
-      const nome = pergunta.replace(/deletar/i,"").trim()
-
-      const encontrados = base.filter(m =>
-        normalize(m.cantor).includes(normalize(nome))
-      )
-
-      if(encontrados.length === 0){
-        return res.json({ resposta: "❌ Nenhum encontrado." })
-      }
-
-      if(encontrados.length === 1){
-
-        const m = encontrados[0]
-
-        await supabase
-          .from("agenda_musicos")
-          .delete()
-          .eq("id", m.id)
-
-        return res.json({
-          resposta: `🗑️ ${m.cantor} removido.`
-        })
-      }
-
-      const lista = encontrados.map(m =>
-        `${m.cantor} - ${m.data}`
-      ).join("\n")
-
-      return res.json({
-        resposta: `⚠️ Mais de um encontrado:\n\n${lista}\n\nInforme a data.`
-      })
-    }
-
-
-/* ================= INSERT ================= */
-
-if(
-  texto.includes("adiciona") ||
-  texto.includes("adicionar") ||
-  texto.includes("inserir")
-){
-
-  console.log("🧠 INTENÇÃO: INSERIR")
-
-  // tenta extrair dados da conversa
-  const nomeMatch = pergunta.match(/(?:adiciona|adicionar|inserir)\s+(.*?)(?:\s+para|\s+dia|$)/i)
-  const dataMatch = pergunta.match(/\b(\d{2}\/\d{2})\b/)
-  const horaMatch = pergunta.match(/\b(\d{1,2}:\d{2})\b/)
-  const valorMatch = pergunta.match(/\b(\d+)\s*(reais|r\$)?\b/i)
-
-  let cantor = nomeMatch ? nomeMatch[1].trim() : null
-  let data = dataMatch ? dataMatch[1] : null
-  let hora = horaMatch ? horaMatch[1] : null
-  let valor = valorMatch ? Number(valorMatch[1]) : 0
-
-  // trata data dd/mm → yyyy-mm-dd
-  if(data){
-    const [dia, mes] = data.split("/")
-    data = `${hoje.slice(0,4)}-${mes}-${dia}`
-  }
-
-  console.log("📥 EXTRAIDO:", { cantor, data, hora, valor })
-
-  // valida
-  if(!cantor || !data || !hora){
-    return res.json({
-      resposta: "⚠️ Preciso de nome, data e hora para inserir."
-    })
-  }
-
-  // insere
-  await supabase.from("agenda_musicos").insert({
-    empresa,
-    cantor,
-    data,
-    hora,
-    valor: valor || 0,
-    estilo: "Não definido"
-  })
-
-  return res.json({
-    resposta: `✅ ${cantor} adicionado em ${data} às ${hora}.`
-  })
-}
-
-
-
-
-
-/* ================= UPDATE INTELIGENTE ================= */
-
-/* ================= UPDATE REAL COM MEMÓRIA ================= */
-
-if(
-  texto.includes("atualiza") ||
-  texto.includes("alterar") ||
-  texto.includes("muda") ||
-  texto.includes("coloca")
-){
-
-  console.log("🧠 UPDATE REAL")
-
-  // detectar nome automaticamente pela base
-  const nomes = base.map(m => m.cantor.toLowerCase())
-
-  let nomeDetectado = nomes.find(n =>
-    texto.includes(normalize(n))
-  )
-
-  if(nomeDetectado){
-    contextoAtual.cantor = nomeDetectado
-  }
-
-  // data
-  const dataMatch = pergunta.match(/\b(\d{2}\/\d{2})\b/)
-  if(dataMatch){
-    const [dia, mes] = dataMatch[1].split("/")
-    contextoAtual.data = `${hoje.slice(0,4)}-${mes}-${dia}`
-  }
-
-  // hora
-  const horaMatch = pergunta.match(/\b(\d{1,2}:\d{2})\b/)
-  if(horaMatch){
-    contextoAtual.hora = horaMatch[1]
-  }
-
-  // valor
-const valorMatch = pergunta.match(/(\d+)\s*(reais|r\$)?/i)
-  if(valorMatch){
-    contextoAtual.valor = Number(valorMatch[1])
-  }
-
-  // salva contexto
-  global.contextoUsuarios[numero] = contextoAtual
-
-  console.log("📌 CONTEXTO:", contextoAtual)
-
-if(!contextoAtual.cantor){
-
-  // 🔥 tenta pegar do histórico automaticamente
-  const ultimo = base[base.length - 1]
-
-  if(ultimo){
-    contextoAtual.cantor = ultimo.cantor
-    contextoAtual.data = ultimo.data
-  }else{
-    return res.json({ resposta: "⚠️ Qual músico?" })
-  }
-}
-  const encontrados = base.filter(m =>
-    normalize(m.cantor).includes(normalize(contextoAtual.cantor))
-  )
-
-  if(encontrados.length === 0){
-    return res.json({ resposta: "❌ Músico não encontrado." })
-  }
-
-  let alvo = contextoAtual.data
-    ? encontrados.find(m => m.data === contextoAtual.data)
-    : encontrados[0]
-
-  if(!alvo){
-    return res.json({
-      resposta: "❌ Não encontrei esse show nessa data."
-    })
-  }
-
-  const updateData = {}
-
-  if(contextoAtual.hora) updateData.hora = contextoAtual.hora
-  if(contextoAtual.valor !== null) updateData.valor = contextoAtual.valor
-
-  if(Object.keys(updateData).length === 0){
-    return res.json({
-      resposta: "⚠️ O que deseja alterar?"
-    })
-  }
-
-  // salva ação pendente
-  global.acoesPendentes[numero] = {
-    tipo: "update",
-    id: alvo.id,
-    dados: updateData,
-    cantor: alvo.cantor
-  }
-
-  return res.json({
-    resposta: `Confirma alterar ${alvo.cantor} para ${JSON.stringify(updateData)}?`
-  })
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-    
     /* ================= IA ================= */
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-       {
-      role: "system",
-      content: `
+        {
+          role: "system",
+          content: `
 Você é o GERENTE INTELIGENTE da agenda de músicos da empresa ${empresa}.
 
 DATA ATUAL: ${hoje}
 
 ---
 
-📊 BASE DE DADOS (VERDADE ABSOLUTA):
-${JSON.stringify(base.slice(0,50), null, 2)}
+BASE DE DADOS (VERDADE ABSOLUTA):
+${JSON.stringify(base, null, 2)}
 
 ---
 
-🎯 SUA FUNÇÃO
+REGRAS:
 
-Você NÃO é um chatbot comum.
-Você é responsável por:
-
-- Interpretar pedidos
-- Usar os dados acima como fonte única
-- Ajudar o usuário de forma direta
-- Complementar o sistema quando necessário
-
----
-
-⚠️ REGRAS CRÍTICAS
-
-1. NUNCA invente dados
-2. NUNCA pergunte algo que já está na base
-3. NUNCA diga "não sei" se a resposta está nos dados
-4. NUNCA ignore o contexto da conversa
+- Você controla tudo
+- Nunca invente dados
+- Sempre use a base acima
+- Pode listar, inserir, atualizar e deletar
+- Se faltar informação → peça
+- Se estiver completo → execute
+- Se houver mais de um músico com mesmo nome → peça a data
 
 ---
 
-🧠 INTELIGÊNCIA DE INTERPRETAÇÃO
+COMPORTAMENTO:
 
-Você deve entender comandos como:
-
-- "hoje" → usar ${hoje}
-- "mês" → filtrar por ${mesAtual}
-- "agenda" → listar tudo
-- "aquele músico" → usar contexto anterior
-- "ele" → referenciar último músico citado
+- Seja direto
+- Nada de respostas genéricas
+- Nada de enrolação
+- Nada de perguntar o que já está claro
 
 ---
 
-⚙️ IMPORTANTE SOBRE AÇÕES
+EXEMPLOS:
 
-- Inserir, atualizar e deletar JÁ SÃO tratados pelo sistema
-- Você NÃO executa ações diretamente
-- Você apenas ORIENTA e COMPLEMENTA
+Usuário: "musicos de hoje"
+→ listar_musicos
 
----
+Usuário: "adiciona pedro dia 30/04 15:00"
+→ inserir_musico
 
-📌 COMPORTAMENTO
+Usuário: "muda valor do pedro para 12"
+→ atualizar_musico
 
-Se o usuário já deu dados incompletos (ex: "Pedro dia 30/04"):
-
-→ você deve pedir APENAS o que falta
-→ nunca ignorar a intenção
-
-Se o usuário deu tudo:
-
-→ confirme de forma natural
+Usuário: "remove pedro"
+→ deletar_musico
 
 ---
 
-🧾 FORMATO DE RESPOSTA
+OBJETIVO:
 
-Sempre:
-
-- claro
-- direto
-- profissional
-- sem enrolação
-
-Exemplo:
-
-📅 Agenda:
-
-🎤 Pedro - 30/04 às 15:00
-
----
-
-🎯 OBJETIVO FINAL
-
-Ser rápido, inteligente e útil.
-Agir como um gerente real, não como um assistente genérico.
+Ser rápido, preciso e agir como gerente real.
 `
-    },
-        { role: "user", content: pergunta }
-      ]
+        },
+        {
+          role: "user",
+          content: pergunta
+        }
+      ],
+      tools
     })
 
-    const resposta = completion.choices[0].message.content
+    const msg = completion.choices[0].message
 
-    return res.json({ resposta })
+    /* ================= EXECUÇÃO ================= */
+
+    if(msg.tool_calls){
+
+      const call = msg.tool_calls[0]
+      const nome = call.function.name
+      const args = JSON.parse(call.function.arguments)
+
+      console.log("⚙️ TOOL:", nome)
+      console.log("📥 ARGS:", args)
+
+      /* ===== LISTAR ===== */
+
+      if(nome === "listar_musicos"){
+
+        if(base.length === 0){
+          return res.json({ resposta: "📭 Nenhum músico." })
+        }
+
+        const resposta = base
+          .sort((a,b) => a.data.localeCompare(b.data))
+          .map(m =>
+            `${m.data} - 🎤 ${m.cantor.trim()} (${m.hora})`
+          ).join("\n")
+
+        return res.json({
+          resposta: `📅 Agenda:\n\n${resposta}`
+        })
+      }
+
+      /* ===== INSERIR ===== */
+
+      if(nome === "inserir_musico"){
+
+        await supabase.from("agenda_musicos").insert({
+          empresa,
+          ...args
+        })
+
+        return res.json({
+          resposta: `✅ ${args.cantor} inserido com sucesso.`
+        })
+      }
+
+      /* ===== ATUALIZAR ===== */
+
+      if(nome === "atualizar_musico"){
+
+        const encontrados = base.filter(m =>
+          normalize(m.cantor).includes(normalize(args.cantor))
+        )
+
+        if(encontrados.length === 0){
+          return res.json({ resposta: "❌ Músico não encontrado." })
+        }
+
+        if(encontrados.length > 1 && !args.data){
+          return res.json({
+            resposta: `⚠️ Mais de um encontrado:\n\n${encontrados.map(m =>
+              `${m.cantor} - ${m.data}`
+            ).join("\n")}\n\nInforme a data.`
+          })
+        }
+
+        const alvo = args.data
+          ? encontrados.find(m => m.data === args.data)
+          : encontrados[0]
+
+        if(!alvo){
+          return res.json({ resposta: "❌ Registro não encontrado." })
+        }
+
+        await supabase
+          .from("agenda_musicos")
+          .update(args)
+          .eq("id", alvo.id)
+
+        return res.json({
+          resposta: `✏️ ${alvo.cantor} atualizado com sucesso.`
+        })
+      }
+
+      /* ===== DELETAR ===== */
+
+      if(nome === "deletar_musico"){
+
+        const encontrados = base.filter(m =>
+          normalize(m.cantor).includes(normalize(args.cantor))
+        )
+
+        if(encontrados.length === 0){
+          return res.json({ resposta: "❌ Não encontrado." })
+        }
+
+        if(encontrados.length > 1 && !args.data){
+          return res.json({
+            resposta: `⚠️ Mais de um encontrado:\n\n${encontrados.map(m =>
+              `${m.cantor} - ${m.data}`
+            ).join("\n")}\n\nInforme a data.`
+          })
+        }
+
+        const alvo = args.data
+          ? encontrados.find(m => m.data === args.data)
+          : encontrados[0]
+
+        if(!alvo){
+          return res.json({ resposta: "❌ Registro não encontrado." })
+        }
+
+        await supabase
+          .from("agenda_musicos")
+          .delete()
+          .eq("id", alvo.id)
+
+        return res.json({
+          resposta: `🗑️ ${alvo.cantor} removido.`
+        })
+      }
+
+    }
+
+    /* ================= RESPOSTA NORMAL ================= */
+
+    return res.json({
+      resposta: msg.content || "Ok"
+    })
 
   }catch(e){
 
-    console.error("❌ ERRO:", e)
+    console.error("❌ ERRO GERENTE:", e)
 
     return res.json({
-      resposta: "Erro interno"
+      resposta: "Erro interno no agente gerente"
     })
   }
 }
