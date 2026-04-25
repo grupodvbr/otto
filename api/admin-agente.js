@@ -277,13 +277,20 @@ REGRAS:
   const acao = {
     tabela: "prompt_agente",
     operacao: "insert",
-    dados: {
-      prompt: dados.prompt,
-      ordem: const prioridade = dados.prioridade || 5
-      ativo: true
-    }
-  }
 
+
+    
+const prioridade = dados.prioridade || 5
+
+const acao = {
+  tabela: "prompt_agente",
+  operacao: "insert",
+  dados: {
+    prompt: dados.prompt,
+    ordem: prioridade,
+    ativo: true
+  }
+}
 return res.json({
   resposta: `
 ⚠️ CONFIRMAÇÃO DE PROMPT
