@@ -1691,17 +1691,49 @@ if(resumoDia && resumoDia.faturamento !== undefined){
 
 
 
-let faturamentoMesTotal = resumoDia.faturamento // fallback
+let faturamentoMesTotal = resumoDia.faturamento
 
-// 🔥 tenta pegar o mês completo
-const ctxMes = contextos.find(c => c.content.includes("RESUMO_MES_COMPLETO"))
+try{
 
-if(ctxMes){
-  try{
-    const json = JSON.parse(ctxMes.content.split("\n")[1])
-    faturamentoMesTotal = json.total?.faturamento || resumoDia.faturamento
-  }catch(e){}
+  const resMes = await fetch(`${API_CUPONS}/resumo-mes`)
+  const dataMes = await resMes.json()
+
+  if(resumoDia.empresa){
+
+    const empresaMes = dataMes.empresas?.find(
+      e => e.empresa === resumoDia.empresa
+    )
+
+    if(empresaMes){
+      faturamentoMesTotal =
+        Number(empresaMes.faturamento_mes || 0) +
+        Number(resumoDia.faturamento || 0)
+    }
+
+  }else{
+
+    faturamentoMesTotal =
+      dataMes.empresas.reduce(
+        (acc, e) => acc + Number(e.faturamento_mes || 0),
+        0
+      ) + Number(resumoDia.faturamento || 0)
+
+  }
+
+}catch(e){
+  console.log("⚠️ erro ao buscar mês, fallback ativo")
 }
+
+
+
+
+
+
+
+
+
+
+  
 
 // 🔥 cálculo correto da meta
 const metaInfo = resumoDia.empresa
