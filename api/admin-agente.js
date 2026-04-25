@@ -614,10 +614,28 @@ let tipoConsulta = classificacao.tipo || "geral"
 
 // 🔥 PRIORIDADE TOTAL PARA GRÁFICO
 if(pediuGrafico){
-  console.log("📊 MODO GRÁFICO ATIVADO (PRIORIDADE TOTAL)")
-  tipoConsulta = "grafico"
+  contextos.push({
+    role: "system",
+    content: `
+🚨 MODO_GRAFICO_ATIVO
+
+RESPONDA SOMENTE COM:
+
+GRAFICO_JSON:
+{
+  "tipo": "bar",
+  "titulo": "Faturamento",
+  "labels": [],
+  "dados": []
 }
 
+PROIBIDO:
+- texto
+- explicação
+- relatório
+`
+  })
+}
 
   // 🔥 BLOQUEIO GLOBAL DE TAREFAS
 if(tipoConsulta === "tarefas" && NIVEL !== 0){
