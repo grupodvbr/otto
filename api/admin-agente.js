@@ -2422,6 +2422,27 @@ await supabase
     tipo: "relatorio_admin",
     telefone: "sistema"
   })
+
+const perguntaAnalise = `📊 Deseja que eu faça uma análise estratégica deste relatório?
+
+✔ SIM → análise completa  
+❌ NÃO → encerrar`
+
+await supabase
+  .from("assistente_otto_chat")
+  .insert({
+    role: "assistant",
+    mensagem: perguntaAnalise,
+    tipo: "pergunta_analise",
+    telefone: "sistema"
+  })
+
+
+
+
+
+
+
   
   for(const numero of admins){
 
