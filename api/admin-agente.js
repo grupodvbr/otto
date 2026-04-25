@@ -2199,6 +2199,96 @@ mensagem += `
 `
 }
 
+
+// ================= TOTAL MERCATTO =================
+
+const empresas = dataDia.empresas || []
+
+const emporio = empresas.find(e => e.empresa === "MERCATTO EMPORIO")
+const restaurante = empresas.find(e => e.empresa === "MERCATTO RESTAURANTE")
+
+if(emporio && restaurante){
+
+  // 💰 DIA
+  const faturamentoDia =
+    Number(emporio.faturamento || 0) +
+    Number(restaurante.faturamento || 0)
+
+  // 📅 MÊS
+  const faturamentoMes =
+    Number(emporio.faturamento_mes || 0) +
+    Number(restaurante.faturamento_mes || 0) +
+    faturamentoDia
+
+  // 🎯 METAS
+  const metaPrata =
+    (METAS["MERCATTO EMPORIO"]?.prata || 0) +
+    (METAS["MERCATTO RESTAURANTE"]?.prata || 0)
+
+  const metaOuro =
+    (METAS["MERCATTO EMPORIO"]?.ouro || 0) +
+    (METAS["MERCATTO RESTAURANTE"]?.ouro || 0)
+
+  // 📊 % ATINGIDO
+  const percPrata = metaPrata > 0
+    ? ((faturamentoMes / metaPrata) * 100).toFixed(2)
+    : 0
+
+  const percOuro = metaOuro > 0
+    ? ((faturamentoMes / metaOuro) * 100).toFixed(2)
+    : 0
+
+  // ================= META ESPERADA =================
+
+  const hoje = new Date(
+    new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
+  )
+
+  const diaAtual = hoje.getDate()
+
+  const ultimoDiaMes = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth() + 1,
+    0
+  ).getDate()
+
+  const proporcao = diaAtual / ultimoDiaMes
+
+  const metaEsperada = metaPrata * proporcao
+
+  const status =
+    faturamentoMes >= metaEsperada
+      ? "🟢 ACIMA DO ESPERADO"
+      : "🔴 ABAIXO DO ESPERADO"
+
+  // ================= BLOCO VISUAL =================
+
+  mensagem += `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 *TOTAL MERCATTO*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💰 Dia        : R$ ${formatar(faturamentoDia)}
+📅 Mês        : R$ ${formatar(faturamentoMes)}
+
+🎯 Meta Prata : R$ ${formatar(metaPrata)}
+📊 Atingido   : ${percPrata}%
+
+🥇 Meta Ouro  : R$ ${formatar(metaOuro)}
+📊 Atingido   : ${percOuro}%
+
+📈 Esperado até hoje : R$ ${formatar(metaEsperada)}
+
+📊 Status     : ${status}
+`
+}
+
+
+
+
+
+
+  
 mensagem += `
 ━━━━━━━━━━━━━━━━━━
 *Relatório automático • Carneiro Holding*
