@@ -291,10 +291,6 @@ REGRAS:
   }
 
 
-
-    
-const prioridade = dados.prioridade || 5
-
 const prioridade = dados.prioridade || 5
 
 const acao = {
