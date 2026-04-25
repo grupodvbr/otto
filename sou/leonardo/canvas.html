@@ -1000,13 +1000,11 @@ if(horaAtual < 4){
 const dataISO = agora.toISOString().slice(0,10)
 
 const res = await fetch(
-  API_URL + `?data=${dataISO}&inicio=04:00&fim=03:59&t=` + Date.now(),
+  API_URL + `?data=${dataISO}&t=` + Date.now(),
   {
     cache: "no-store"
   }
 )
-  
-
 
   const data = await res.json()
 
