@@ -541,62 +541,66 @@ header div:first-child{
 }
 
 
-/* ================= MOBILE PERFEITO ================= */
+/* ================= MOBILE FINAL (FORÇA TOTAL) ================= */
 @media (max-width:900px){
 
-  html,body{
-    overflow:auto;
+  html, body{
+    overflow:auto !important;
   }
 
+  /* 🔥 FORÇA virar coluna */
   .grid{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    height:auto;
-    padding:12px;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px !important;
+
+    height:auto !important;
+    padding:12px !important;
   }
 
-  /* remove grid interna da direita */
+  /* 🔥 quebra a grid interna */
   .right-grid{
-    display:contents;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px;
   }
 
-  /* TODOS OS CARDS */
+  /* 🔥 cards quadrados */
   .card{
-    width:100%;
-    
-    /* 🔥 DEIXA QUADRADO */
-    aspect-ratio: 1 / 1;
+    width:100% !important;
+    aspect-ratio:1/1 !important;
 
-    height:auto;
-    min-height:auto;
+    height:auto !important;
+    min-height:auto !important;
 
-    padding:12px;
+    padding:12px !important;
   }
 
-  /* melhora leitura no mobile */
+  /* 🔥 remove qualquer posição fixa antiga */
+  #villa,
+  #delicia,
+  #padaria{
+    grid-column:auto !important;
+    grid-row:auto !important;
+  }
+
+  /* 🔥 tipografia melhor */
   .valor-mes{
-    font-size:18px;
+    font-size:18px !important;
   }
 
   .valor{
-    font-size:16px;
+    font-size:16px !important;
   }
 
   .vendas,
   .ticket-linha{
-    font-size:13px;
+    font-size:13px !important;
   }
 
   .logo{
-    width:42px;
-    height:42px;
-  }
-
-  /* metas mais organizadas */
-  .metas{
-    margin-top:8px;
-    gap:10px;
+    width:42px !important;
+    height:42px !important;
   }
 
 }
