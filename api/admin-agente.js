@@ -1644,30 +1644,30 @@ if(resumoDia && resumoDia.faturamento !== undefined){
 
 
 
-// 🔥 MODO RELATÓRIO (LOCAL CORRETO)
+const pediuGrafico =
+  texto.includes("grafico") ||
+  texto.includes("gráfico") ||
+  texto.includes("chart")
+
 if(
-  texto.includes("relatorio") ||
-  texto.includes("relatório") ||
-  texto.includes("vendas") ||
-  texto.includes("faturamento") ||
-  texto.includes("resumo") ||
-  texto.includes("meta") ||
-  texto.includes("ticket") ||
-  texto.includes("quanto vendi") ||
-  texto.includes("quanto faturou")
+  !pediuGrafico && (
+    texto.includes("relatorio") ||
+    texto.includes("relatório") ||
+    texto.includes("vendas") ||
+    texto.includes("faturamento") ||
+    texto.includes("resumo") ||
+    texto.includes("meta")
+  )
 ){
   contextos.push({
     role: "system",
     content: `
 O usuário está solicitando um RELATÓRIO.
 
-Use obrigatoriamente os modelos definidos nas regras principais.
-Não responder fora do padrão de relatório.
+Use obrigatoriamente os modelos definidos.
 `
   })
 }
-  
-  
 
 
 
@@ -1693,8 +1693,23 @@ ${promptAgente}
 
 REGRAS CRÍTICAS:
 
-- Se houver dados de vendas no contexto:
-  → SEMPRE gerar um relatório completo
+// ================= PRIORIDADE =================
+
+- Se o texto contiver palavras como:
+  gráfico, grafico, chart, visualizar
+
+→ responder SOMENTE com GRAFICO_JSON
+→ nunca responder texto
+→ nunca gerar relatório junto
+
+
+- Caso contrário:
+
+  - Se houver dados de vendas no contexto:
+    → gerar relatório completo
+
+
+    
   → NUNCA responder texto simples
   → SEMPRE usar formato estruturado
 
