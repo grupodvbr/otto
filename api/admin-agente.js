@@ -295,7 +295,7 @@ return res.json({
   resposta: `
 ⚠️ CONFIRMAÇÃO DE PROMPT
 
-📌 Prioridade: ${dados.prioridade}
+📌 Prioridade: ${prioridade}
 
 🧠 Regra:
 ${dados.prompt}
