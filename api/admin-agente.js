@@ -178,6 +178,19 @@ const amanhaISO = getDataISO(amanhaDate)
 
 
 const texto = pergunta.toLowerCase()
+  // ================= DETECTA GRÁFICO =================
+const pediuGrafico =
+  texto.includes("grafico") ||
+  texto.includes("gráfico") ||
+  texto.includes("chart") ||
+  texto.includes("visual") ||
+  texto.includes("comparação visual") ||
+  texto.includes("barras") ||
+  texto.includes("linha") ||
+  texto.includes("pizza") ||
+  texto.includes("evolução")
+
+
   
 /* ================= GERENCIAR PROMPTS ================= */
 
@@ -249,7 +262,17 @@ if(
       resposta: "⛔ Apenas administradores podem criar prompts"
     })
   }
+  
+  if(pediuGrafico){
+  contextos.push({
+    role: "system",
+    content: "MODO_GRAFICO_ATIVO: true"
+  })
+}
 
+
+
+  
   const interpretacaoPrompt = await openai.chat.completions.create({
     model: "gpt-4.1-mini",
     temperature: 0,
