@@ -179,7 +179,77 @@ const amanhaISO = getDataISO(amanhaDate)
 
 const texto = pergunta.toLowerCase()
 
+/* ================= GERENCIAR PROMPTS ================= */
 
+if(texto.includes("novo prompt")){
+
+  if(NIVEL !== 0){
+    return res.json({
+      resposta: "⛔ Apenas administradores podem gerenciar prompts"
+    })
+  }
+
+  // 🔥 LISTA PROMPTS ATUAIS
+  const { data: lista } = await supabase
+    .from("prompt_agente")
+    .select("*")
+    .eq("ativo", true)
+    .order("ordem",{ascending:true})
+
+  let resposta = "🧠 PROMPTS ATUAIS:\n\n"
+
+  if(lista && lista.length){
+    lista.forEach(p => {
+      resposta += `#${p.ordem} → ${p.prompt}\n\n`
+    })
+  }else{
+    resposta += "Nenhum prompt cadastrado.\n\n"
+  }
+
+  resposta += "✍️ Envie o NOVO PROMPT no formato:\n\nPROMPT: seu texto\nPRIORIDADE: numero"
+
+  return res.json({ resposta })
+}
+
+
+  if(texto.includes("prompt:") && texto.includes("prioridade:")){
+
+  if(NIVEL !== 0){
+    return res.json({
+      resposta: "⛔ Apenas administradores podem criar prompts"
+    })
+  }
+
+  const promptMatch = pergunta.match(/prompt:\s*([\s\S]*?)\s*prioridade:/i)
+  const prioridadeMatch = pergunta.match(/prioridade:\s*(\d+)/i)
+
+  if(!promptMatch || !prioridadeMatch){
+    return res.json({
+      resposta: "⚠️ Formato inválido.\nUse:\nPROMPT: ...\nPRIORIDADE: número"
+    })
+  }
+
+  const novoPrompt = promptMatch[1].trim()
+  const prioridade = parseInt(prioridadeMatch[1])
+
+  const acao = {
+    tabela: "prompt_agente",
+    operacao: "insert",
+    dados: {
+      prompt: novoPrompt,
+      ordem: prioridade,
+      ativo: true
+    }
+  }
+
+  return res.json({
+    resposta: `⚠️ Confirme para salvar:\n\n#${prioridade}\n${novoPrompt}`,
+    acao
+  })
+}
+
+
+  
 
   // ================= COMANDO MANUAL RELATÓRIO ADM =================
 
