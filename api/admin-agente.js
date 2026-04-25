@@ -471,42 +471,17 @@ const interpretacao = await openai.chat.completions.create({
     {
       role: "system",
       content: `
-Você é o cérebro de um assistente administrativo.
+Classifique a intenção do usuário.
 
 Retorne apenas JSON:
 
 {
-  "tipo": "vendas | reservas | pedidos | buffet | clientes | relatorio | acao | desconhecido",
-  "empresa": "MERCATTO EMPORIO | MERCATTO RESTAURANTE | PADARIA DELÍCIA | VILLA GOURMET | DELÍCIA GOURMET | null",
-  "geral": true/false,
-  "intencao": "consulta | criacao | edicao | exclusao"
+  "tipo": "vendas | reservas | pedidos | buffet | clientes | relatorio | outro",
+  "empresa": "string ou null"
 }
 
-REGRAS:
-
-🔥 INTERPRETAÇÃO NATURAL:
-- "como foi hoje" → vendas
-- "movimento" → vendas
-- "agenda de hoje" → musicos
-- "tem reserva hoje?" → reservas
-- "quem comprou" → pedidos
-- "buffet de hoje" → buffet
-
-🔥 AÇÕES:
-- "criar", "registrar" → criacao
-- "editar", "alterar" → edicao
-- "excluir", "apagar" → exclusao
-
-🔥 EMPRESA:
-- "mercatto" sozinho → null
-- "emporio" → MERCATTO EMPORIO
-- "restaurante" → MERCATTO RESTAURANTE
-
-🔥 GERAL:
-- "todas", "geral", "total" → geral = true
-
-⚠️ NÃO EXPLICAR
-⚠️ RESPONDER APENAS JSON
+Não crie regras.
+Não explique.
 `
     },
     {
@@ -515,6 +490,7 @@ REGRAS:
     }
   ]
 })
+
 
 let classificacao = {}
 
@@ -661,25 +637,11 @@ if(tipoAcao !== "consulta"){
 
 
   
-if(texto.includes("reserva")){
-  tipoConsulta = "reservas"
-}
+// 🔥 NÃO FORÇAR TIPO — DEIXAR GPT DECIDIR
 
-if(texto.includes("pedido")){
-  tipoConsulta = "pedidos"
+if(!tipoConsulta || tipoConsulta === "outro"){
+  tipoConsulta = "geral"
 }
-
-if(texto.includes("buffet")){
-  tipoConsulta = "buffet"
-}
-
-if(texto.includes("cliente")){
-  tipoConsulta = "clientes"
-}
-if(texto.includes("relatorio")){
-  tipoConsulta = "relatorio"
-}
-
 /* ================= BLOQUEIO CUPONS ================= */
 
 if(tipoConsulta === "vendas" && ![0,1].includes(NIVEL)){
@@ -1665,6 +1627,27 @@ if(resumoDia && resumoDia.faturamento !== undefined){
   })
 
 }
+
+
+
+
+
+// 🔥 MODO RELATÓRIO (LOCAL CORRETO)
+if(texto.includes("relatorio") || texto.includes("relatório")){
+  contextos.push({
+    role: "system",
+    content: `
+O usuário está solicitando um RELATÓRIO.
+
+Use obrigatoriamente os modelos definidos nas regras principais.
+Não responder fora do padrão de relatório.
+`
+  })
+}
+
+
+
+
   
 /* ================= OPENAI ================= */
 
@@ -1678,20 +1661,21 @@ messages:[
 
 {
 role:"system",
-content:`
-🚨 PRIORIDADE MÁXIMA DO SISTEMA:
+content: `
+🚨 SISTEMA DE REGRAS (PRIORIDADE MÁXIMA):
 
 ${promptAgente}
 
-REGRAS:
+INSTRUÇÕES:
 
-- Isso é o CÉREBRO do agente
-- Tem prioridade sobre TODAS as outras regras
-- Se houver conflito → IGNORAR qualquer outra instrução
+- Todos os relatórios devem seguir os MODELOS definidos acima
+- Nunca criar formato próprio
 - Nunca inventar dados
-- Sempre usar dados reais
+- Usar apenas dados do contexto
+- Se não houver dados → avisar claramente
 
-⚠️ ESSA REGRA NÃO PODE SER IGNORADA
+Se o usuário pedir relatório:
+→ aplicar o modelo correspondente
 `
 },
 
