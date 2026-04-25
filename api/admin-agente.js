@@ -1700,9 +1700,22 @@ if(resumoDia && resumoDia.faturamento !== undefined){
     }catch(e){}
   }
 
-  const metaInfo = resumoDia.empresa
-    ? calcularMeta(resumoDia.empresa, totalMes)
-    : null
+let faturamentoMesTotal = resumoDia.faturamento // fallback
+
+// 🔥 tenta pegar o mês completo
+const ctxMes = contextos.find(c => c.content.includes("RESUMO_MES_COMPLETO"))
+
+if(ctxMes){
+  try{
+    const json = JSON.parse(ctxMes.content.split("\n")[1])
+    faturamentoMesTotal = json.total?.faturamento || resumoDia.faturamento
+  }catch(e){}
+}
+
+// 🔥 cálculo correto da meta
+const metaInfo = resumoDia.empresa
+  ? calcularMeta(resumoDia.empresa, faturamentoMesTotal)
+  : null
 
     
 
