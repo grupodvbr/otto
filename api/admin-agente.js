@@ -293,6 +293,7 @@ REGRAS:
 
 
     
+
 const prioridade = dados.prioridade || 5
 
 const acao = {
@@ -304,6 +305,33 @@ const acao = {
     ativo: true
   }
 }
+
+// 🔥 SALVA A AÇÃO PRA CONFIRMAÇÃO FUNCIONAR
+await supabase
+  .from("assistente_otto_chat")
+  .insert({
+    role: "assistant",
+    mensagem: `
+⚠️ CONFIRMAÇÃO DE PROMPT
+
+📌 Prioridade: ${prioridade}
+
+🧠 Regra:
+${dados.prompt}
+
+Digite:
+
+✔ SIM → salvar  
+✏️ ALTERAR → modificar  
+❌ CANCELAR → abortar
+`,
+    telefone: numero,
+    usuario_id: usuarioDB.id,
+    nome: NOME,
+    empresa: EMPRESA,
+    acao_json: acao,
+    aguardando_confirmacao: true
+  })
 
 return res.json({
   resposta: `
@@ -319,12 +347,8 @@ Digite:
 ✔ SIM → salvar  
 ✏️ ALTERAR → modificar  
 ❌ CANCELAR → abortar
-`,
-  acao
+`
 })
-}
-
-  
 
   // ================= COMANDO MANUAL RELATÓRIO ADM =================
 
