@@ -997,7 +997,7 @@ let resumoDia = null
 // ================= DADOS EXTERNOS (VENDAS API) =================
 
 let dadosExternos = {}
-
+console.log("🔥 DADOS EXTERNOS:", JSON.stringify(dadosExternos, null, 2))
 try{
 
   const API = "https://marked-resolved-tropical-posting.trycloudflare.com"
