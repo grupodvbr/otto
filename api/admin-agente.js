@@ -192,17 +192,25 @@ if(texto.includes("novo prompt")){
   // 🔥 LISTA PROMPTS ATUAIS
   const { data: lista } = await supabase
     .from("prompt_agente")
-    .select("*")
+   .select("prompt, ordem")
     .eq("ativo", true)
     .order("ordem",{ascending:true})
 
   let resposta = "🧠 PROMPTS ATUAIS:\n\n"
 
   if(lista && lista.length){
-    lista.forEach(p => {
-      resposta += `#${p.ordem} → ${p.prompt}\n\n`
-    })
-  }else{
+lista.forEach(p => {
+
+const nomeCurto = (p.prompt || "")
+  .split(".")[0]
+  .slice(0, 50)
+
+  resposta += `#${p.ordem} → ${nomeCurto}...\n`
+})
+  }
+  
+  
+  else{
     resposta += "Nenhum prompt cadastrado.\n\n"
   }
 
@@ -212,7 +220,13 @@ if(texto.includes("novo prompt")){
 }
 
 
-  if(texto.includes("prompt:") && texto.includes("prioridade:")){
+/* ================= NOVO PROMPT INTELIGENTE ================= */
+
+if(
+  texto.startsWith("prompt:") ||
+  texto.includes("criar prompt") ||
+  texto.includes("novo prompt com")
+){
 
   if(NIVEL !== 0){
     return res.json({
@@ -220,34 +234,74 @@ if(texto.includes("novo prompt")){
     })
   }
 
-  const promptMatch = pergunta.match(/prompt:\s*([\s\S]*?)\s*prioridade:/i)
-  const prioridadeMatch = pergunta.match(/prioridade:\s*(\d+)/i)
+  const interpretacaoPrompt = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content: `
+Extraia um novo prompt e prioridade da frase.
 
-  if(!promptMatch || !prioridadeMatch){
-    return res.json({
-      resposta: "⚠️ Formato inválido.\nUse:\nPROMPT: ...\nPRIORIDADE: número"
-    })
+Responda APENAS JSON:
+
+{
+  "prompt": "texto do prompt",
+  "prioridade": numero
+}
+
+REGRAS:
+- Converta números por extenso (ex: cinco → 5)
+- Se não tiver prioridade → usar 5
+- Se não tiver prompt → retornar null
+`
+      },
+      { role: "user", content: pergunta }
+    ]
+  })
+
+  let dados = null
+
+  try{
+    dados = JSON.parse(interpretacaoPrompt.choices[0].message.content)
+  }catch(e){
+    console.log("❌ ERRO INTERPRETAR PROMPT")
   }
 
-  const novoPrompt = promptMatch[1].trim()
-  const prioridade = parseInt(prioridadeMatch[1])
+  if(!dados?.prompt){
+    return res.json({
+      resposta: "⚠️ Não consegui entender o prompt. Tente novamente."
+    })
+  }
 
   const acao = {
     tabela: "prompt_agente",
     operacao: "insert",
     dados: {
-      prompt: novoPrompt,
-      ordem: prioridade,
+      prompt: dados.prompt,
+      ordem: const prioridade = dados.prioridade || 5
       ativo: true
     }
   }
 
-  return res.json({
-    resposta: `⚠️ Confirme para salvar:\n\n#${prioridade}\n${novoPrompt}`,
-    acao
-  })
-}
+return res.json({
+  resposta: `
+⚠️ CONFIRMAÇÃO DE PROMPT
 
+📌 Prioridade: ${dados.prioridade}
+
+🧠 Regra:
+${dados.prompt}
+
+Digite:
+
+✔ SIM → salvar  
+✏️ ALTERAR → modificar  
+❌ CANCELAR → abortar
+`,
+  acao
+})
+}
 
   
 
