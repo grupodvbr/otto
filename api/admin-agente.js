@@ -293,10 +293,9 @@ REGRAS:
 
 
     
-
 const prioridade = dados.prioridade || 5
 
-const acaoPrompt = {
+const acao = {
   tabela: "prompt_agente",
   operacao: "insert",
   dados: {
@@ -305,33 +304,6 @@ const acaoPrompt = {
     ativo: true
   }
 }
-
-// 🔥 SALVA A AÇÃO PRA CONFIRMAÇÃO FUNCIONAR
-await supabase
-  .from("assistente_otto_chat")
-  .insert({
-    role: "assistant",
-    mensagem: `
-⚠️ CONFIRMAÇÃO DE PROMPT
-
-📌 Prioridade: ${prioridade}
-
-🧠 Regra:
-${dados.prompt}
-
-Digite:
-
-✔ SIM → salvar  
-✏️ ALTERAR → modificar  
-❌ CANCELAR → abortar
-`,
-    telefone: numero,
-    usuario_id: usuarioDB.id,
-    nome: NOME,
-    empresa: EMPRESA,
-    acao_json: acaoPrompt,
-    aguardando_confirmacao: true
-  })
 
 return res.json({
   resposta: `
@@ -347,8 +319,12 @@ Digite:
 ✔ SIM → salvar  
 ✏️ ALTERAR → modificar  
 ❌ CANCELAR → abortar
-`
+`,
+  acao
 })
+}
+
+  
 
   // ================= COMANDO MANUAL RELATÓRIO ADM =================
 
@@ -1821,7 +1797,8 @@ if(matchReserva){
 
 
   
-let acaoFinal = null
+let acao = null
+
 // 🔥 DETECTAR TAREFA
 const matchTarefa = resposta.match(/TAREFA_JSON:\s*([\s\S]*)/)
 
@@ -1843,7 +1820,8 @@ if(matchTarefa && NIVEL === 0){
       jsonTexto = jsonTexto.substring(inicio, fim + 1)
     }
 
-acaoFinal = JSON.parse(jsonTexto)
+    acao = JSON.parse(jsonTexto)
+
     if(!resposta.includes("Confirme")){
       resposta += "\n\n⚠️ Confirme para agendar esta tarefa."
     }
@@ -1876,7 +1854,8 @@ if(matchAcao && NIVEL === 0){
       jsonTexto = jsonTexto.substring(inicio, fim + 1)
     }
 
-acaoFinal = JSON.parse(jsonTexto)
+    acao = JSON.parse(jsonTexto)
+
     // 🔥 FORÇA CONFIRMAÇÃO
     if(!resposta.toLowerCase().includes("confirma")){
       resposta += "\n\n⚠️ Confirme para executar esta ação."
@@ -1897,7 +1876,7 @@ await supabase
   usuario_id: usuarioDB.id,
   nome: NOME,
   empresa: EMPRESA,
-  acao_json: acaoPrompt,
+  acao_json: acao,
   aguardando_confirmacao: acao ? true : false
 })
 
