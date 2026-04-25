@@ -997,7 +997,7 @@ if(horaAtual < 4){
 }
 
 // formata YYYY-MM-DD
-const dataISO = agora.toISOString().slice(0,10)
+const res = await fetch(API_URL + `?t=` + Date.now())
 
 const res = await fetch(
   API_URL + `?data=${dataISO}&t=` + Date.now(),
