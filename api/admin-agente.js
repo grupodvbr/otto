@@ -307,6 +307,12 @@ const acao = {
 
 return res.json({
   resposta: `
+// 🔥 SALVA A AÇÃO PARA CONFIRMAÇÃO
+await supabase
+  .from("assistente_otto_chat")
+  .insert({
+    role: "assistant",
+    mensagem: `
 ⚠️ CONFIRMAÇÃO DE PROMPT
 
 📌 Prioridade: ${prioridade}
@@ -320,7 +326,29 @@ Digite:
 ✏️ ALTERAR → modificar  
 ❌ CANCELAR → abortar
 `,
-  acao
+    telefone: numero,
+    usuario_id: usuarioDB.id,
+    nome: NOME,
+    empresa: EMPRESA,
+    acao_json: acao,
+    aguardando_confirmacao: true
+  })
+
+return res.json({
+  resposta: `
+⚠️ CONFIRMAÇÃO DE PROMPT
+
+📌 Prioridade: ${prioridade}
+
+🧠 Regra:
+${dados.prompt}
+
+Digite:
+
+✔ SIM → salvar  
+✏️ ALTERAR → modificar  
+❌ CANCELAR → abortar
+`
 })
 }
 
