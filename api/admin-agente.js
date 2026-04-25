@@ -178,28 +178,6 @@ const amanhaISO = getDataISO(amanhaDate)
 
 
 const texto = pergunta.toLowerCase()
-// 🔥 FORÇA MODO RELATÓRIO INTELIGENTE
-if(
-  texto.includes("relatorio") ||
-  texto.includes("relatório") ||
-  texto.includes("vendas") ||
-  texto.includes("faturamento") ||
-  texto.includes("resumo") ||
-  texto.includes("quanto vendi")
-){
-  contextos.push({
-    role: "system",
-    content: `
-O usuário está solicitando um RELATÓRIO.
-
-Responda obrigatoriamente em formato de relatório completo.
-Nunca responda texto simples.
-Use os modelos definidos.
-`
-  })
-}
-
-
   
 /* ================= GERENCIAR PROMPTS ================= */
 
@@ -997,7 +975,7 @@ let resumoDia = null
 // ================= DADOS EXTERNOS (VENDAS API) =================
 
 let dadosExternos = {}
-console.log("🔥 DADOS EXTERNOS:", JSON.stringify(dadosExternos, null, 2))
+
 try{
 
   const API = "https://marked-resolved-tropical-posting.trycloudflare.com"
@@ -1013,19 +991,21 @@ try{
     resumo_mes: mes,
     analitico: analitico
   }
-
-}catch(e){
-
-
-// 🔥 ENVIA TODOS OS DADOS DE VENDAS PARA O GPT (LOCAL EXATO)
+// 🔥 ENVIA DADOS PARA O GPT (OBRIGATÓRIO)
 contextos.push({
   role: "system",
   content: "DADOS_VENDAS_COMPLETO:\n" + JSON.stringify(dadosExternos)
 })
 
-
   
+}catch(e){
+
   console.log("❌ ERRO API:", e)
+
+  contextos.push({
+    role: "system",
+    content: "ERRO_API_VENDAS: true"
+  })
 }
 
 
@@ -1665,7 +1645,17 @@ if(resumoDia && resumoDia.faturamento !== undefined){
 
 
 // 🔥 MODO RELATÓRIO (LOCAL CORRETO)
-if(texto.includes("relatorio") || texto.includes("relatório")){
+if(
+  texto.includes("relatorio") ||
+  texto.includes("relatório") ||
+  texto.includes("vendas") ||
+  texto.includes("faturamento") ||
+  texto.includes("resumo") ||
+  texto.includes("meta") ||
+  texto.includes("ticket") ||
+  texto.includes("quanto vendi") ||
+  texto.includes("quanto faturou")
+){
   contextos.push({
     role: "system",
     content: `
@@ -1676,6 +1666,9 @@ Não responder fora do padrão de relatório.
 `
   })
 }
+  
+  
+
 
 
 
