@@ -547,13 +547,17 @@ function renderizarTabela(lista,modo='setor'){
   });
  }
 }
-async function atualizarStatus(i,st){
 
-  mostrarAlerta("Atualizando...");
+
+  
+async function atualizarStatus(i, st){
+
+  console.log("🚀 INICIO UPDATE");
+  console.log("ID recebido:", i);
+  console.log("Status novo:", st);
 
   let payload = { status: st };
 
-  // 🔥 REGISTROS AUTOMÁTICOS
   if(st === "RECEBIDA"){
     payload.data_recebimento = new Date().toISOString();
   }
@@ -562,22 +566,51 @@ async function atualizarStatus(i,st){
     payload.data_conferencia = new Date().toISOString();
   }
 
-  const { error } = await sb
-    .from("mercatto_requisicoes")
-    .update(payload)
-    .eq("id", i);
+  console.log("📦 Payload:", payload);
 
-  if(error){
-    console.error(error);
-    mostrarAlerta("Erro ao atualizar");
-    return;
+  try {
+
+    const resposta = await sb
+      .from("mercatto_requisicoes")
+      .update(payload)
+      .eq("id", i)
+      .select(); // 🔥 IMPORTANTE
+
+    console.log("📡 Resposta COMPLETA:", resposta);
+
+    const { data, error } = resposta;
+
+    if(error){
+      console.error("❌ ERRO SUPABASE:", error);
+      mostrarAlerta("Erro ao atualizar");
+      return;
+    }
+
+    if(!data || data.length === 0){
+      console.warn("⚠️ NENHUM REGISTRO FOI ATUALIZADO");
+
+      console.warn("👉 Possíveis causas:");
+      console.warn("- ID não existe no banco");
+      console.warn("- RLS bloqueando");
+      console.warn("- Campo id diferente");
+
+      return;
+    }
+
+    console.log("✅ ATUALIZADO COM SUCESSO:", data);
+
+    const it = dadosRequisicoes.find(r=>r.index==i);
+    if(it) it.status = st;
+
+    filtrarRequisicoes();
+
+    mostrarAlerta("Status atualizado!");
+
+  } catch (e){
+    console.error("🔥 ERRO GERAL:", e);
   }
 
-  const it = dadosRequisicoes.find(r=>r.index===i);
-  if(it) it.status = st;
-
-  filtrarRequisicoes();
-  mostrarAlerta("Status atualizado!");
+  console.log("🏁 FIM UPDATE");
 }
 
 
