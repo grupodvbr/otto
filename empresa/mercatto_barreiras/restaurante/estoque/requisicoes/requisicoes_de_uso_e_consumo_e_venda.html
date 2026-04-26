@@ -590,8 +590,6 @@ function renderizarTabela(lista,modo='setor'){
      
      <td><select class="status" onchange="atualizarStatus('${i.index}',this.value)">
   <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
-  <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
-  <option value="RECEBIDA" ${st==='RECEBIDA'?'selected':''}>RECEBIDA</option>
   <option value="CONFERIDA" ${st==='CONFERIDA'?'selected':''}>CONFERIDA</option>
   <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
   <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
