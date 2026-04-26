@@ -372,6 +372,20 @@ body.dark .card-status span {
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <button id="temaBtn" title="Alternar tema">🌙</button>
+
+
+    <button onclick="abrirEstoque()" style="
+background:linear-gradient(135deg,#111,#333);
+color:#fff;
+border:none;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+font-size:13px;">
+📦 Estoque
+</button>
+
+    
     <button onclick="carregarRequisicoes()" style="background:var(--verde);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🔄 Atualizar</button>
   </div>
 </header>
@@ -852,6 +866,102 @@ async function excluirUsuario(id){
  await sb.from("usuarios").delete().eq("id", id);
  carregarUsuarios();
 }
+
+
+
+
+
+  let estoqueGlobal = [];
+
+async function abrirEstoque(){
+  document.getElementById("popupEstoque").style.display="flex";
+  document.body.style.overflow="hidden";
+
+  const { data, error } = await sb
+    .from("produtos_mercatto")
+    .select("*")
+    .order("nome");
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  estoqueGlobal = data || [];
+  renderEstoque(estoqueGlobal);
+}
+
+function fecharEstoque(){
+  document.getElementById("popupEstoque").style.display="none";
+  document.body.style.overflow="auto";
+}
+
+function renderEstoque(lista){
+  const html = lista.map(p => `
+    <div onclick="verMovimentacao('${p.id}','${p.nome}')" style="
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:6px;
+      background:var(--cinza);
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+    ">
+      <b>${p.nome}</b>
+    </div>
+  `).join("");
+
+  document.getElementById("listaEstoque").innerHTML = html;
+}
+
+function filtrarEstoque(){
+  const v = document.getElementById("buscaEstoque").value.toLowerCase();
+  const filtrado = estoqueGlobal.filter(p=>p.nome.toLowerCase().includes(v));
+  renderEstoque(filtrado);
+}
+
+async function verMovimentacao(id,nome){
+
+  const seteDias = new Date();
+  seteDias.setDate(seteDias.getDate()-7);
+
+  const { data, error } = await sb
+    .from("mercatto_requisicoes")
+    .select("*")
+    .eq("produto_id", id)
+    .gte("created_at", seteDias.toISOString())
+    .order("created_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  const html = `
+    <h3 style="margin-bottom:10px">${nome}</h3>
+    ${(data || []).map(m=>`
+      <div style="
+        padding:8px;
+        margin-bottom:6px;
+        border-radius:8px;
+        background:#111;
+        color:#fff;
+      ">
+        ${m.quantidade} ${m.unidade || ''} - ${m.status}<br>
+        <small>${new Date(m.created_at).toLocaleString()}</small>
+      </div>
+    `).join("") || "Sem movimentação"}
+  `;
+
+  document.getElementById("movimentacaoBox").innerHTML = html;
+}
+
+
+
+
+
+
+  
 </script>
 
 
@@ -887,6 +997,35 @@ async function excluirUsuario(id){
 
     </div>
 
+  </div>
+</div>
+
+
+
+
+
+
+  <div id="popupEstoque" class="popup-overlay">
+  <div class="popup-box" style="max-width:800px">
+
+    <div class="popup-header">
+      <span>📦 Controle de Estoque</span>
+      <button onclick="fecharEstoque()">✖</button>
+    </div>
+
+    <div class="popup-body">
+
+      <input id="buscaEstoque" placeholder="Buscar produto..." 
+      style="width:100%;padding:10px;border-radius:8px;margin-bottom:10px;border:1px solid #ccc"
+      oninput="filtrarEstoque()">
+
+      <div id="listaEstoque"></div>
+
+      <hr style="margin:15px 0">
+
+      <div id="movimentacaoBox"></div>
+
+    </div>
   </div>
 </div>
 </body>
