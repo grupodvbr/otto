@@ -954,21 +954,15 @@ mapa[p.id] = {
 };
   });
 
-  (mov || []).forEach(m=>{
-    if(!mapa[m.produto_id]) return;
-
-    const qtd = parseFloat(m.quantidade) || 0;
-
-    // 🔥 ENTRADA
-if(m.status === "RECEBIDA"){
-  mapa[m.produto_id].atual += qtd;
-}
-
-    // 🔥 SAÍDA
-    if(m.status === "ENTREGUE"){
-      mapa[m.produto_id].atual -= qtd;
-    }
-  });
+(produtos || []).forEach(p=>{
+  mapa[p.id] = {
+    id: p.id,
+    nome: p.nome,
+    atual: parseFloat(p.estoque) || 0, // 🔥 AGORA É REAL
+    minimo: parseFloat(p.estoque_minimo) || 0,
+    maximo: parseFloat(p.estoque_maximo) || 0
+  };
+});
 
   estoqueGlobal = Object.values(mapa);
 
