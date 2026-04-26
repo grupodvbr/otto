@@ -698,12 +698,34 @@ if(statusAnterior === "ENTREGUE" && novoStatus !== "ENTREGUE"){
 
   console.log("♻️ ESTORNO CONTROLADO");
 
-  await sb.rpc("entrada_estoque", {
+  // 🔴 EXECUTA RPC E VERIFICA ERRO
+  const { error: erroEstorno } = await sb.rpc("entrada_estoque", {
     p_produto: produto_id,
     p_qtd: quantidade
   });
-}
 
+  if(erroEstorno){
+    console.error("❌ ERRO NO ESTORNO:", erroEstorno);
+    mostrarAlerta("Erro ao estornar estoque");
+    return; // 🔥 PARA TUDO
+  }
+
+  console.log("✅ ESTOQUE DEVOLVIDO");
+
+  // 🔥 REGISTRO
+  const { error: erroMov } = await sb
+    .from("movimentacoes_estoque")
+    .insert([{
+      produto_id: produto_id,
+      tipo: "ESTORNO",
+      quantidade: quantidade,
+      origem: "REVERSAO"
+    }]);
+
+  if(erroMov){
+    console.error("❌ ERRO AO REGISTRAR MOV:", erroMov);
+  }
+}
     // ===============================
     // 🔥 PREPARA PAYLOAD
     // ===============================
