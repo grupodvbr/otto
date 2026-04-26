@@ -422,9 +422,7 @@ body.dark .card-status span {
 <table>
   <thead>
     <tr>
-      <th>Data e Hora</th><th>Item</th><th>Qtd</th>
-<th>Ajuste</th>
-      <th>Unid.</th><th>Setor</th><th>Solicitante</th><th>Obs</th><th>Status</th>
+      <th>Data e Hora</th><th>Item</th><th>Qtd</th><th>Unid.</th><th>Setor</th><th>Solicitante</th><th>Obs</th><th>Status</th>
     </tr>
   </thead>
   <tbody id="tabelaRequisicoes"></tbody>
@@ -468,10 +466,8 @@ async function carregarRequisicoes(){
 const { data, error } = await sb
 .from("mercatto_requisicoes")
 .select("*")
-.order("criado_em", { ascending: false })
+.order("created_at", { ascending: false }) // ou criado_em se for o seu caso
 .limit(100);
-
-console.log("DADOS BRUTOS:", data);
 
 if(error){
  console.error(error);
@@ -482,14 +478,10 @@ if(error){
 
 dadosRequisicoes = (data || []).map(r => ({
   index: r.id,
-  dataHora: formatarDataHora(r.criado_em), // ou criado_em
+  dataHora: formatarDataHora(r.created_at), // ou criado_em
   item: r.produto,
   unidade: r.unidade,
-  qtd: Number(r.quantidade_ajustada ?? r.quantidade ?? 0),
-qtd_original: Number(r.quantidade ?? 0),
-qtd_ajustada: r.quantidade_ajustada,
-
-  
+  qtd: parseInt(r.quantidade),
   setor: r.setor,
   solicitante: r.solicitante,
   observacoes: r.observacoes,
@@ -528,56 +520,30 @@ function renderizarTabela(lista,modo='setor'){
  const t=document.getElementById('tabelaRequisicoes');t.innerHTML='';
  const g={};lista.forEach(i=>{const c=modo==='setor'?i.setor:i.solicitante||'Sem Nome';if(!g[c])g[c]=[];g[c].push(i);});
  for(const k in g){
-
-
-
-
-   
-  t.insertAdjacentHTML('beforeend',`<tr><td colspan="9">${modo==='setor'?'Setor':'Solicitante'}: ${k}</td></tr>`);
+  t.insertAdjacentHTML('beforeend',`<tr><td colspan="8">${modo==='setor'?'Setor':'Solicitante'}: ${k}</td></tr>`);
   g[k].forEach(i=>{
-
-
-    
    const st=(i.status||'').toUpperCase().trim();
    const pendente=!['COMPRADO','RECEBIDA','CONFERIDA','ENTREGUE','NEGADO'].includes(st);
-  t.insertAdjacentHTML('beforeend',`
-<tr>
-  <td>${i.dataHora}</td>
-  <td>${i.item}</td>
+   t.insertAdjacentHTML('beforeend',`
+    <tr>
+     <td>${i.dataHora}</td><td>${i.item}</td><td>${i.qtd}</td><td>${i.unidade}</td>
+     <td>${i.setor}</td><td>${i.solicitante}</td><td>${i.observacoes}</td>
 
-  <!-- QTD -->
-  <td onclick="abrirAjuste('${i.index}')"
-      style="cursor:pointer;font-weight:bold;color:${i.qtd_ajustada ? '#ff9800' : 'inherit'}">
-    ${i.qtd}
-  </td>
 
-  <!-- AJUSTE -->
-  <td>
-    ${i.status === 'PENDENTE' 
-      ? `<button onclick="abrirAjuste('${i.index}')"
-           style="padding:4px 8px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer">
-           Ajustar
-         </button>`
-      : '-'}
-  </td>
 
-  <td>${i.unidade}</td>
-  <td>${i.setor}</td>
-  <td>${i.solicitante}</td>
-  <td>${i.observacoes}</td>
-
-  <td>
-    <select class="status" onchange="atualizarStatus('${i.index}',this.value)">
-      <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
-      <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
-      <option value="RECEBIDA" ${st==='RECEBIDA'?'selected':''}>RECEBIDA</option>
-      <option value="CONFERIDA" ${st==='CONFERIDA'?'selected':''}>CONFERIDA</option>
-      <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
-      <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
-    </select>
-  </td>
-</tr>
-`);
+     
+     <td><select class="status" onchange="atualizarStatus('${i.index}',this.value)">
+  <option value="PENDENTE" ${st==='PENDENTE'||pendente?'selected':''}>PENDENTE</option>
+  <option value="COMPRADO" ${st==='COMPRADO'?'selected':''}>COMPRADO</option>
+  <option value="RECEBIDA" ${st==='RECEBIDA'?'selected':''}>RECEBIDA</option>
+  <option value="CONFERIDA" ${st==='CONFERIDA'?'selected':''}>CONFERIDA</option>
+  <option value="ENTREGUE" ${st==='ENTREGUE'?'selected':''}>ENTREGUE</option>
+  <option value="NEGADO" ${st==='NEGADO'?'selected':''}>NEGADO</option>
+</select>
+     
+     
+     
+     </td></tr>`);
   });
  }
 }
@@ -674,9 +640,8 @@ function atualizarResumo(){
 
   
 function mostrarAlerta(m){const a=document.getElementById("alertaStatus");a.textContent=m;a.style.display="block";setTimeout(()=>a.style.display="none",2500);}
-function gerarRelatorio(){let html="<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><h2>Relatório</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data</th><th>Item</th><th>Qtd</th>
-<th>Ajuste</th><th>Unid</th><th>Setor</th><th>Solicitante</th><th>Obs</th></tr></thead><tbody>";
- Array.from(document.querySelectorAll("#tabelaRequisicoes tr")).forEach(tr=>{const tds=Array.from(tr.children).map(td=>td.innerText);if(tds.length===9)html+="<tr>"+tds.slice(0,7).map(td=>`<td>${td}</td>`).join("")+"</tr>";});
+function gerarRelatorio(){let html="<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><h2>Relatório</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data</th><th>Item</th><th>Qtd</th><th>Unid</th><th>Setor</th><th>Solicitante</th><th>Obs</th></tr></thead><tbody>";
+ Array.from(document.querySelectorAll("#tabelaRequisicoes tr")).forEach(tr=>{const tds=Array.from(tr.children).map(td=>td.innerText);if(tds.length===8)html+="<tr>"+tds.slice(0,7).map(td=>`<td>${td}</td>`).join("")+"</tr>";});
  html+="</tbody></table>";const w=window.open("","Relatório");w.document.write(html);w.document.close();}
 window.addEventListener("DOMContentLoaded",()=>carregarRequisicoes());
 
@@ -813,86 +778,6 @@ async function excluirUsuario(id){
  await sb.from("usuarios").delete().eq("id", id);
  carregarUsuarios();
 }
-
-
-
-
-
-
-let itemAjuste = null;
-
-function abrirAjuste(id){
-  const item = dadosRequisicoes.find(r => r.index == id);
-
-  if(!item) return;
-
-  if(item.status !== "PENDENTE"){
-    mostrarAlerta("Só pode ajustar quando estiver PENDENTE");
-    return;
-  }
-
-  itemAjuste = item;
-
-  document.getElementById("ajusteItem").textContent = item.item;
-  document.getElementById("ajusteOriginal").textContent = item.qtd_original;
-  document.getElementById("novaQtd").value = item.qtd;
-
-  document.getElementById("popupAjuste").style.display = "flex";
-}
-
-
-function fecharAjuste(){
-  document.getElementById("popupAjuste").style.display = "none";
-}
-
-async function salvarAjuste(){
-  const nova = Number(document.getElementById("novaQtd").value);
-
-  if(!nova || nova <= 0){
-    mostrarAlerta("Quantidade inválida");
-    return;
-  }
-
-  const { error } = await sb
-    .from("mercatto_requisicoes")
-    .update({ quantidade_ajustada: nova })
-    .eq("id", itemAjuste.index);
-
-  if(error){
-    console.error(error);
-    mostrarAlerta("Erro ao salvar");
-    return;
-  }
-
-  itemAjuste.qtd = nova;
-  itemAjuste.qtd_ajustada = nova;
-
-  fecharAjuste();
-  filtrarRequisicoes();
-
-  mostrarAlerta("Quantidade ajustada!");
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-  
 </script>
 
 
@@ -930,47 +815,5 @@ async function salvarAjuste(){
 
   </div>
 </div>
-
-
-
-
-
-
-
-
-
-<div id="popupAjuste" class="popup-overlay">
-  <div class="popup-box">
-    <div class="popup-header">
-      <span>✏️ Ajuste de Quantidade</span>
-      <button onclick="fecharAjuste()">✖</button>
-    </div>
-
-    <div class="popup-body">
-      <p><b id="ajusteItem"></b></p>
-      <p>Quantidade solicitada: <b id="ajusteOriginal"></b></p>
-
-      <div class="form-group">
-        <label>Nova quantidade</label>
-        <input id="novaQtd" type="number">
-      </div>
-
-      <button class="btn-save" onclick="salvarAjuste()">Salvar Ajuste</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-  
 </body>
 </html>
