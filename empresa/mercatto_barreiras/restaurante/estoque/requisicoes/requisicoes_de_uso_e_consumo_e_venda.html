@@ -609,120 +609,128 @@ function renderizarTabela(lista,modo='setor'){
 async function atualizarStatus(i, st){
 
   console.log("🚀 INICIO UPDATE");
-  console.log("ID recebido:", i);
-  console.log("Status novo:", st);
+  console.log("ID:", i);
+  console.log("NOVO STATUS:", st);
 
-  let payload = { status: st };
+  try{
 
-  if(st === "RECEBIDA"){
-    payload.data_recebimento = new Date().toISOString();
-  }
+    // 🔥 BUSCA ITEM LOCAL
+    const it = dadosRequisicoes.find(r => r.index == i);
 
-  if(st === "CONFERIDA"){
-    payload.data_conferencia = new Date().toISOString();
-  }
+    if(!it){
+      console.warn("⚠️ ITEM NÃO ENCONTRADO");
+      return;
+    }
 
-  console.log("📦 Payload:", payload);
+    const statusAnterior = (it.status || '').toUpperCase();
+    const novoStatus = (st || '').toUpperCase();
+    const quantidade = parseFloat(it.qtd) || 0;
+    const produto_id = it.produto_id;
 
-  try {
+    // 🚨 TRAVA ANTI DUPLICAÇÃO
+    if(statusAnterior === novoStatus){
+      console.log("⚠️ STATUS IGUAL - IGNORADO");
+      return;
+    }
 
-const resposta = await sb
-  .from("mercatto_requisicoes")
-  .update(payload)
-  .eq("id", i)
-  .select();
+    console.log("🔁 DE:", statusAnterior, "➡️ PARA:", novoStatus);
 
-const { data, error } = resposta;
+    // ===============================
+    // 🔥 REGRAS DE ESTOQUE
+    // ===============================
 
-if(error){
-  console.error("❌ ERRO SUPABASE:", error);
-  mostrarAlerta("Erro ao atualizar");
-  return;
-}
+    // ✅ SAÍDA
+    if(statusAnterior !== "ENTREGUE" && novoStatus === "ENTREGUE"){
 
-if(!data || data.length === 0){
-  console.warn("⚠️ NENHUM REGISTRO FOI ATUALIZADO");
-  return;
-}
+      console.log("📉 BAIXANDO ESTOQUE");
 
-console.log("✅ ATUALIZADO COM SUCESSO:", data);
+      await sb.rpc("baixar_estoque", {
+        p_produto: produto_id,
+        p_qtd: quantidade
+      });
 
-// 🔥 PEGA ITEM E STATUS ANTERIOR
-const it = dadosRequisicoes.find(r=>r.index==i);
-const statusAnterior = (it?.status || '').toUpperCase();
-const quantidade = parseFloat(it?.qtd) || 0;
-const produto_id = it?.produto_id;
+    }
 
-// 🔥 ATUALIZA STATUS LOCAL
-if(it) it.status = st;
+    // ✅ ENTRADA
+    if(statusAnterior !== "RECEBIDA" && novoStatus === "RECEBIDA"){
 
-// ===============================
-// 🔥 REGRAS DE ESTOQUE
-// ===============================
+      console.log("📈 ENTRADA DE ESTOQUE");
 
-// ✅ SAÍDA (ENTREGUE)
-if(st === "ENTREGUE" && statusAnterior !== "ENTREGUE"){
+      await sb.rpc("entrada_estoque", {
+        p_produto: produto_id,
+        p_qtd: quantidade
+      });
 
-  await sb.rpc("baixar_estoque", {
-    p_produto: produto_id,
-    p_qtd: quantidade
-  });
+    }
 
-  await sb.from("movimentacoes_estoque").insert([{
-    produto_id,
-    tipo: "SAIDA",
-    quantidade,
-    origem: "REQUISICAO"
-  }]);
-}
+    // 🔁 ESTORNO
+    if(statusAnterior === "ENTREGUE" && novoStatus !== "ENTREGUE"){
 
-// ✅ ENTRADA (RECEBIDA)
-if(st === "RECEBIDA" && statusAnterior !== "RECEBIDA"){
+      console.log("♻️ ESTORNANDO ESTOQUE");
 
-  await sb.rpc("entrada_estoque", {
-    p_produto: produto_id,
-    p_qtd: quantidade
-  });
+      await sb.rpc("entrada_estoque", {
+        p_produto: produto_id,
+        p_qtd: quantidade
+      });
 
-  await sb.from("movimentacoes_estoque").insert([{
-    produto_id,
-    tipo: "ENTRADA",
-    quantidade,
-    origem: "COMPRA"
-  }]);
-}
+    }
 
-// 🔁 ESTORNO (quando volta de ENTREGUE)
-if(statusAnterior === "ENTREGUE" && st !== "ENTREGUE"){
+    // ===============================
+    // 🔥 PREPARA PAYLOAD
+    // ===============================
 
-  await sb.rpc("entrada_estoque", {
-    p_produto: produto_id,
-    p_qtd: quantidade
-  });
+    let payload = { status: novoStatus };
 
-  await sb.from("movimentacoes_estoque").insert([{
-    produto_id,
-    tipo: "ESTORNO",
-    quantidade,
-    origem: "REVERSAO"
-  }]);
-}
+    if(novoStatus === "RECEBIDA"){
+      payload.data_recebimento = new Date().toISOString();
+    }
 
-// 🔄 REFRESH
-filtrarRequisicoes();
-mostrarAlerta("Status atualizado!");
+    if(novoStatus === "CONFERIDA"){
+      payload.data_conferencia = new Date().toISOString();
+    }
 
+    // ===============================
+    // 🔥 AGORA ATUALIZA NO BANCO
+    // ===============================
 
-    
+    const { error } = await sb
+      .from("mercatto_requisicoes")
+      .update(payload)
+      .eq("id", i);
 
-  } catch (e){
+    if(error){
+      console.error("❌ ERRO AO SALVAR:", error);
+      mostrarAlerta("Erro ao atualizar status");
+      return;
+    }
+
+    // ===============================
+    // 🔥 ATUALIZA LOCAL (SÓ AGORA)
+    // ===============================
+
+    it.status = novoStatus;
+
+    // ===============================
+    // 🔄 REFRESH
+    // ===============================
+
+    filtrarRequisicoes();
+
+    mostrarAlerta("Status atualizado com sucesso!");
+
+    console.log("✅ FINALIZADO");
+
+  }catch(e){
     console.error("🔥 ERRO GERAL:", e);
+    mostrarAlerta("Erro inesperado");
   }
 
   console.log("🏁 FIM UPDATE");
 }
 
 
+
+  
 
   
 async function liquidarMassa(st){
