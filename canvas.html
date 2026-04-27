@@ -116,8 +116,8 @@ const chat = document.getElementById("chat")
 const input = document.getElementById("input")
 
 let ativo = false
-let textoFinal = ""
-let timeoutFim = null
+let textoBuffer = ""
+let timeoutSilencio = null
 
 // ================= CHAT =================
 function addMsg(texto, tipo){
@@ -148,25 +148,25 @@ recognition.onerror = (e) => log("❌ Erro voz: " + e.error)
 // ================= RESULTADO =================
 recognition.onresult = (event) => {
 
-  let parcial = ""
+  let textoAtual = ""
 
   for(let i = event.resultIndex; i < event.results.length; i++){
-    parcial += event.results[i][0].transcript
+    textoAtual += event.results[i][0].transcript
   }
 
-  parcial = parcial.toLowerCase()
+  textoAtual = textoAtual.toLowerCase()
 
-  log("🎤 Captado: " + parcial)
+  log("🎤 Parcial: " + textoAtual)
 
-  // 🔥 ATIVAÇÃO REAL (SEM "foto")
+  // 🔥 ATIVAÇÃO (SEM FOTO)
   const acordou =
-    parcial.includes("otto") ||
-    parcial.includes("otô") ||
-    parcial.includes("o to")
+    textoAtual.includes("otto") ||
+    textoAtual.includes("otô") ||
+    textoAtual.includes("o to")
 
   if(acordou && !ativo){
     ativo = true
-    textoFinal = ""
+    textoBuffer = ""
     log("🟢 ATIVADO PELO OTTO")
     return
   }
@@ -176,37 +176,40 @@ recognition.onresult = (event) => {
     return
   }
 
-  textoFinal = parcial
+  // 🔥 ACUMULA TEXTO
+  textoBuffer = textoAtual
 
-  log("🧠 Construindo: " + textoFinal)
+  log("🧠 Buffer atual: " + textoBuffer)
 
-  if(timeoutFim){
-    clearTimeout(timeoutFim)
-    log("⏳ Timer resetado")
+  // 🔁 RESET TIMER
+  if(timeoutSilencio){
+    clearTimeout(timeoutSilencio)
+    log("⏳ Reset timer silêncio")
   }
 
-  timeoutFim = setTimeout(() => {
+  // ⏳ ESPERA 5 SEGUNDOS DE SILÊNCIO
+  timeoutSilencio = setTimeout(() => {
 
-    let textoLimpo = textoFinal
+    let textoFinal = textoBuffer
       .replace(/otto|otô|o to/gi,"")
       .trim()
 
-    log("⌛ Finalizando...")
+    log("⌛ SILÊNCIO DETECTADO")
 
-    // 🔥 NÃO DESATIVA SE FOR RUÍDO
-    if(textoLimpo.length < 3){
-      log("⚠️ Ruído ignorado, continua ouvindo")
+    if(textoFinal.length < 3){
+      log("⚠️ Ignorado (muito curto)")
       return
     }
 
-    log("✅ FRASE FINAL: " + textoLimpo)
+    log("✅ FRASE FINAL: " + textoFinal)
 
-    enviarMensagem(textoLimpo)
+    enviarMensagem(textoFinal)
 
+    // 🔥 RESET COMPLETO
     ativo = false
-    textoFinal = ""
+    textoBuffer = ""
 
-  }, 4000)
+  }, 5000)
 }
 
 recognition.start()
@@ -280,7 +283,7 @@ input.addEventListener("keypress", e=>{
 // ================= MIC =================
 document.getElementById("mic").onclick = () => {
   ativo = true
-  textoFinal = ""
+  textoBuffer = ""
   log("🎤 Ativado manualmente")
 }
 </script>
