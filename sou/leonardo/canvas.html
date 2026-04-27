@@ -1171,32 +1171,6 @@ if(SpeechRecognition){
 
   
 
-  
-    console.log("[OTTO] 🧠 Pergunta detectada:", texto)
-
-    perguntarOtto(texto)
-
-  }
-
-}
-    // 🔥 COMANDO PRINCIPAL
-    if(texto.includes("ativar sistema otto")){
-
-      console.log("[OTTO] 🔐 Abrindo popup de senha")
-
-      abrirSenhaOtto()
-
-    }
-
-    // 🔥 OPCIONAL: DESATIVAR
-    if(texto.includes("desativar sistema otto")){
-
-      console.log("[OTTO] 🔴 Desativando OTTO")
-
-      document.getElementById("ottoOverlay").style.display = "none"
-      ottoAtivo = false
-
-    }
 
   }
 
