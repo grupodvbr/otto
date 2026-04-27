@@ -1746,7 +1746,7 @@ const metaInfo = resumoDia.empresa
     content: "RESUMO_CUPONS_DIA:\n" + JSON.stringify({
       data: resumoDia.data,
       empresa: resumoDia.empresa || "GERAL",
-      faturamento: Number(resumoDia.faturamento || 0),
+     faturamento: Number(faturamentoMesTotal || 0),
       vendas: Number(resumoDia.vendas || 0),
       ticket_medio: Number(resumoDia.ticket_medio || 0),
       meta: metaInfo?.meta || 0,
