@@ -1734,9 +1734,20 @@ faturamentoMesTotal =
   
 
 // 🔥 cálculo correto da meta
-const metaInfo = resumoDia.empresa
-  ? calcularMeta(resumoDia.empresa, faturamentoMesTotal)
-  : null
+let metaInfo = null
+
+if(resumoDia.empresa){
+  metaInfo = calcularMeta(resumoDia.empresa, faturamentoMesTotal)
+}else{
+
+  const SOMA_METAS = Object.values(METAS)
+    .reduce((acc, m) => acc + (m.prata || 0), 0)
+
+  metaInfo = {
+    meta: SOMA_METAS,
+    percentual: (faturamentoMesTotal / SOMA_METAS) * 100
+  }
+}
 
     
 
@@ -1745,11 +1756,16 @@ const metaInfo = resumoDia.empresa
     content: "RESUMO_CUPONS_DIA:\n" + JSON.stringify({
       data: resumoDia.data,
       empresa: resumoDia.empresa || "GERAL",
+
+
+      
       faturamento: Number(resumoDia.faturamento || 0),
       vendas: Number(resumoDia.vendas || 0),
       ticket_medio: Number(resumoDia.ticket_medio || 0),
       meta: metaInfo?.meta || 0,
-      percentual_meta: metaInfo?.percentual || 0
+      percentual_meta: metaInfo
+  ? (faturamentoMesTotal / metaInfo.meta) * 100
+  : 0
     })
   })
 
