@@ -1710,11 +1710,11 @@ faturamentoMesTotal =
 
   }else{
 
-    faturamentoMesTotal =
-      dataMes.empresas.reduce(
-        (acc, e) => acc + Number(e.faturamento_mes || 0),
-        0
-      ) + Number(resumoDia.faturamento || 0)
+faturamentoMesTotal =
+  dataMes.empresas.reduce(
+    (acc, e) => acc + Number(e.faturamento_mes || 0),
+    0
+  )
 
   }
 
@@ -1759,7 +1759,8 @@ if(resumoDia.empresa){
 
 
       
-      faturamento: Number(resumoDia.faturamento || 0),
+faturamento: Number(resumoDia.faturamento || 0),
+faturamento_mes: faturamentoMesTotal,
       vendas: Number(resumoDia.vendas || 0),
       ticket_medio: Number(resumoDia.ticket_medio || 0),
       meta: metaInfo?.meta || 0,
