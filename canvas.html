@@ -163,6 +163,7 @@ const input = document.getElementById("input")
 const status = document.getElementById("status")
 
 let ativo = false
+let ouvindo = false
 
 // ================= CHAT =================
 function addMsg(texto, tipo){
@@ -173,31 +174,77 @@ function addMsg(texto, tipo){
   chat.scrollTop = chat.scrollHeight
 }
 
+// ================= SOM =================
+function beep(){
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg")
+  audio.play()
+}
+
 // ================= VOZ =================
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+const recognition = new SpeechRecognition()
 recognition.lang = "pt-BR"
 recognition.continuous = true
+recognition.interimResults = true
 
+function iniciarReconhecimento(){
+  if(ouvindo) return
+
+  try{
+    recognition.start()
+    ouvindo = true
+    console.log("🎧 escutando...")
+  }catch(e){}
+}
+
+// 🔁 REINICIA AUTOMATICAMENTE
+recognition.onend = () => {
+  ouvindo = false
+  setTimeout(iniciarReconhecimento, 500)
+}
+
+// 🔥 DETECÇÃO INTELIGENTE
 recognition.onresult = (event) => {
-  const texto = event.results[event.results.length - 1][0].transcript.toLowerCase()
+
+  let texto = ""
+
+  for(let i = event.resultIndex; i < event.results.length; i++){
+    texto += event.results[i][0].transcript.toLowerCase()
+  }
 
   console.log("🎤", texto)
 
-  // ATIVA COM OTTO
-  if(texto.includes("otto")){
+  // 🔥 VARIAÇÕES DE OTTO
+  const acordou =
+    texto.includes("otto") ||
+    texto.includes("oto") ||
+    texto.includes("otoo") ||
+    texto.includes("foto") ||
+    texto.includes("o to") ||
+    texto.includes("otô")
+
+  if(acordou && !ativo){
     ativo = true
     status.innerText = "🎧 Pode falar..."
+    beep()
     return
   }
 
   if(!ativo) return
 
+  // 🔥 LIMPA TEXTO (remove "otto")
+  texto = texto
+    .replace(/otto|oto|foto|otô/gi, "")
+    .trim()
+
+  if(texto.length < 3) return
+
   enviarMensagem(texto)
+
   ativo = false
   status.innerText = "Diga 'Otto' novamente"
 }
-
-recognition.start()
 
 // ================= API =================
 async function enviarMensagem(texto){
@@ -220,7 +267,7 @@ async function enviarMensagem(texto){
 
     if(!res.ok){
       const erro = await res.text()
-      addMsg("❌ Erro: " + erro, "bot")
+      addMsg("❌ " + erro, "bot")
       return
     }
 
@@ -231,10 +278,10 @@ async function enviarMensagem(texto){
     falar(data.resposta)
 
   }catch(e){
-    addMsg("❌ Falha na conexão", "bot")
-    console.error(e)
+    addMsg("❌ erro de conexão", "bot")
   }
 }
+
 // ================= VOZ RESPOSTA =================
 function falar(texto){
   const msg = new SpeechSynthesisUtterance(texto)
@@ -256,12 +303,15 @@ input.addEventListener("keypress", e=>{
   }
 })
 
-// ================= BOTÃO MIC =================
+// ================= BOTÃO =================
 document.getElementById("mic").onclick = () => {
   ativo = true
   status.innerText = "🎧 Pode falar..."
+  beep()
 }
-</script>
 
+// 🔥 INICIA AUTOMATICO
+iniciarReconhecimento()
+</script>
 </body>
 </html>
