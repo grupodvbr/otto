@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OTTO • AI Voice</title>
+<title>OTTO • Assistente Inteligente</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -13,15 +13,20 @@
   --card:#0f172a;
   --primary:#22c55e;
   --secondary:#2563eb;
-  --text:#fff;
+  --text:#ffffff;
   --sub:#94a3b8;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+}
 
 body{
   background:var(--bg);
-  color:white;
+  color:var(--text);
   display:flex;
   flex-direction:column;
   height:100vh;
@@ -29,64 +34,79 @@ body{
 
 /* HEADER */
 header{
-  padding:15px;
-  background:rgba(15,23,42,0.7);
+  padding:16px;
+  background:rgba(15,23,42,0.8);
   backdrop-filter:blur(10px);
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #1e293b;
 }
 
-.status{
-  font-size:12px;
+header h1{
+  font-size:18px;
+  font-weight:800;
+}
+
+header span{
   color:var(--sub);
+  font-size:12px;
 }
 
 /* CHAT */
 #chat{
   flex:1;
-  padding:20px;
   overflow:auto;
+  padding:20px;
   display:flex;
   flex-direction:column;
   gap:10px;
 }
 
 .msg{
-  max-width:70%;
+  max-width:75%;
   padding:14px;
-  border-radius:12px;
-  animation:fade .3s;
+  border-radius:14px;
+  font-size:14px;
+  line-height:1.4;
 }
 
-.user{background:#2563eb;align-self:flex-end;}
-.bot{background:#0f172a;}
-
-@keyframes fade{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}
+.user{
+  background:var(--secondary);
+  align-self:flex-end;
 }
 
-/* INPUT */
+.bot{
+  background:var(--card);
+  align-self:flex-start;
+}
+
+/* FOOTER */
 footer{
+  padding:12px;
+  border-top:1px solid #1e293b;
   display:flex;
+  align-items:center;
   gap:10px;
-  padding:10px;
 }
 
-input{
+#input{
   flex:1;
   padding:12px;
   border-radius:10px;
   border:none;
+  outline:none;
+  background:#020617;
+  color:white;
 }
 
-button{
-  padding:12px;
+#send{
+  background:var(--secondary);
   border:none;
+  padding:12px 16px;
   border-radius:10px;
-  background:#2563eb;
   color:white;
+  cursor:pointer;
 }
 
 /* MIC */
@@ -94,16 +114,27 @@ button{
   position:fixed;
   bottom:90px;
   right:20px;
-  width:70px;
-  height:70px;
+  width:65px;
+  height:65px;
   border-radius:50%;
-  background:#22c55e;
+  background:var(--primary);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:28px;
+  font-size:26px;
   cursor:pointer;
-  box-shadow:0 0 30px rgba(34,197,94,0.5);
+  box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+#status{
+  position:fixed;
+  bottom:160px;
+  right:20px;
+  background:#0f172a;
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:12px;
+  color:var(--sub);
 }
 </style>
 </head>
@@ -111,169 +142,112 @@ button{
 <body>
 
 <header>
-  <div>🤖 OTTO</div>
-  <div class="status" id="status">Aguardando...</div>
+  <h1>🤖 OTTO</h1>
+  <span>Assistente Inteligente</span>
 </header>
 
 <div id="chat"></div>
 
+<div id="status">Diga "Otto" para ativar</div>
+
 <div id="mic">🎤</div>
 
 <footer>
-  <input id="input" placeholder="Digite..." />
+  <input id="input" placeholder="Digite ou fale..." />
   <button id="send">Enviar</button>
 </footer>
 
 <script>
 const chat = document.getElementById("chat")
 const input = document.getElementById("input")
-const statusEl = document.getElementById("status")
+const status = document.getElementById("status")
 
 let ativo = false
-let modoContinuo = false
-let timerEnvio = null
-let audioLiberado = false
 
-document.body.onclick = ()=> audioLiberado = true
-
-function status(t){ statusEl.innerText = t }
-
-function addMsg(t, tipo){
-  const d = document.createElement("div")
-  d.className = "msg " + tipo
-  d.innerText = t
-  chat.appendChild(d)
+// ================= CHAT =================
+function addMsg(texto, tipo){
+  const div = document.createElement("div")
+  div.className = "msg " + tipo
+  div.innerText = texto
+  chat.appendChild(div)
   chat.scrollTop = chat.scrollHeight
 }
 
-function beep(){
-  if(!audioLiberado) return
-  new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play().catch(()=>{})
-}
-
 // ================= VOZ =================
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-const recognition = new SpeechRecognition()
-
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
 recognition.lang = "pt-BR"
 recognition.continuous = true
-recognition.interimResults = false
 
-recognition.onstart = ()=> status("🎤 Ouvindo...")
-recognition.onend = ()=> setTimeout(()=>recognition.start(),500)
+recognition.onresult = (event) => {
+  const texto = event.results[event.results.length - 1][0].transcript.toLowerCase()
 
-recognition.onresult = (e)=>{
-  let textoFinal = ""
+  console.log("🎤", texto)
 
-  for(let i=e.resultIndex;i<e.results.length;i++){
-    if(e.results[i].isFinal){
-      textoFinal = e.results[i][0].transcript.toLowerCase()
-    }
-  }
-
-  if(!textoFinal) return
-
-  console.log("🎤 FINAL:", textoFinal)
-
-  const chamou =
-    textoFinal.includes("otto") ||
-    textoFinal.includes("oto") ||
-    textoFinal.includes("otô")
-
-  if(chamou && !modoContinuo){
+  // ATIVA COM OTTO
+  if(texto.includes("otto")){
     ativo = true
-    beep()
-    status("Ativo")
+    status.innerText = "🎧 Pode falar..."
     return
   }
-
-  if(modoContinuo) ativo = true
 
   if(!ativo) return
 
-  let texto = textoFinal.replace(/otto|oto|otô/gi,"").trim()
-
-  if(texto.length < 2) return
-
-  // comandos
-  if(texto.includes("modo contínuo") || texto.includes("modo continuo")){
-    modoContinuo = true
-    addMsg("Modo contínuo ativado","bot")
-    falar("Modo contínuo ativado")
-    return
-  }
-
-  if(texto.includes("desativar modo contínuo") || texto.includes("desativar modo continuo")){
-    modoContinuo = false
-    ativo = false
-    addMsg("Modo contínuo desativado","bot")
-    falar("Modo contínuo desativado")
-    return
-  }
-
-  clearTimeout(timerEnvio)
-
-  timerEnvio = setTimeout(()=>{
-    enviar(texto)
-
-    if(!modoContinuo){
-      ativo = false
-      status("Aguardando...")
-    }
-
-  },1200)
+  enviarMensagem(texto)
+  ativo = false
+  status.innerText = "Diga 'Otto' novamente"
 }
 
 recognition.start()
 
 // ================= API =================
-async function enviar(texto){
-  addMsg(texto,"user")
+async function enviarMensagem(texto){
 
-  status("Processando...")
+  addMsg(texto, "user")
 
-  try{
-    const res = await fetch("/api/admin-agente",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer mercatto_admin_2026"
-      },
-      body:JSON.stringify({
-        pergunta:texto,
-        numero:"557798253249"
-      })
+  const res = await fetch("/api/admin-agente", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer SEU_ADMIN_TOKEN"
+    },
+    body:JSON.stringify({
+      pergunta: texto,
+      numero: "557798253249"
     })
+  })
 
-    const data = await res.json()
+  const data = await res.json()
 
-    addMsg(data.resposta,"bot")
-    falar(data.resposta)
-    status("Aguardando...")
-  }catch{
-    addMsg("Erro ao conectar API","bot")
-    status("Erro")
-  }
+  addMsg(data.resposta, "bot")
+
+  falar(data.resposta)
 }
 
-// ================= VOZ =================
-function falar(t){
-  if(!audioLiberado) return
-  const msg = new SpeechSynthesisUtterance(t)
+// ================= VOZ RESPOSTA =================
+function falar(texto){
+  const msg = new SpeechSynthesisUtterance(texto)
   msg.lang = "pt-BR"
   speechSynthesis.speak(msg)
 }
 
 // ================= INPUT =================
-document.getElementById("send").onclick=()=>{
-  enviar(input.value)
-  input.value=""
+document.getElementById("send").onclick = () => {
+  if(input.value.trim()){
+    enviarMensagem(input.value)
+    input.value = ""
+  }
 }
 
-document.getElementById("mic").onclick=()=>{
+input.addEventListener("keypress", e=>{
+  if(e.key === "Enter"){
+    document.getElementById("send").click()
+  }
+})
+
+// ================= BOTÃO MIC =================
+document.getElementById("mic").onclick = () => {
   ativo = true
-  beep()
-  status("Ativo manual")
+  status.innerText = "🎧 Pode falar..."
 }
 </script>
 
