@@ -213,10 +213,11 @@ async function login(){
 const user = usuario.value.toUpperCase();
 
 const { data, error } = await sb
-.from("usuarios")
+.from("usuarios_do_sistema")
 .select("*")
-.eq("nome", user)
+.eq("usuario", user)
 .eq("senha", senha.value)
+.eq("ativo", true)
 .single();
 
 if(error || !data){
@@ -352,13 +353,13 @@ produto_id = existente.id;
 }
 
 /* requisicao */
-await sb.from("requisicoes").insert({
+await sb.from("requisicoes_mercatto").insert({
 produto:nome,
 produto_id,
 quantidade: parseInt(quantidade.value),
 unidade,
 setor:dadosUsuario.setor,
-usuario:usuarioAtual,
+solicitante: dadosUsuario.nome,
 observacoes:obs.value,
 status:"PENDENTE"
 });
@@ -373,12 +374,14 @@ carregarHistorico();
 async function carregarHistorico(){
 
 const { data } = await sb
-.from("requisicoes")
+.from("requisicoes_mercatto")
 .select("*")
-.eq("usuario", usuarioAtual)
+.eq("solicitante", dadosUsuario.nome)
 .order("created_at",{ascending:false})
 .limit(20);
 
+
+ 
 tabela.innerHTML="";
 
 (data||[]).forEach(r=>{
