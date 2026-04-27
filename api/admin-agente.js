@@ -1703,18 +1703,19 @@ try{
       e => e.empresa === resumoDia.empresa
     )
 
-if(empresaMes){
-  faturamentoMesTotal =
-    Number(empresaMes.faturamento_mes || 0)
-}
+    if(empresaMes){
+      faturamentoMesTotal =
+        Number(empresaMes.faturamento_mes || 0) +
+        Number(resumoDia.faturamento || 0)
+    }
 
   }else{
 
-faturamentoMesTotal =
-  dataMes.empresas.reduce(
-    (acc, e) => acc + Number(e.faturamento_mes || 0),
-    0
-  )
+    faturamentoMesTotal =
+      dataMes.empresas.reduce(
+        (acc, e) => acc + Number(e.faturamento_mes || 0),
+        0
+      ) + Number(resumoDia.faturamento || 0)
 
   }
 
@@ -1784,10 +1785,7 @@ Use obrigatoriamente os modelos definidos.
   })
 }
 
-// 🔥 BLOQUEIA GPT SE FOR RELATÓRIO DE VENDAS
-if(tipoConsulta === "relatorio"){
-  return res.json({ resposta: null })
-}
+
 
 
 
