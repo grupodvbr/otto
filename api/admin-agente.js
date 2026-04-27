@@ -1059,7 +1059,7 @@ let dadosExternos = {}
 
 try{
 
-  const API = "https://closes-served-targets-david.trycloudflare.com"
+  const API = "https://marked-resolved-tropical-posting.trycloudflare.com"
 
   const [dia, mes, analitico] = await Promise.all([
     fetch(`${API}/resumo-dia?data=${dataFiltro}`).then(r=>r.json()),
@@ -1214,7 +1214,7 @@ function toBR(dataISO){
 
 
 
-const API_CUPONS = "https://closes-served-targets-david.trycloudflare.com"
+const API_CUPONS = "https://marked-resolved-tropical-posting.trycloudflare.com"
 
 if(tipoConsulta === "vendas" || tipoConsulta === "relatorio"){
   console.log("📅 DATA FINAL USADA:", dataFiltro)
@@ -2183,7 +2183,7 @@ let dataMes = null
 
 try {
 
-  const API_CUPONS = "https://closes-served-targets-david.trycloudflare.com"
+  const API_CUPONS = "https://marked-resolved-tropical-posting.trycloudflare.com"
 
   const hoje = new Date(
     new Date().toLocaleString("en-US",{ timeZone:"America/Bahia" })
