@@ -1206,12 +1206,12 @@ async function perguntarOtto(texto){
 
   try{
 
-    const res = await fetch("https://reservas-mercatto.vercel.app/api/admin-agente", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer 848663639"
-      },
+const res = await fetch("/api/admin-agente", {
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json",
+    "Authorization":"Bearer mercatto_admin_2026"
+  },
       body: JSON.stringify({
         pergunta: texto,
         numero: "557798253249"
