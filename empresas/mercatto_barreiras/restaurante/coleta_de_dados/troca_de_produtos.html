@@ -3,110 +3,138 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Registro de produtos para troca</title>
+<title>Controle de Perdas • Mercatto</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
-/* ===== BASE ===== */
-*{box-sizing:border-box}
+/* BASE */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 body{
 margin:0;
 font-family:Inter;
-background:#f8fafc;
-color:#0f172a;
-display:flex;
-height:100vh;
-overflow:hidden;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar{
-width:280px;
-background:#ffffff;
-padding:20px;
-overflow:auto;
-border-right:1px solid #e2e8f0;
-}
-
-.sidebar h2{
-margin-bottom:20px;
-font-size:18px;
-}
-
-/* DIA */
-.dia{
-padding:14px;
-border-radius:12px;
 background:#f1f5f9;
-margin-bottom:10px;
-cursor:pointer;
-transition:.2s;
-font-weight:600;
-}
-
-.dia:hover{
-background:#e2e8f0;
-}
-
-.dia.ativo{
-background:#2563eb;
-color:#fff;
-}
-
-/* ===== MAIN ===== */
-.main{
-flex:1;
-padding:24px;
-overflow:auto;
 }
 
 /* HEADER */
 .header{
-font-size:24px;
+padding:18px;
+background:#020617;
+color:#fff;
 font-weight:800;
-margin-bottom:20px;
+font-size:20px;
+}
+
+/* CONTAINER */
+.container{
+padding:14px;
+max-width:900px;
+margin:auto;
+}
+
+/* CARD */
+.card{
+background:#fff;
+padding:14px;
+border-radius:16px;
+box-shadow:0 6px 20px rgba(0,0,0,.06);
+margin-bottom:14px;
+}
+
+/* INPUT */
+textarea{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #e2e8f0;
+margin-top:8px;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:#22c55e;
+color:#fff;
+font-weight:700;
+margin-top:10px;
+transition:.2s;
+}
+
+button:disabled{
+opacity:.6;
+}
+
+/* DIAS */
+.dias{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+gap:10px;
+}
+
+.dia{
+background:#fff;
+padding:14px;
+border-radius:14px;
+text-align:center;
+font-weight:700;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+cursor:pointer;
+}
+
+/* MODAL */
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.4);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal-box{
+background:#fff;
+width:95%;
+max-height:90%;
+overflow:auto;
+border-radius:18px;
+padding:14px;
 }
 
 /* GRID */
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-gap:18px;
+grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+gap:8px;
 }
 
-/* CARD FOTO */
-.card{
-background:#ffffff;
-border-radius:16px;
-padding:10px;
-box-shadow:0 8px 25px rgba(0,0,0,.06);
-transition:.2s;
-}
-
-.card:hover{
-transform:translateY(-4px);
-}
-
-/* IMG */
-.card img{
+.thumb{
 width:100%;
 aspect-ratio:1/1;
 object-fit:cover;
-border-radius:12px;
+border-radius:10px;
 cursor:pointer;
 }
 
-/* OBS */
 .obs{
-font-size:13px;
-margin-top:6px;
-color:#475569;
+font-size:11px;
+margin-top:4px;
+color:#64748b;
 }
 
 /* VIEWER */
@@ -116,15 +144,15 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,.9);
+background:#000;
 display:none;
 align-items:center;
 justify-content:center;
-z-index:999;
+z-index:9999;
 }
 
 .viewer img{
-max-width:85%;
+max-width:95%;
 max-height:85%;
 border-radius:12px;
 }
@@ -132,16 +160,58 @@ border-radius:12px;
 .close{
 position:absolute;
 top:20px;
-right:30px;
-font-size:24px;
+right:20px;
 color:#fff;
+font-size:22px;
 cursor:pointer;
 }
 
-/* EMPTY */
-.empty{
-color:#64748b;
-font-size:14px;
+/* LOADING */
+.loading{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.5);
+display:none;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+color:#fff;
+z-index:9999;
+}
+
+.spinner{
+width:40px;
+height:40px;
+border:4px solid #fff;
+border-top:4px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin-bottom:10px;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
+
+/* TOAST */
+.toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#16a34a;
+color:#fff;
+padding:12px 18px;
+border-radius:12px;
+display:none;
+font-weight:600;
+}
+
+@media(min-width:768px){
+.container{max-width:700px;}
 }
 
 </style>
@@ -149,29 +219,43 @@ font-size:14px;
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
+<div class="header">📸 Controle de Perdas</div>
 
-<h2>📅 Dias</h2>
+<div class="container">
 
-<div id="listaDias"></div>
+<div class="card">
+<div><b>Hoje:</b> <span id="dataHoje"></span></div>
+
+<textarea id="obs" placeholder="Observação..."></textarea>
+
+<input type="file" id="foto" accept="image/*" capture="environment">
+
+<button id="btn" onclick="enviar()">Salvar</button>
+</div>
+
+<div id="dias" class="dias"></div>
 
 </div>
 
-<!-- MAIN -->
-<div class="main">
-
-<div class="header" id="titulo">Selecione um dia</div>
-
-<div id="conteudo" class="grid"></div>
-
+<!-- MODAL -->
+<div class="modal" id="modal">
+<div class="modal-box" id="conteudo"></div>
 </div>
 
 <!-- VIEWER -->
 <div class="viewer" id="viewer">
-<div class="close" onclick="fechar()">✕</div>
-<img id="img">
+<div class="close" onclick="fecharViewer()">✕</div>
+<img id="imgViewer">
 </div>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+<div class="spinner"></div>
+Enviando registro...
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Registro salvo com sucesso</div>
 
 <script>
 
@@ -180,104 +264,137 @@ const sb = window.supabase.createClient(
   "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
 )
 
-let diaAtivo = null
+/* DATA */
+function hoje(){
+return new Date().toISOString().split("T")[0]
+}
 
-/* FORMATAR */
 function formatar(d){
 return d.split("-").reverse().join("/")
 }
 
-/* CARREGAR DIAS */
+document.getElementById("dataHoje").innerText = formatar(hoje())
+
+/* TOAST */
+function mostrarToast(msg){
+const t = document.getElementById("toast")
+t.innerText = msg
+t.style.display="block"
+setTimeout(()=>t.style.display="none",2500)
+}
+
+/* ENVIAR */
+async function enviar(){
+
+const btn = document.getElementById("btn")
+const loading = document.getElementById("loading")
+
+btn.disabled = true
+loading.style.display="flex"
+
+try{
+
+const file = document.getElementById("foto").files[0]
+const obs = document.getElementById("obs").value
+
+if(!file) throw "Selecione uma foto"
+
+const nome = `perca_${Date.now()}.jpg`
+
+const { error } = await sb.storage
+.from("buffet_percas")
+.upload(nome,file,{upsert:true})
+
+if(error) throw "Erro no upload"
+
+const { data } = sb.storage
+.from("buffet_percas")
+.getPublicUrl(nome)
+
+await sb.from("percas").insert([{
+data: hoje(),
+observacao: obs,
+foto_url: data.publicUrl
+}])
+
+document.getElementById("obs").value=""
+document.getElementById("foto").value=""
+
+mostrarToast("Registro salvo com sucesso")
+
+carregarDias()
+
+}catch(e){
+mostrarToast(e)
+}
+
+loading.style.display="none"
+btn.disabled = false
+}
+
+/* DIAS */
 async function carregarDias(){
 
 const { data } = await sb.from("percas").select("data")
 
 const dias = [...new Set(data.map(d=>d.data))]
 
-const lista = document.getElementById("listaDias")
-lista.innerHTML=""
+const div = document.getElementById("dias")
+div.innerHTML=""
 
-dias.sort().reverse().forEach(d=>{
-
+dias.forEach(d=>{
 const el = document.createElement("div")
 el.className="dia"
 el.innerText=formatar(d)
-
-el.onclick=()=>{
-diaAtivo = d
-marcarSelecionado()
-abrirDia(d)
-}
-
-lista.appendChild(el)
-
+el.onclick=()=>abrirDia(d)
+div.appendChild(el)
 })
 
 }
 
-/* MARCAR ATIVO */
-function marcarSelecionado(){
-
-document.querySelectorAll(".dia").forEach(el=>{
-el.classList.remove("ativo")
-})
-
-const items = document.querySelectorAll(".dia")
-
-items.forEach(el=>{
-if(el.innerText === formatar(diaAtivo)){
-el.classList.add("ativo")
-}
-})
-
-}
-
-/* ABRIR DIA */
+/* ABRIR */
 async function abrirDia(dia){
-
-document.getElementById("titulo").innerText = "📸 " + formatar(dia)
 
 const { data } = await sb
 .from("percas")
 .select("*")
 .eq("data",dia)
-.order("created_at",{ascending:false})
 
 const conteudo = document.getElementById("conteudo")
-conteudo.innerHTML=""
 
-if(data.length===0){
-conteudo.innerHTML='<div class="empty">Sem registros</div>'
-return
-}
+conteudo.innerHTML = `<h3>${formatar(dia)}</h3><div class="grid">`
 
 data.forEach(item=>{
-
-const div = document.createElement("div")
-div.className="card"
-
-div.innerHTML = `
-<img src="${item.foto_url}" onclick="ver('${item.foto_url}')">
+conteudo.innerHTML += `
+<div>
+<img src="${item.foto_url}" class="thumb" onclick="ver('${item.foto_url}')">
 <div class="obs">${item.observacao || ""}</div>
+</div>
 `
-
-conteudo.appendChild(div)
-
 })
 
+conteudo.innerHTML += "</div>"
+
+document.getElementById("modal").style.display="flex"
 }
 
 /* VIEWER */
 function ver(src){
-document.getElementById("img").src = src
+document.getElementById("imgViewer").src = src
 document.getElementById("viewer").style.display="flex"
 }
 
-function fechar(){
+function fecharViewer(){
 document.getElementById("viewer").style.display="none"
 }
 
-/* INIT */
+/* FECHAR */
+document.getElementById("modal").onclick = e=>{
+if(e.target.id==="modal"){
+e.target.style.display="none"
+}
+}
+
 carregarDias()
 
 </script>
