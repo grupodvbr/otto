@@ -774,24 +774,20 @@ if(statusAnterior === "ENTREGUE" && novoStatus !== "ENTREGUE"){
   
 async function liquidarMassa(st){
 
- if(!confirm("Marcar todos como ENTREGUE?")) return;
+ if(!confirm("Marcar itens filtrados como ENTREGUE?")) return;
 
-const filtrados = dadosRequisicoes.filter(r=>{
-  const st = (r.status || '').toUpperCase();
-  return st !== "ENTREGUE";
-});
+ const filtrados = getFiltrados().filter(r => {
+   const status = (r.status || '').toUpperCase();
+   return status !== "ENTREGUE";
+ });
 
  for(const item of filtrados){
-  await sb
-   .from("mercatto_requisicoes")
-   .update({ status: st })
-   .eq("id", item.index);
 
-  item.status = st;
+   // 🔥 PASSA PELO MESMO FLUXO (IMPORTANTE)
+   await atualizarStatus(item.index, st);
  }
 
- filtrarRequisicoes();
- mostrarAlerta(`${filtrados.length} atualizados!`);
+ mostrarAlerta(`${filtrados.length} itens atualizados!`);
 }
 
 
@@ -1113,7 +1109,37 @@ async function verMovimentacao(id,nome){
 }
 
 
+function getFiltrados(){
 
+  const fs = document.getElementById('filtroStatus').value.toUpperCase();
+  const fi = document.getElementById('filtroItem').value.toLowerCase();
+  const fsol = document.getElementById('filtroSolicitante').value;
+  const fset = document.getElementById('filtroSetor').value;
+  const din = parseData(document.getElementById('dataInicio').value);
+  const df = parseData(document.getElementById('dataFim').value);
+
+  return dadosRequisicoes.filter(i => {
+
+    const st = (i.status || '').toUpperCase().trim();
+    const pendente = !['COMPRADO','RECEBIDA','CONFERIDA','ENTREGUE','NEGADO'].includes(st);
+
+    if(fs !== 'TODOS'){
+      if(fs === 'PENDENTE' && !pendente) return false;
+      if(fs !== 'PENDENTE' && st !== fs) return false;
+    }
+
+    if(fi && !i.item.toLowerCase().includes(fi)) return false;
+    if(fsol && i.solicitante !== fsol) return false;
+    if(fset && i.setor !== fset) return false;
+
+    const dataItem = new Date(i.dataHoraRaw);
+
+    if(din && dataItem < din) return false;
+    if(df && dataItem > df) return false;
+
+    return true;
+  });
+}
 
 
 
