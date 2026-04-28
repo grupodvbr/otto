@@ -216,15 +216,16 @@ const pass = document.getElementById("senha").value;
 const { data } = await sb
 .from("usuarios_do_sistema")
 .select("usuario, senha, setor, nivel_acesso, ativo, nome")
-.eq("usuario", user)
-.eq("senha", pass)
+.eq("usuario", user) // ✅ só filtra usuário
 .maybeSingle();
 
-// 🔥 SIMPLES: só isso importa
-if(!data){
+// valida senha no JS
+if(!data || data.senha !== pass){
 alert("Usuário ou senha inválidos");
 return;
 }
+
+
 
 // BLOQUEIO
 if(!data.ativo){
