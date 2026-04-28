@@ -846,8 +846,8 @@ function fecharUsuarios(){
 async function carregarUsuarios(){
 
   const { data, error } = await sb
-    .from("usuarios_do_sistema") // 🔥 NOME CERTO
-    .select("id, nome, setor, cargo");
+    .from("usuarios") // ✅ PADRÃO CORRETO
+    .select("id, nome, setor, cargo, senha"); // ✅ AGORA TRAZ SENHA
 
   if(error){
     console.error("Erro ao buscar usuários:", error);
@@ -871,7 +871,10 @@ async function carregarUsuarios(){
     ">
       <div>
         <b>${u.nome}</b><br>
-        <small>${u.setor || "Sem setor"} - ${u.cargo || ""}</small>
+        <small>${u.setor || "Sem setor"} - ${u.cargo || ""}</small><br>
+
+        <!-- 🔥 SENHA AGORA APARECE -->
+        <small style="color:#dc3545">Senha: ${u.senha || "—"}</small>
       </div>
 
       <div>
@@ -883,7 +886,6 @@ async function carregarUsuarios(){
 
   document.getElementById("listaUsuarios").innerHTML = html;
 }
-
 
   
 async function salvarUsuario(){
