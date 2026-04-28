@@ -10,6 +10,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
+/* ===== VARIÁVEIS ===== */
 :root{
   --bg:#f1f5f9;
   --card:#ffffff;
@@ -21,11 +23,19 @@
   --blue:#2563eb;
 }
 
-/* RESET */
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);color:var(--text)}
+/* ===== RESET ===== */
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+}
 
-/* HEADER */
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ===== HEADER ===== */
 .header{
   position:fixed;
   top:0;left:0;right:0;
@@ -46,57 +56,67 @@ body{margin:0;background:var(--bg);color:var(--text)}
 .badge{
   background:var(--primary);
   color:#000;
-  padding:6px 10px;
-  border-radius:8px;
+  padding:6px 12px;
+  border-radius:10px;
   font-size:12px;
   font-weight:700;
 }
 
-/* CONTAINER */
+/* ===== CONTAINER ===== */
 .container{
-  padding:80px 12px 20px;
+  padding:85px 14px 20px;
   max-width:1200px;
   margin:auto;
 }
 
-/* FILTROS */
+/* ===== FILTROS ===== */
 .filtros{
   display:flex;
-  gap:8px;
+  gap:10px;
   flex-wrap:wrap;
-  margin-bottom:16px;
+  margin-bottom:18px;
 }
 
-input,select{
+input,select,textarea{
   flex:1;
-  padding:12px;
+  padding:13px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#fff;
+  font-size:14px;
+  transition:.2s;
 }
 
-/* GRID */
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1);
+  outline:none;
+}
+
+/* ===== GRID ===== */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:12px;
+  gap:14px;
 }
 
-/* CARD */
+/* ===== CARD ===== */
 .card{
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:18px;
   padding:16px;
   display:flex;
   flex-direction:column;
   gap:8px;
-  transition:.2s;
+  transition:.25s;
 }
 
 .card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 10px 25px rgba(0,0,0,.05);
+  transform:translateY(-4px);
+  box-shadow:0 15px 30px rgba(0,0,0,.07);
 }
 
 .nome{
@@ -118,88 +138,179 @@ input,select{
 .ativo{color:var(--primary)}
 .inativo{color:var(--danger)}
 
-/* BUTTONS */
+/* BOTÕES */
 .botoes{
   display:flex;
-  gap:6px;
-  margin-top:8px;
+  gap:8px;
+  margin-top:10px;
 }
 
 button{
   flex:1;
   border:none;
   padding:10px;
-  border-radius:10px;
+  border-radius:12px;
   font-weight:600;
   font-size:13px;
+  cursor:pointer;
+  transition:.2s;
 }
 
-.aprovar{background:var(--primary)}
-.editar{background:var(--blue);color:#fff}
+button:active{
+  transform:scale(.96);
+}
 
-/* MODAL */
+.aprovar{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;
+}
+
+.editar{
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:#fff;
+}
+
+/* ===== MODAL OVERLAY ===== */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(15,23,42,.55);
+  backdrop-filter:blur(6px);
   display:none;
   align-items:flex-end;
   justify-content:center;
+  z-index:999;
 }
 
+/* ===== MODAL BOX ===== */
 .modalBox{
+  position:relative;
   background:#fff;
   width:100%;
-  max-width:500px;
-  border-radius:20px 20px 0 0;
+  max-width:520px;
+  height:92vh;
+  border-radius:24px 24px 0 0;
   padding:20px;
-  animation:up .3s;
+  overflow-y:auto;
+
+  box-shadow:0 -15px 40px rgba(0,0,0,.15);
+
+  animation:modalUp .35s ease;
 }
 
-@keyframes up{
-  from{transform:translateY(100%)}
-  to{transform:translateY(0)}
+/* ANIMAÇÃO */
+@keyframes modalUp{
+  from{transform:translateY(100%);opacity:0}
+  to{transform:translateY(0);opacity:1}
 }
 
-.modal input, .modal select{
-  width:100%;
-  margin-bottom:10px;
-}
-
-.salvar{
-  background:var(--primary);
+/* HEADER MODAL */
+.modalBox h3{
+  font-size:18px;
   font-weight:800;
+  margin-bottom:16px;
 }
 
-/* LOADER */
+/* GRID MODAL */
+.modalGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+/* FULL WIDTH */
+.full{
+  grid-column:1/-1;
+}
+
+/* SENHA */
+.senhaBox{
+  display:flex;
+  gap:6px;
+}
+
+.senhaBox input{
+  flex:1;
+}
+
+.senhaBox button{
+  width:48px;
+  background:#e2e8f0;
+  border-radius:10px;
+}
+
+/* TEXTAREA */
+textarea{
+  resize:none;
+  min-height:80px;
+}
+
+/* BOTÃO SALVAR */
+.salvar{
+  margin-top:18px;
+  padding:14px;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+  color:#fff;
+
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  box-shadow:0 12px 25px rgba(34,197,94,.25);
+}
+
+/* BOTÃO FECHAR */
+.closeModal{
+  position:absolute;
+  top:15px;
+  right:15px;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:none;
+  background:#f1f5f9;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* ===== LOADER ===== */
 .loader{
   position:fixed;
   inset:0;
   background:rgba(255,255,255,.7);
+  backdrop-filter:blur(3px);
   display:none;
   align-items:center;
   justify-content:center;
   font-weight:700;
+  font-size:16px;
 }
 
-/* TOAST */
+/* ===== TOAST ===== */
 .toast{
   position:fixed;
-  bottom:15px;
+  bottom:20px;
   left:50%;
   transform:translateX(-50%);
-  background:#111;
+  background:#0f172a;
   color:#fff;
-  padding:12px 16px;
+  padding:12px 18px;
   border-radius:12px;
+  font-size:13px;
   display:none;
+  box-shadow:0 10px 20px rgba(0,0,0,.2);
 }
 
-/* MOBILE AJUSTES */
+/* ===== MOBILE ===== */
 @media(max-width:500px){
+  .modalBox{
+    height:94vh;
+    padding:18px 14px;
+  }
+
   .title{font-size:16px}
   button{font-size:12px}
 }
+
 </style>
 </head>
 
