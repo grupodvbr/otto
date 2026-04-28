@@ -779,35 +779,40 @@ lista.innerHTML += `
 
 async function salvar(consumoPara){
   try{
-    showSaving(); // 👈 abre overlay
+    showSaving();
 
     const empresa = empresaSelect.value;
     const produtoNome = produtoInput.value.trim().toUpperCase();
-const pesoBruto = unidadeSelect.value === "UN"
-  ? parseInt(quantidadeInput.value || 0)
-  : parsePeso(quantidadeInput.value);
-const tara = unidadeSelect.value === "UN"
-  ? parseInt(taraInput.value || 0)
-  : parsePeso(taraInput.value || 0);
+
+    const pesoBruto = unidadeSelect.value === "UN"
+      ? parseInt(quantidadeInput.value || 0)
+      : parsePeso(quantidadeInput.value);
+
+    const tara = unidadeSelect.value === "UN"
+      ? parseInt(taraInput.value || 0)
+      : parsePeso(taraInput.value || 0);
+
     const unidade = unidadeSelect.value;
-let tipo = tipoSelect.value;
 
-// 🔒 se for consumo autorizado, salva como RETIRADA e marca flag
-if (produtoNome === "CONSUMO AUTORIZADO") {
-  tipo = "RETIRADA";
-}
+    let tipo = tipoSelect.value;
 
-// ⛔ bloqueia qualquer tentativa de salvar CONSUMO fora do fluxo correto
-if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
-  alert("Tipo CONSUMO é reservado apenas para CONSUMO AUTORIZADO.");
-  hideSaving();
-  return;
-}
+    // 🔒 consumo autorizado vira retirada
+    if (produtoNome === "CONSUMO AUTORIZADO") {
+      tipo = "RETIRADA";
+    }
+
+    if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
+      alert("Tipo CONSUMO é reservado apenas para CONSUMO AUTORIZADO.");
+      hideSaving();
+      return;
+    }
+
     if(!produtoNome || pesoBruto <= 0){
       alert("Preencha tudo");
       hideSaving();
       return;
     }
+
     if(tara > pesoBruto){
       alert("Tara não pode ser maior que o peso bruto");
       hideSaving();
@@ -815,6 +820,57 @@ if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
     }
 
     const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
+
+    // ================= 🔒 REGRA DE NEGÓCIO (RETIRADA) =================
+    if (tipo === "RETIRADA") {
+
+      const { data: historico } = await sb
+        .from("buffet_lancamentos")
+        .select("tipo, quantidade")
+        .eq("empresa", empresa)
+        .eq("produto_nome", produtoNome);
+
+      let totalMontagem = 0;
+      let totalReposicao = 0;
+      let totalRetirada = 0;
+
+      historico?.forEach(l => {
+        if (l.tipo === "MONTAGEM") totalMontagem += Number(l.quantidade || 0);
+        if (l.tipo === "REPOSICAO") totalReposicao += Number(l.quantidade || 0);
+        if (l.tipo === "RETIRADA") totalRetirada += Number(l.quantidade || 0);
+      });
+
+      const totalDisponivel = totalMontagem + totalReposicao - totalRetirada;
+
+      // ❌ nunca teve lançamento
+      if (!historico || historico.length === 0) {
+        alert("❌ Não existe montagem ou reposição para este item.");
+        hideSaving();
+        return;
+      }
+
+      // ❌ nunca teve entrada
+      if ((totalMontagem + totalReposicao) <= 0) {
+        alert("❌ Não existe montagem ou reposição para retirada.");
+        hideSaving();
+        return;
+      }
+
+      // ❌ retirada maior que saldo
+      if (quantidadeLiquida > totalDisponivel) {
+        alert(`❌ Saldo insuficiente.\nDisponível: ${totalDisponivel.toFixed(3)} kg`);
+        hideSaving();
+        return;
+      }
+
+      // ❌ saldo zerado
+      if (totalDisponivel <= 0) {
+        alert("❌ Item sem saldo disponível.");
+        hideSaving();
+        return;
+      }
+    }
+    // ================================================================
 
     let { data:prod } = await sb
       .from("buffet_produtos")
@@ -826,45 +882,51 @@ if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
     if(!prod){
       const { data:nova } = await sb
         .from("buffet_produtos")
-        .insert({ empresa, nome: produtoNome, unidade_padrao: unidade, tara_padrao: tara })
+        .insert({
+          empresa,
+          nome: produtoNome,
+          unidade_padrao: unidade,
+          tara_padrao: tara
+        })
         .select().single();
+
       prod = nova;
       carregarProdutos();
     }
 
     const hora = new Date().toTimeString().slice(0,8);
 
-const payload = {
-  empresa: String(empresaSelect.value),
-  produto_id: String(prod.id),
-  produto_nome: String(produtoNome),
-  tipo: String(tipo),
-  quantidade: Number(quantidadeLiquida),
-  unidade: String(unidade),
-  data: String(dataISO),
-  hora: String(hora),
-  tara: tara != null ? Number(tara) : 0,
-consumo_autorizado:
-  produtoNome === "CONSUMO AUTORIZADO",
-consumo_para_nome:
-  produtoNome === "CONSUMO AUTORIZADO"
-    ? String(consumoPara)
-    : tipo === "RETIRADA"
-      ? String(consumoPara)
-      : null
-};
+    const payload = {
+      empresa: String(empresa),
+      produto_id: String(prod.id),
+      produto_nome: String(produtoNome),
+      tipo: String(tipo),
+      quantidade: Number(quantidadeLiquida),
+      unidade: String(unidade),
+      data: String(dataISO),
+      hora: String(hora),
+      tara: tara != null ? Number(tara) : 0,
+      consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO",
+      consumo_para_nome:
+        produtoNome === "CONSUMO AUTORIZADO"
+          ? String(consumoPara)
+          : tipo === "RETIRADA"
+            ? String(consumoPara)
+            : null
+    };
 
-const { error: insertError } = await sb
-  .from("buffet_lancamentos")
-  .insert(payload);
+    const { error: insertError } = await sb
+      .from("buffet_lancamentos")
+      .insert(payload);
 
-if (insertError) {
-  console.error("ERRO INSERT buffet_lancamentos:", insertError);
-  alert("Erro ao salvar: " + insertError.message);
-  hideSaving();
-  return;
-}
+    if (insertError) {
+      console.error("ERRO INSERT:", insertError);
+      alert("Erro ao salvar: " + insertError.message);
+      hideSaving();
+      return;
+    }
 
+    // ================= ATUALIZA TARA =================
     const { data:ultimas } = await sb
       .from("buffet_lancamentos")
       .select("tara")
@@ -873,20 +935,20 @@ if (insertError) {
       .order("created_at", { ascending:false })
       .limit(3);
 
-// só atualiza tara padrão se NÃO for reposição
-if(ultimas?.length && tipo !== "REPOSICAO" && tipo !== "CONSUMO"){
-  const maisUsada = ultimas
-    .map(x => Number(x.tara || 0))
-    .sort((a,b) =>
-      ultimas.filter(u=>u.tara===a).length -
-      ultimas.filter(u=>u.tara===b).length
-    )
-    .pop();
+    if(ultimas?.length && tipo !== "REPOSICAO"){
+      const maisUsada = ultimas
+        .map(x => Number(x.tara || 0))
+        .sort((a,b) =>
+          ultimas.filter(u=>u.tara===a).length -
+          ultimas.filter(u=>u.tara===b).length
+        )
+        .pop();
 
-  await sb.from("buffet_produtos")
-    .update({ tara_padrao: maisUsada })
-    .eq("id", prod.id);
-}
+      await sb.from("buffet_produtos")
+        .update({ tara_padrao: maisUsada })
+        .eq("id", prod.id);
+    }
+    // =================================================
 
     limpar();
     carregarLancamentos();
@@ -895,7 +957,7 @@ if(ultimas?.length && tipo !== "REPOSICAO" && tipo !== "CONSUMO"){
     console.error(err);
     alert("Erro ao salvar. Verifique a internet.");
   } finally {
-    hideSaving(); // 👈 fecha overlay sempre
+    hideSaving();
   }
 }
 
