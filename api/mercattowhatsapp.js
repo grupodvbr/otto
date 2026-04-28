@@ -1084,6 +1084,72 @@ mensagem:mensagem,
 role:"user"
 })
 
+
+if(querCardapio){
+
+  console.log("📋 ENVIANDO CARDÁPIO AUTOMÁTICO")
+
+  const lista = await buscarCardapio()
+
+  let respostaCardapio = ""
+
+  if(!lista.length){
+
+    respostaCardapio = "😕 No momento nosso cardápio não está disponível."
+
+  } else {
+
+    respostaCardapio = "🍽️ *Nosso cardápio:*\n\n"
+
+    lista.forEach(p => {
+      respostaCardapio += `• ${p.nome} - R$ ${Number(p.preco_venda).toFixed(2)}\n`
+    })
+
+    respostaCardapio += "\nSe quiser foto de algum prato é só pedir 😉"
+  }
+
+  await fetch(url,{
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      messaging_product:"whatsapp",
+      to:cliente,
+      type:"text",
+      text:{ body:respostaCardapio }
+    })
+  })
+
+  await supabase
+  .from("conversas_whatsapp")
+  .insert({
+    telefone:cliente,
+    mensagem:respostaCardapio,
+    role:"assistant"
+  })
+
+  return res.status(200).end()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 if(querEndereco){
 
 const resposta = `📍 Estamos localizados em:
