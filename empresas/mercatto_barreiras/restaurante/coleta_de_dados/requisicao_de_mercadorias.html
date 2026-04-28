@@ -215,8 +215,8 @@ async function login(){
 
   const { data, error } = await sb
     .from("usuarios")
-    .select('"usuario","senha"') // 👈 IMPORTANTE (com aspas)
-    .eq("usuario", user)
+    .select("username, senha") // 👈 nomes reais da tabela
+    .eq("username", user)      // 👈 aqui também
     .maybeSingle();
 
   if(error){
