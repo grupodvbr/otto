@@ -861,26 +861,71 @@ async function carregarUsuarios(){
   }
 
   const html = data.map(u => `
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:6px;
-      border-bottom:1px solid #ccc;
-      padding:6px;
-    ">
-      <div>
-        <b>${u.nome}</b><br>
-        <small>${u.setor || "Sem setor"} - ${u.cargo || ""}</small><br>
-        <small style="color:#dc3545">Senha: ${u.senha || "—"}</small> <!-- 👈 mostrando senha -->
+  <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px;
+    border-radius:14px;
+    margin-bottom:10px;
+    background:linear-gradient(135deg,#0f172a,#020617);
+    color:#fff;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  ">
+
+    <!-- ESQUERDA -->
+    <div style="display:flex;flex-direction:column;gap:4px">
+
+      <!-- NOME -->
+      <div style="font-size:14px;font-weight:700;letter-spacing:.5px">
+        ${u.nome}
       </div>
 
-      <div>
-        <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor || ""}','${u.senha || ""}')">✏️</button>
-        <button onclick="excluirUsuario('${u.id}')">🗑️</button>
+      <!-- SETOR / CARGO -->
+      <div style="font-size:11px;opacity:.7">
+        ${u.setor || "Sem setor"} • ${u.cargo || "Sem cargo"}
       </div>
+
+      <!-- SENHA -->
+      <div style="
+        font-size:11px;
+        margin-top:4px;
+        background:rgba(255,255,255,.08);
+        padding:4px 8px;
+        border-radius:6px;
+        display:inline-block;
+        width:fit-content;
+      ">
+        🔐 ${u.senha || "---"}
+      </div>
+
     </div>
-  `).join("");
+
+    <!-- AÇÕES -->
+    <div style="display:flex;gap:8px">
+
+      <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor || ""}','${u.senha || ""}')"
+      style="
+        background:#f59e0b;
+        border:none;
+        padding:6px 8px;
+        border-radius:8px;
+        cursor:pointer;
+      ">✏️</button>
+
+      <button onclick="excluirUsuario('${u.id}')"
+      style="
+        background:#ef4444;
+        border:none;
+        padding:6px 8px;
+        border-radius:8px;
+        cursor:pointer;
+      ">🗑️</button>
+
+    </div>
+
+  </div>
+`).join("");
 
   document.getElementById("listaUsuarios").innerHTML = html;
 }
