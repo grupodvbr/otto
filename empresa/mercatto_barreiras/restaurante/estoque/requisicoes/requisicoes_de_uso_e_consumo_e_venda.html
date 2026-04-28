@@ -846,8 +846,8 @@ function fecharUsuarios(){
 async function carregarUsuarios(){
 
   const { data, error } = await sb
-    .from("public.usuarios") // 🔥 CORREÇÃO
-    .select("*");
+    .from("usuarios_do_sistema") // 🔥 NOME CERTO
+    .select("id, nome, setor, cargo");
 
   if(error){
     console.error("Erro ao buscar usuários:", error);
@@ -855,7 +855,12 @@ async function carregarUsuarios(){
     return;
   }
 
-  const html = (data || []).map(u => `
+  if(!data || data.length === 0){
+    document.getElementById("listaUsuarios").innerHTML = "Nenhum usuário encontrado";
+    return;
+  }
+
+  const html = data.map(u => `
     <div style="
       display:flex;
       justify-content:space-between;
@@ -866,7 +871,7 @@ async function carregarUsuarios(){
     ">
       <div>
         <b>${u.nome}</b><br>
-        <small>${u.setor || ""} - ${u.cargo || ""}</small>
+        <small>${u.setor || "Sem setor"} - ${u.cargo || ""}</small>
       </div>
 
       <div>
@@ -878,6 +883,9 @@ async function carregarUsuarios(){
 
   document.getElementById("listaUsuarios").innerHTML = html;
 }
+
+
+  
 async function salvarUsuario(){
  const nome = document.getElementById("nomeUser").value.toUpperCase().trim();
  const setor = document.getElementById("setorUser").value.trim();
