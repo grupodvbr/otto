@@ -210,13 +210,13 @@ let dadosUsuario=null;
 /* LOGIN */
 async function login(){
 
-  const user = usuario.value;
+  const user = usuario.value.trim();
   const pass = senha.value;
 
   const { data, error } = await sb
     .from("usuarios_do_sistema")
-    .select('"usuario","senha"') // 👈 IMPORTANTE (com aspas)
-    .eq("usuario", user)
+    .select("id, username, senha") // pega só o necessário
+    .eq("username", user)
     .maybeSingle();
 
   if(error){
@@ -235,8 +235,16 @@ async function login(){
     return;
   }
 
-  alert("Login OK");
+  // 🔐 salva sessão
+  localStorage.setItem("user_data", JSON.stringify(data));
+
+  // 🚀 entra no sistema
+  init();
 }
+
+
+
+ 
 /* VALIDAR SESSÃO */
 async function validarSessao(){
 
@@ -263,20 +271,22 @@ return true;
 /* INIT */
 async function init(){
 
-loginArea.classList.add("hidden");
-appArea.classList.remove("hidden");
+  loginArea.classList.add("hidden");
+  appArea.classList.remove("hidden");
 
-const saved = JSON.parse(localStorage.getItem("user_data"));
+  const saved = JSON.parse(localStorage.getItem("user_data"));
 
-usuarioAtual = saved.nome;
-dadosUsuario = saved;
+  usuarioAtual = saved.username;
+  dadosUsuario = saved;
 
-solicitante.value = saved.nome;
-setor.innerHTML = `<option>${saved.setor}</option>`;
+  solicitante.value = saved.username;
 
-setUnidade("UN");
+  // como não tem setor na tabela
+  setor.innerHTML = `<option>GERAL</option>`;
 
-carregarHistorico();
+  setUnidade("UN");
+
+  carregarHistorico();
 }
 
 /* AUTO LOGIN */
