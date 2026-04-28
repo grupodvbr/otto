@@ -320,9 +320,8 @@ produto.onkeyup = async () => {
 
   const { data, error } = await sb
     .from("mercatto_estoque")
-    .select("produto, saldo")
-    .ilike("produto", `%${q}%`) // 🔎 busca flexível
-    .eq("empresa", "MERCATTO DELICIA") // 👈 mantém empresa
+    .select("produto, saldo, empresa")
+    .ilike("produto", `%${q}%`)
     .limit(10);
 
   if(error){
@@ -333,7 +332,6 @@ produto.onkeyup = async () => {
   listaProdutos.innerHTML = "";
 
   (data || []).forEach(p => {
-
     listaProdutos.innerHTML += `
       <div class="item" onclick="selectProduto('${p.produto}')">
         ${p.produto}
@@ -345,6 +343,9 @@ produto.onkeyup = async () => {
   });
 };
 
+
+
+ 
 function selectProduto(nome){
 produto.value=nome;
 listaProdutos.innerHTML="";
