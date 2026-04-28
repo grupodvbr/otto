@@ -223,7 +223,7 @@ const { data, error } = await sb
 .select("usuario, senha, setor, nivel_acesso, ativo, nome")
 .eq("usuario", user)
 .eq("senha", pass)
-.single();
+.maybeSingle();
 
 if(error || !data){
 alert("Usuário ou senha inválidos");
@@ -254,7 +254,7 @@ const { data } = await sb
 .from("usuarios_do_sistema")
 .select("usuario, senha, setor, nivel_acesso, ativo")
 .eq("usuario", user.usuario)
-.single();
+.maybeSingle();
 
 // ❌ inválido ou inativo
 if(!data || data.senha !== user.senha || !data.ativo){
