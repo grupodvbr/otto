@@ -34,10 +34,10 @@ body{
   flex-direction:column;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 header{
   height:64px;
-  background:#ffffff;
+  background:#fff;
   border-bottom:1px solid var(--border);
   display:flex;
   align-items:center;
@@ -45,54 +45,27 @@ header{
   padding:0 24px;
 }
 
-.header-left{
-  display:flex;
-  flex-direction:column;
-}
-
-.header-left h1{
+header h1{
   font-size:18px;
   font-weight:700;
 }
 
-.header-left span{
+header span{
   font-size:12px;
   color:var(--sub);
 }
 
-.header-right{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  font-size:13px;
-}
-
-.status{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  color:var(--success);
-  font-weight:600;
-}
-
-.dot{
-  width:8px;
-  height:8px;
-  background:var(--success);
-  border-radius:50%;
-}
-
-/* ===== GRID ===== */
+/* GRID */
 .dashboard{
   flex:1;
   padding:20px;
   display:grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns:repeat(5,1fr);
+  grid-template-rows:repeat(2,1fr);
   gap:16px;
 }
 
-/* ===== CARD ===== */
+/* CARD */
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -100,119 +73,150 @@ header{
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  box-shadow:0 4px 12px rgba(0,0,0,0.04);
-  transition:0.25s;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+  transition:.25s;
 }
 
 .card:hover{
   transform:translateY(-2px);
-  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+  box-shadow:0 10px 24px rgba(0,0,0,0.08);
 }
 
-/* topo do card */
+/* HEADER DO CARD */
 .card-header{
   height:36px;
   padding:0 12px;
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  font-size:12px;
-  font-weight:600;
-  color:var(--sub);
+  align-items:center;
   border-bottom:1px solid var(--border);
+  font-size:12px;
+  color:var(--sub);
+  font-weight:600;
 }
 
 .card-header strong{
   color:var(--text);
-  font-weight:600;
 }
 
-/* iframe */
+/* IFRAME */
 .card iframe{
   flex:1;
   border:none;
-  background:#fff;
+  width:100%;
+  height:100%;
 }
 
-/* ===== RESPONSIVO ===== */
+/* RESPONSIVO */
 @media(max-width:1200px){
   .dashboard{
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns:repeat(3,1fr);
   }
 }
 
 @media(max-width:768px){
   .dashboard{
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:repeat(2,1fr);
   }
 }
 
 @media(max-width:500px){
   .dashboard{
-    grid-template-columns: 1fr;
+    grid-template-columns:1fr;
   }
 }
 
 </style>
 </head>
+
 <body>
 
 <header>
-  <div class="header-left">
+  <div>
     <h1>Dashboard Operacional</h1>
-    <span>Sistemas Integrados • Grupo DV</span>
+    <span>Grupo DV • Sistemas Integrados</span>
   </div>
 
-  <div class="header-right">
-    <div class="status">
-      <div class="dot"></div>
-      Online
-    </div>
-    <div id="dataHora"></div>
-  </div>
+  <div id="dataHora"></div>
 </header>
 
 <div class="dashboard">
 
-  <!-- CARDS -->
-  <script>
-    for(let i=1;i<=10;i++){
-      document.write(`
-        <div class="card">
-          <div class="card-header">
-            <strong>Sistema ${i}</strong>
-            <span>#0${i}</span>
-          </div>
-          <iframe src="gestao/cards/card${i}.html"></iframe>
-        </div>
-      `)
-    }
-  </script>
+  <!-- CARD 1 -->
+  <div class="card">
+    <div class="card-header"><strong>Buffet</strong><span>#01</span></div>
+    <iframe src="gestao/cards/card1.html"></iframe>
+  </div>
+
+  <!-- CARD 2 -->
+  <div class="card">
+    <div class="card-header"><strong>Financeiro</strong><span>#02</span></div>
+    <iframe src="gestao/cards/card2.html"></iframe>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="card">
+    <div class="card-header"><strong>Vendas</strong><span>#03</span></div>
+    <iframe src="gestao/cards/card3.html"></iframe>
+  </div>
+
+  <!-- CARD 4 -->
+  <div class="card">
+    <div class="card-header"><strong>Reservas</strong><span>#04</span></div>
+    <iframe src="gestao/cards/card4.html"></iframe>
+  </div>
+
+  <!-- CARD 5 -->
+  <div class="card">
+    <div class="card-header"><strong>Requisições</strong><span>#05</span></div>
+    <iframe src="gestao/cards/card5.html"></iframe>
+  </div>
+
+  <!-- CARD 6 -->
+  <div class="card">
+    <div class="card-header"><strong>Cancelamentos</strong><span>#06</span></div>
+    <iframe src="gestao/cards/card6.html"></iframe>
+  </div>
+
+  <!-- CARD 7 -->
+  <div class="card">
+    <div class="card-header"><strong>Clientes</strong><span>#07</span></div>
+    <iframe src="gestao/cards/card7.html"></iframe>
+  </div>
+
+  <!-- CARD 8 -->
+  <div class="card">
+    <div class="card-header"><strong>Estoque</strong><span>#08</span></div>
+    <iframe src="gestao/cards/card8.html"></iframe>
+  </div>
+
+  <!-- CARD 9 -->
+  <div class="card">
+    <div class="card-header"><strong>RH</strong><span>#09</span></div>
+    <iframe src="gestao/cards/card9.html"></iframe>
+  </div>
+
+  <!-- CARD 10 -->
+  <div class="card">
+    <div class="card-header"><strong>Relatórios</strong><span>#10</span></div>
+    <iframe src="gestao/cards/card10.html"></iframe>
+  </div>
 
 </div>
 
 <script>
-// ===== DATA + HORA =====
-function atualizarDataHora(){
+// DATA + HORA
+function atualizar(){
   const agora = new Date()
 
-  const data = agora.toLocaleDateString("pt-BR", {
-    day:"2-digit",
-    month:"2-digit",
-    year:"numeric"
-  })
+  const data = agora.toLocaleDateString("pt-BR")
+  const hora = agora.toLocaleTimeString("pt-BR")
 
-  const hora = agora.toLocaleTimeString("pt-BR", {
-    hour:"2-digit",
-    minute:"2-digit",
-    second:"2-digit"
-  })
-
-  document.getElementById("dataHora").innerText = `${data} • ${hora}`
+  document.getElementById("dataHora").innerText = data + " • " + hora
 }
 
-setInterval(atualizarDataHora,1000)
-atualizarDataHora()
+setInterval(atualizar,1000)
+atualizar()
 </script>
 
 </body>
