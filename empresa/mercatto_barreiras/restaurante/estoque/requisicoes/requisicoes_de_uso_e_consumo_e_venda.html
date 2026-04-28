@@ -477,12 +477,7 @@ async function carregarRequisicoes(){
 
 const { data, error } = await sb
 .from("mercatto_requisicoes")
-.select(`
-  *,
-  produtos_mercatto!fk_produto (
-    nome
-  )
-`)
+.select("*")
 .order("created_at", { ascending: false })
 .limit(100);
 
@@ -499,7 +494,7 @@ produto_id: r.produto_id,
 dataHoraRaw: r.created_at, // ✅ NOVO
 dataHora: formatarDataHora(r.created_at),
   // 🔥 AQUI É A MUDANÇA IMPORTANTE
-  item: r.produto || r.produtos_mercatto?.nome || "SEM PRODUTO",
+  item: r.produto || "SEM PRODUTO",
 
   unidade: r.unidade,
  qtd: parseFloat(r.quantidade) || 0,
@@ -990,10 +985,9 @@ async function abrirEstoque(){
   document.body.style.overflow="hidden";
 
   // 🔹 busca produtos
-  const { data: produtos } = await sb
-    .from("produtos_mercatto")
-    .select("*");
-
+const { data: produtos } = await sb
+  .from("mercatto_estoque")
+  .select("*");
   // 🔹 busca movimentações
   const { data: mov } = await sb
     .from("mercatto_requisicoes")
@@ -1001,15 +995,7 @@ async function abrirEstoque(){
 
   const mapa = {};
 
-  (produtos || []).forEach(p=>{
-mapa[p.id] = {
-  id: p.id,
-  nome: p.nome,
-  atual: parseFloat(p.estoque) || 0,
-  minimo: parseFloat(p.estoque_minimo) || 0,
-  maximo: parseFloat(p.estoque_maximo) || 0
-};
-  });
+
 
 (produtos || []).forEach(p=>{
   mapa[p.id] = {
