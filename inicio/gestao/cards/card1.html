@@ -100,14 +100,24 @@ async function carregar(){
       .eq("data", ultimaData)
 
     // 🔥 3. SOMA CORRETA (SÓ PRODUÇÃO)
-    let total = 0
+let total = 0
 
-    ;(lancamentos || []).forEach(l => {
-      if(l.tipo === "MONTAGEM" || l.tipo === "REPOSICAO"){
-        total += Number(l.quantidade || 0)
-      }
-    })
+;(lancamentos || []).forEach(l => {
 
+  const q = Number(l.quantidade || 0)
+
+  if(l.tipo === "MONTAGEM" || l.tipo === "REPOSICAO"){
+    total += q
+  }
+
+  if(l.tipo === "RETIRADA" || l.tipo === "DEVOLUCAO"){
+    total -= q
+  }
+
+})
+
+// nunca deixa negativo
+if(total < 0) total = 0
     // 🔥 DATA FORMATADA
     const dataFormatada = new Date(ultimaData)
       .toLocaleDateString("pt-BR")
