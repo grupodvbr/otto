@@ -231,12 +231,27 @@ button{
 <div class="modal" id="modal">
   <div class="modalBox">
 
-    <h3>Editar Usuário</h3>
+    <h3>👤 Editar Usuário</h3>
+
+    <input id="usuario" placeholder="Usuário">
+
+    <div style="display:flex;gap:6px">
+      <input id="senha" type="password" placeholder="Senha" style="flex:1">
+      <button onclick="toggleSenha()">👁</button>
+    </div>
 
     <input id="nome" placeholder="Nome">
     <input id="email" placeholder="Email">
     <input id="telefone" placeholder="Telefone">
+
+    <input id="setor" placeholder="Setor">
     <input id="cargo" placeholder="Cargo">
+
+    <select id="nivel">
+      <option value="0">Administrador</option>
+      <option value="1">Gerente</option>
+      <option value="2">Funcionário</option>
+    </select>
 
     <select id="empresa">
       <option>MERCATTO DELICIA</option>
@@ -249,6 +264,18 @@ button{
       <option>Feminino</option>
       <option>Outro</option>
     </select>
+
+    <input type="date" id="nascimento">
+    <input type="date" id="admissao">
+
+    <input id="endereco" placeholder="Endereço">
+    <input id="cidade" placeholder="Cidade">
+    <input id="estado" placeholder="Estado">
+    <input id="cep" placeholder="CEP">
+
+    <input id="status_funcionario" placeholder="Status Funcionário">
+
+    <textarea id="obs" placeholder="Observações"></textarea>
 
     <button class="salvar" onclick="salvar()">Salvar</button>
 
@@ -355,29 +382,71 @@ function abrir(id){
 
   modal.style.display="flex"
 
+  usuario.value = atual.usuario || ""
+  senha.value = atual.senha || ""
+
   nome.value = atual.nome || ""
   email.value = atual.email || ""
   telefone.value = atual.telefone || ""
-  cargo.value = atual.cargo || ""
+
   empresa.value = atual.empresa || ""
+  setor.value = atual.setor || ""
+  cargo.value = atual.cargo || ""
+
+  nivel.value = atual.nivel_acesso ?? 2
+
   sexo.value = atual.sexo || "Masculino"
+
+  nascimento.value = atual.data_nascimento || ""
+  admissao.value = atual.data_admissao || ""
+
+  endereco.value = atual.endereco || ""
+  cidade.value = atual.cidade || ""
+  estado.value = atual.estado || ""
+  cep.value = atual.cep || ""
+
+  status_funcionario.value = atual.status_funcionario || ""
+
+  obs.value = atual.observacoes || ""
 }
 
 // 🔥 SALVAR
 async function salvar(){
   showLoader(true)
 
-  await sb.from("usuarios_do_sistema")
-    .update({
-      nome:nome.value,
-      email:email.value,
-      telefone:telefone.value,
-      cargo:cargo.value,
-      empresa:empresa.value,
-      sexo:sexo.value,
-      atualizado_em:new Date()
-    })
-    .eq("id",atual.id)
+await sb.from("usuarios_do_sistema")
+.update({
+  usuario: usuario.value,
+  senha: senha.value,
+
+  nome: nome.value,
+  email: email.value,
+  telefone: telefone.value,
+
+  empresa: empresa.value,
+  setor: setor.value,
+  cargo: cargo.value,
+  nivel_acesso: Number(nivel.value),
+
+  sexo: sexo.value,
+
+  data_nascimento: nascimento.value,
+  data_admissao: admissao.value,
+
+  endereco: endereco.value,
+  cidade: cidade.value,
+  estado: estado.value,
+  cep: cep.value,
+
+  status_funcionario: status_funcionario.value,
+  observacoes: obs.value,
+
+  atualizado_em: new Date()
+})
+.eq("id", atual.id)
+
+
+  
 
   modal.style.display="none"
   toastMsg("Salvo com sucesso")
@@ -391,6 +460,15 @@ empresaFiltro.onchange = render
 
 // 🔥 INIT
 carregar()
+
+
+function toggleSenha(){
+  senha.type = senha.type === "password" ? "text" : "password"
+}
+
+
+
+  
 
 </script>
 
