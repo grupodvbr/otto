@@ -365,7 +365,7 @@ async function enviar(){
 
   const { data: prod, error: erroBusca } = await sb
     .from("mercatto_estoque")
-    .select("produto, produto_id")
+    .select("id, produto")
     .ilike("produto", `%${nome}%`)
     .maybeSingle();
 
@@ -379,7 +379,7 @@ async function enviar(){
   const { error: erroInsert } = await sb
     .from("mercatto_requisicoes")
     .insert({
-      produto_id: prod.produto_id,
+      produto_id: prod.id, // 👈 AQUI É A CORREÇÃO
       produto: prod.produto,
       quantidade: parseInt(quantidade.value),
       unidade: unidade,
