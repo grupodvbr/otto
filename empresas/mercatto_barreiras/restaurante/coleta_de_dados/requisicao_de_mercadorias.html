@@ -210,13 +210,14 @@ let dadosUsuario=null;
 /* LOGIN */
 async function login(){
 
-const user = usuario.value.toUpperCase();
+const user = document.getElementById("usuario").value.toUpperCase();
+const pass = document.getElementById("senha").value;
 
 const { data, error } = await sb
 .from("usuarios_do_sistema")
 .select("*")
-.eq("usuario", user.usuario)
-.eq("senha", senha.value)
+.eq("usuario", user) // ✅ CORRETO
+.eq("senha", pass)
 .single();
 
 if(error || !data){
@@ -239,16 +240,11 @@ const user = JSON.parse(saved);
 const { data } = await sb
 .from("usuarios_do_sistema")
 .select("*")
-.eq("usuario", user.usuario)
+.eq("usuario", user.usuario) // aqui está certo porque user é objeto do localStorage
 .single();
 
-if(!data || data.senha !== user.senha){
-logout();
-return false;
-}
-
-
  
+if(!data || data.senha !== user.senha){
 logout();
 return false;
 }
