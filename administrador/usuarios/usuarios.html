@@ -360,55 +360,75 @@ textarea{
 
 </div>
 
+
+
+
+
+
+
+  
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modalBox">
 
-    <h3>👤 Editar Usuário</h3>
+<h3>👤 Editar Usuário</h3>
 
-    <input id="usuario" placeholder="Usuário">
+<div class="modalGrid">
 
-    <div style="display:flex;gap:6px">
-      <input id="senha" type="password" placeholder="Senha" style="flex:1">
-      <button onclick="toggleSenha()">👁</button>
-    </div>
+  <!-- LOGIN -->
+  <input id="usuario" class="full" placeholder="Usuário">
 
-    <input id="nome" placeholder="Nome">
-    <input id="email" placeholder="Email">
-    <input id="telefone" placeholder="Telefone">
+  <div class="senhaBox full">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="toggleSenha()">👁</button>
+  </div>
 
-    <input id="setor" placeholder="Setor">
-    <input id="cargo" placeholder="Cargo">
+  <!-- DADOS -->
+  <input id="nome" class="full" placeholder="Nome completo">
 
-    <select id="nivel">
-      <option value="0">Administrador</option>
-      <option value="1">Gerente</option>
-      <option value="2">Funcionário</option>
-    </select>
+  <input id="email" placeholder="Email">
+  <input id="telefone" placeholder="Telefone">
 
-    <select id="empresa">
-      <option>MERCATTO DELICIA</option>
-      <option>VILLA GOURMET</option>
-      <option>EMPORIO MERCATTO</option>
-    </select>
+  <!-- PROFISSIONAL -->
+  <input id="setor" placeholder="Setor">
+  <input id="cargo" placeholder="Cargo">
 
-    <select id="sexo">
-      <option>Masculino</option>
-      <option>Feminino</option>
-      <option>Outro</option>
-    </select>
+  <select id="nivel">
+    <option value="0">Administrador</option>
+    <option value="1">Gerente</option>
+    <option value="2">Funcionário</option>
+  </select>
 
-    <input type="date" id="nascimento">
-    <input type="date" id="admissao">
+  <select id="empresa">
+    <option>MERCATTO DELICIA</option>
+    <option>VILLA GOURMET</option>
+    <option>EMPORIO MERCATTO</option>
+  </select>
 
-    <input id="endereco" placeholder="Endereço">
-    <input id="cidade" placeholder="Cidade">
-    <input id="estado" placeholder="Estado">
-    <input id="cep" placeholder="CEP">
+  <!-- PESSOAL -->
+  <select id="sexo">
+    <option>Masculino</option>
+    <option>Feminino</option>
+    <option>Outro</option>
+  </select>
 
-    <input id="status_funcionario" placeholder="Status Funcionário">
+  <input type="date" id="nascimento">
 
-    <textarea id="obs" placeholder="Observações"></textarea>
+  <input type="date" id="admissao" class="full">
+
+  <!-- ENDEREÇO -->
+  <input id="endereco" class="full" placeholder="Endereço">
+
+  <input id="cidade" placeholder="Cidade">
+  <input id="estado" placeholder="Estado">
+
+  <input id="cep" placeholder="CEP">
+  <input id="status_funcionario" placeholder="Status">
+
+  <!-- OBS -->
+  <textarea id="obs" class="full" placeholder="Observações"></textarea>
+
+</div>
 
     <button class="salvar" onclick="salvar()">Salvar</button>
 
