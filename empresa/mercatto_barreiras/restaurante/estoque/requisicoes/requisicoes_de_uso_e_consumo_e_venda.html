@@ -992,18 +992,15 @@ const { data: produtos } = await sb
   const { data: mov } = await sb
     .from("mercatto_requisicoes")
     .select("*");
-
-  const mapa = {};
-
-
+const mapa = {};
 
 (produtos || []).forEach(p=>{
   mapa[p.id] = {
     id: p.id,
-    nome: p.nome,
-    atual: parseFloat(p.estoque) || 0, // 🔥 AGORA É REAL
+    nome: p.produto,
+    atual: parseFloat(p.saldo) || 0,
     minimo: parseFloat(p.estoque_minimo) || 0,
-    maximo: parseFloat(p.estoque_maximo) || 0
+    maximo: parseFloat(p.estoque_ideal) || 0
   };
 });
 
