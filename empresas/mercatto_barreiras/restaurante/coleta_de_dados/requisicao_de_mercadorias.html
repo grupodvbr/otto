@@ -213,9 +213,9 @@ async function login(){
 const user = usuario.value.toUpperCase();
 
 const { data, error } = await sb
-.from("usuarios")
+.from("usuarios_do_sistema")
 .select("*")
-.eq("nome", user)
+.eq("usuario", user)
 .eq("senha", senha.value)
 .single();
 
@@ -237,9 +237,9 @@ if(!saved) return false;
 const user = JSON.parse(saved);
 
 const { data } = await sb
-.from("usuarios")
+.from("usuarios_do_sistema")
 .select("*")
-.eq("id", user.id)
+.eq("usuario", user)
 .single();
 
 if(!data || data.senha !== user.senha){
