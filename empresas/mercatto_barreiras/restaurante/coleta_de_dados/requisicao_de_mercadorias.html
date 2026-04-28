@@ -215,7 +215,7 @@ async function login(){
 
   const { data, error } = await sb
     .from("usuarios")
-    .select("usuario, senha, ativo, nome, setor")
+    .select("usuario, senha")
     .eq("usuario", user)
     .maybeSingle();
 
@@ -235,14 +235,7 @@ async function login(){
     return;
   }
 
-  if(data.ativo !== true){
-    alert("Usuário inativo");
-    return;
-  }
-
-  // LOGIN OK
-  localStorage.setItem("user_data", JSON.stringify(data));
-  init();
+  alert("Login OK");
 }
 
 /* VALIDAR SESSÃO */
