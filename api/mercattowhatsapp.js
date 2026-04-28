@@ -1085,28 +1085,11 @@ role:"user"
 })
 
 
+
+
 if(querCardapio){
 
-  console.log("📋 ENVIANDO CARDÁPIO AUTOMÁTICO")
-
-  const lista = await buscarCardapio()
-
-  let respostaCardapio = ""
-
-  if(!lista.length){
-
-    respostaCardapio = "😕 No momento nosso cardápio não está disponível."
-
-  } else {
-
-    respostaCardapio = "🍽️ *Nosso cardápio:*\n\n"
-
-    lista.forEach(p => {
-      respostaCardapio += `• ${p.nome} - R$ ${Number(p.preco_venda).toFixed(2)}\n`
-    })
-
-    respostaCardapio += "\nSe quiser foto de algum prato é só pedir 😉"
-  }
+  console.log("📄 ENVIANDO CARDÁPIO PDF")
 
   await fetch(url,{
     method:"POST",
@@ -1117,8 +1100,12 @@ if(querCardapio){
     body: JSON.stringify({
       messaging_product:"whatsapp",
       to:cliente,
-      type:"text",
-      text:{ body:respostaCardapio }
+      type:"document",
+      document:{
+        link:"https://ehxrrpsiksceljmhsfxk.supabase.co/storage/v1/object/public/MERCATTO/CARDAPIO.pdf",
+        filename:"Cardápio Mercatto Delícia.pdf",
+        caption:"🍽️ Confira nosso cardápio completo"
+      }
     })
   })
 
@@ -1126,19 +1113,12 @@ if(querCardapio){
   .from("conversas_whatsapp")
   .insert({
     telefone:cliente,
-    mensagem:respostaCardapio,
+    mensagem:"[CARDÁPIO PDF ENVIADO]",
     role:"assistant"
   })
 
   return res.status(200).end()
 }
-
-
-
-
-
-
-
 
 
 
