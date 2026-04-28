@@ -2,11 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Reservas • Resumo</title>
+<title>Reservas</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
+*{box-sizing:border-box;}
 
 body{
   margin:0;
@@ -14,13 +16,15 @@ body{
   background:#fff;
 }
 
+/* CONTAINER */
 .box{
   width:100%;
   height:100%;
-  padding:12px;
+  padding:10px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  justify-content:space-between;
+  overflow:hidden; /* 🔥 trava scroll */
 }
 
 /* TOPO */
@@ -29,79 +33,91 @@ body{
   justify-content:space-between;
 }
 
-.title{
-  font-size:11px;
-  color:#6b7280;
-}
-
-.total{
-  font-size:22px;
-  font-weight:800;
-}
-
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:6px;
-}
-
-.mini{
-  background:#f9fafb;
-  border-radius:8px;
-  padding:6px;
-  text-align:center;
-}
-
-.mini span{
+.kpi span{
   font-size:10px;
   color:#6b7280;
 }
 
-.mini b{
-  font-size:14px;
+.kpi b{
+  font-size:18px;
+  font-weight:800;
 }
 
-/* CORES */
+/* STATUS */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:4px;
+  margin-top:6px;
+}
+
+.mini{
+  background:#f9fafb;
+  border-radius:6px;
+  padding:5px;
+  text-align:center;
+}
+
+.mini span{
+  font-size:9px;
+  color:#6b7280;
+}
+
+.mini b{
+  font-size:12px;
+}
+
 .ok{color:#16a34a}
 .warn{color:#f59e0b}
-.danger{color:#ef4444}
 
 /* TABELA */
 .table{
   margin-top:6px;
-  border-top:1px solid #eee;
-  padding-top:6px;
+  width:100%;
 }
 
+/* 🔥 GRID RESPONSIVO REAL */
 .row{
   display:grid;
-  grid-template-columns:50px 1fr 50px 60px 70px;
-  font-size:11px;
-  padding:4px 0;
-  border-bottom:1px solid #f1f1f1;
+  grid-template-columns:15% 45% 15% 25%;
+  font-size:10px;
+  padding:3px 0;
   align-items:center;
+  width:100%;
+}
+
+/* 🔥 ESSENCIAL PRA NÃO ESTOURAR */
+.row div{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .head{
   font-weight:700;
   color:#6b7280;
+  border-bottom:1px solid #eee;
+  margin-bottom:3px;
+  padding-bottom:3px;
 }
 
-.status{
-  padding:2px 6px;
-  border-radius:6px;
-  font-size:10px;
+/* STATUS */
+.badge{
+  font-size:9px;
+  padding:2px 4px;
+  border-radius:5px;
   text-align:center;
 }
 
-.s-pendente{background:#fff7ed;color:#ea580c}
-.s-confirmada{background:#eff6ff;color:#2563eb}
-.s-concluida{background:#ecfdf5;color:#16a34a}
-.s-cancelada{background:#fef2f2;color:#dc2626}
+.pendente{background:#fff7ed;color:#ea580c}
+.confirmada{background:#eff6ff;color:#2563eb}
+.concluida{background:#ecfdf5;color:#16a34a}
+.cancelada{background:#fef2f2;color:#dc2626}
 
+/* FOOTER */
 .footer{
-  font-size:10px;
+  font-size:9px;
   color:#6b7280;
   text-align:right;
 }
@@ -140,7 +156,6 @@ async function carregar(){
     return local.toISOString().slice(0,10) === hoje
   })
 
-  // ordenar por hora
   hojeReservas.sort((a,b)=> new Date(a.datahora) - new Date(b.datahora))
 
   const total = hojeReservas.length
@@ -150,13 +165,12 @@ async function carregar(){
   const pendentes = hojeReservas.filter(r=>r.status==="Pendente").length
   const concluidas = hojeReservas.filter(r=>r.status==="Concluída").length
 
-  // tabela (limita pra não estourar o card)
-  const linhas = hojeReservas.slice(0,8).map(r=>{
+  const linhas = hojeReservas.slice(0,6).map(r=>{
 
     const d = new Date(r.datahora)
     const hora = d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
 
-    const statusClass = (r.status || "")
+    const status = (r.status || "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g,'')
@@ -166,42 +180,43 @@ async function carregar(){
         <div>${hora}</div>
         <div>${r.nome || "-"}</div>
         <div>${r.pessoas || 0}</div>
-        <div>${r.mesa || "-"}</div>
-        <div class="status s-${statusClass}">${r.status || "-"}</div>
+        <div class="badge ${status}">${r.status || "-"}</div>
       </div>
     `
   }).join("")
 
   document.getElementById("conteudo").innerHTML = `
 
-    <div class="top">
-      <div>
-        <div class="title">Reservas Hoje</div>
-        <div class="total">${total}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="title">Pessoas</div>
-        <div class="total">${pessoas}</div>
-      </div>
-    </div>
+    <div>
 
-    <div class="grid">
-      <div class="mini"><span>Confirmadas</span><b class="ok">${confirmadas}</b></div>
-      <div class="mini"><span>Pendentes</span><b class="warn">${pendentes}</b></div>
-      <div class="mini"><span>Concluídas</span><b>${concluidas}</b></div>
-    </div>
+      <div class="top">
+        <div class="kpi">
+          <span>Reservas</span>
+          <b>${total}</b>
+        </div>
 
-    <div class="table">
-
-      <div class="row head">
-        <div>Hora</div>
-        <div>Nome</div>
-        <div>P</div>
-        <div>Local</div>
-        <div>Status</div>
+        <div class="kpi">
+          <span>Pessoas</span>
+          <b>${pessoas}</b>
+        </div>
       </div>
 
-      ${linhas || `<div class="row"><div>--</div><div>Sem reservas</div></div>`}
+      <div class="grid">
+        <div class="mini"><span>OK</span><b class="ok">${confirmadas}</b></div>
+        <div class="mini"><span>Pend</span><b class="warn">${pendentes}</b></div>
+        <div class="mini"><span>Done</span><b>${concluidas}</b></div>
+      </div>
+
+      <div class="table">
+        <div class="row head">
+          <div>H</div>
+          <div>Cliente</div>
+          <div>P</div>
+          <div>S</div>
+        </div>
+
+        ${linhas || `<div class="row"><div>--</div><div>Sem reservas</div></div>`}
+      </div>
 
     </div>
 
