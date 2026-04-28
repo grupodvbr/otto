@@ -364,31 +364,24 @@ async function enviar(){
   const nome = produto.value.toUpperCase();
 
   // 🔎 BUSCAR PRODUTO NO ESTOQUE
-  const { data: prod } = await sb
-    .from("mercatto_estoque")
-    .select("id, produto")
-    .eq("produto", nome)
-    .maybeSingle();
+ const { data: prod } = await sb
+  .from("mercatto_estoque")
+  .select("produto, produto_id")
+  .ilike("produto", `%${nome}%`)
+  .maybeSingle();
 
-  if(!prod){
-    overlay.style.display="none";
-    alert("Produto não encontrado no estoque");
-    return;
-  }
-
-  // ✅ INSERIR NA TABELA CORRETA
-  const { error } = await sb
-    .from("mercatto_requisicoes")
-    .insert({
-      produto_id: prod.id,
-      produto: prod.produto,
-      quantidade: parseInt(quantidade.value),
-      unidade: unidade,
-      setor: dadosUsuario.setor,
-      solicitante: dadosUsuario.nome,
-      observacoes: obs.value,
-      status: "PENDENTE"
-    });
+await sb
+  .from("mercatto_requisicoes")
+  .insert({
+    produto_id: prod.produto_id, // 👈 CORRETO
+    produto: prod.produto,
+    quantidade: parseInt(quantidade.value),
+    unidade: unidade,
+    setor: dadosUsuario.setor,
+    solicitante: dadosUsuario.nome,
+    observacoes: obs.value,
+    status: "PENDENTE"
+  });
 
   overlay.style.display="none";
 
