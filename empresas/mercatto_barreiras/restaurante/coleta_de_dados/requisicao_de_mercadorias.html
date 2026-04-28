@@ -216,28 +216,31 @@ async function login(){
   const { data, error } = await sb
     .from("usuarios")
     .select("*")
-    .eq("nome", user)
+    .eq("usuario", user) // ✅ CORRIGIDO AQUI
     .maybeSingle();
 
-  // ❌ usuário não existe
+  if(error){
+    console.log(error);
+    alert("Erro na consulta");
+    return;
+  }
+
   if(!data){
     alert("Usuário não encontrado");
     return;
   }
 
-  // ❌ senha errada
   if(data.senha !== pass){
     alert("Senha incorreta");
     return;
   }
 
-  // ❌ usuário inativo
   if(data.ativo !== true){
     alert("Usuário inativo");
     return;
   }
 
-  // ✅ login OK
+  // ✅ login ok
   localStorage.setItem("user_data", JSON.stringify(data));
   init();
 }
