@@ -199,8 +199,8 @@ display:none;
 
 <script>
 const sb = supabase.createClient(
- "https://ehxrrpsiksceljmhsfxk.supabase.co",
- "sb_publishable_Jm2ZQKzPS3gNPCKSjFAmYQ_WNMYwF1j"
+ "https://mybsriouiwqsdufujbsc.supabase.co",
+ "sb_publishable_AUyBEIVCAMUoXwDKUmlqSw_v8EY8rVN"
 );
 
 let unidade="UN";
@@ -210,38 +210,37 @@ let dadosUsuario=null;
 /* LOGIN */
 async function login(){
 
-const user = document.getElementById("usuario").value.toUpperCase();
-const pass = document.getElementById("senha").value;
+  const user = usuario.value.toUpperCase();
+  const pass = senha.value;
 
-const { data, error } = await sb
-.from("usuarios_do_sistema")
-.select("usuario, senha, setor, nivel_acesso, ativo, nome")
-.eq("usuario", user)
-.maybeSingle();
+  const { data, error } = await sb
+    .from("usuarios")
+    .select("*")
+    .eq("nome", user)
+    .maybeSingle();
 
-if(error || !data || data.senha !== pass){
-alert("Usuário ou senha inválidos");
-return;
+  // ❌ usuário não existe
+  if(!data){
+    alert("Usuário não encontrado");
+    return;
+  }
+
+  // ❌ senha errada
+  if(data.senha !== pass){
+    alert("Senha incorreta");
+    return;
+  }
+
+  // ❌ usuário inativo
+  if(data.ativo !== true){
+    alert("Usuário inativo");
+    return;
+  }
+
+  // ✅ login OK
+  localStorage.setItem("user_data", JSON.stringify(data));
+  init();
 }
-
-
-// BLOQUEIO
-if(!data.ativo){
-alert("Usuário inativo");
-return;
-}
-
-// LOGIN
-localStorage.setItem("user_data", JSON.stringify(data));
-init();
-}
-
-
-
-
-
-
- 
 
 /* VALIDAR SESSÃO */
 async function validarSessao(){
@@ -252,12 +251,12 @@ if(!saved) return false;
 const user = JSON.parse(saved);
 
 const { data } = await sb
-.from("usuarios_do_sistema")
-.select("usuario, senha, setor, nivel_acesso, ativo")
-.eq("usuario", user.usuario)
-.maybeSingle();
+.from("usuarios")
+.select("*")
+.eq("id", user.id)
+.single();
 
-if(!data || data.senha !== user.senha || !data.ativo){
+if(!data || data.senha !== user.senha){
 logout();
 return false;
 }
@@ -274,11 +273,9 @@ appArea.classList.remove("hidden");
 
 const saved = JSON.parse(localStorage.getItem("user_data"));
 
-// 👉 CONTROLE
-usuarioAtual = saved.usuario;
+usuarioAtual = saved.nome;
 dadosUsuario = saved;
 
-// 👉 EXIBIÇÃO
 solicitante.value = saved.nome;
 setor.innerHTML = `<option>${saved.setor}</option>`;
 
