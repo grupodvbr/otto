@@ -361,35 +361,42 @@ async function enviar(){
 
   overlay.style.display="flex";
 
-  const nome = produto.value.toUpperCase();
+  const nome = produto.value.trim().toUpperCase();
 
-  // 🔎 BUSCAR PRODUTO NO ESTOQUE
- const { data: prod } = await sb
-  .from("mercatto_estoque")
-  .select("produto, produto_id")
-  .ilike("produto", `%${nome}%`)
-  .maybeSingle();
+  const { data: prod, error: erroBusca } = await sb
+    .from("mercatto_estoque")
+    .select("produto, produto_id")
+    .ilike("produto", `%${nome}%`)
+    .maybeSingle();
 
-await sb
-  .from("mercatto_requisicoes")
-  .insert({
-    produto_id: prod.produto_id, // 👈 CORRETO
-    produto: prod.produto,
-    quantidade: parseInt(quantidade.value),
-    unidade: unidade,
-    setor: dadosUsuario.setor,
-    solicitante: dadosUsuario.nome,
-    observacoes: obs.value,
-    status: "PENDENTE"
-  });
-
-  overlay.style.display="none";
-
-  if(error){
-    console.log(error);
-    alert("Erro ao salvar requisição");
+  if(erroBusca || !prod){
+    console.log(erroBusca);
+    overlay.style.display="none";
+    alert("Produto não encontrado");
     return;
   }
+
+  const { error: erroInsert } = await sb
+    .from("mercatto_requisicoes")
+    .insert({
+      produto_id: prod.produto_id,
+      produto: prod.produto,
+      quantidade: parseInt(quantidade.value),
+      unidade: unidade,
+      setor: dadosUsuario.setor,
+      solicitante: dadosUsuario.nome,
+      observacoes: obs.value,
+      status: "PENDENTE"
+    });
+
+  if(erroInsert){
+    console.log(erroInsert);
+    overlay.style.display="none";
+    alert("Erro ao salvar");
+    return;
+  }
+
+  overlay.style.display="none";
 
   limparCampos();
   carregarHistorico();
