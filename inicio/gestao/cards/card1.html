@@ -65,7 +65,6 @@ const sb = supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
 
-// 🔥 EMPRESAS (pode adicionar mais depois)
 const EMPRESAS = [
   "MERCATTO DELÍCIA",
   "VILLA GOURMET",
@@ -78,46 +77,65 @@ async function carregar(){
 
   for(const empresa of EMPRESAS){
 
-    // 🔥 pega último registro
-    const { data } = await sb
+    // 🔥 1. PEGA ÚLTIMA DATA
+    const { data: ultimaDataRes } = await sb
       .from("buffet_lancamentos")
-      .select("data, quantidade")
+      .select("data")
       .eq("empresa", empresa)
       .order("data", { ascending: false })
       .limit(1)
 
-    if(data && data.length){
-
-      const ultimo = data[0]
-
-      const dataFormatada = new Date(ultimo.data)
-        .toLocaleDateString("pt-BR")
-
-      html += `
-        <div style="margin-bottom:14px">
-          <div class="empresa">${empresa}</div>
-          <div class="data">Último lançamento: ${dataFormatada}</div>
-          <div class="valor">${Number(ultimo.quantidade).toFixed(2)} KG</div>
-        </div>
-      `
-
-    }else{
-
-      html += `
-        <div style="margin-bottom:14px">
-          <div class="empresa">${empresa}</div>
-          <div class="data">Sem dados</div>
-          <div class="valor">--</div>
-        </div>
-      `
-
+    if(!ultimaDataRes || !ultimaDataRes.length){
+      html += blocoSemDados(empresa)
+      continue
     }
+
+    const ultimaData = ultimaDataRes[0].data
+
+    // 🔥 2. PEGA TODOS OS LANÇAMENTOS DO DIA
+    const { data: lancamentos } = await sb
+      .from("buffet_lancamentos")
+      .select("quantidade, tipo")
+      .eq("empresa", empresa)
+      .eq("data", ultimaData)
+
+    // 🔥 3. SOMA CORRETA (SÓ PRODUÇÃO)
+    let total = 0
+
+    ;(lancamentos || []).forEach(l => {
+      if(l.tipo === "MONTAGEM" || l.tipo === "REPOSICAO"){
+        total += Number(l.quantidade || 0)
+      }
+    })
+
+    // 🔥 DATA FORMATADA
+    const dataFormatada = new Date(ultimaData)
+      .toLocaleDateString("pt-BR")
+
+    html += `
+      <div style="margin-bottom:16px">
+        <div class="empresa">${empresa}</div>
+        <div class="data">Último lançamento: ${dataFormatada}</div>
+        <div class="valor">${total.toFixed(2)} KG</div>
+      </div>
+    `
   }
 
   document.querySelector(".box").innerHTML = html
 }
 
-// 🔄 auto update
+// fallback
+function blocoSemDados(empresa){
+  return `
+    <div style="margin-bottom:16px">
+      <div class="empresa">${empresa}</div>
+      <div class="data">Sem dados</div>
+      <div class="valor">--</div>
+    </div>
+  `
+}
+
+// auto update
 setInterval(carregar, 10000)
 carregar()
 
