@@ -210,13 +210,13 @@ let dadosUsuario=null;
 /* LOGIN */
 async function login(){
 
-  const user = usuario.value.trim();
+  const user = usuario.value.trim().toUpperCase();
   const pass = senha.value;
 
   const { data, error } = await sb
-    .from("usuarios_do_sistema")
-    .select("id, username, senha") // pega só o necessário
-    .eq("username", user)
+    .from("usuarios_do_sistema") // 👈 TABELA DO SISTEMA
+    .select("id, usuario, senha, nome, setor")
+    .eq("usuario", user)
     .maybeSingle();
 
   if(error){
@@ -235,10 +235,10 @@ async function login(){
     return;
   }
 
-  // 🔐 salva sessão
+  // salva sessão
   localStorage.setItem("user_data", JSON.stringify(data));
 
-  // 🚀 entra no sistema
+  // entra no sistema
   init();
 }
 
@@ -276,13 +276,13 @@ async function init(){
 
   const saved = JSON.parse(localStorage.getItem("user_data"));
 
-  usuarioAtual = saved.username;
+  usuarioAtual = saved.nome;
   dadosUsuario = saved;
 
-  solicitante.value = saved.username;
+  solicitante.value = saved.nome;
 
-  // como não tem setor na tabela
-  setor.innerHTML = `<option>GERAL</option>`;
+  // 👇 AGORA FUNCIONA
+  setor.innerHTML = `<option>${saved.setor}</option>`;
 
   setUnidade("UN");
 
