@@ -844,22 +844,31 @@ function fecharUsuarios(){
 }
 
 async function carregarUsuarios(){
- const { data, error } = await sb.from("usuarios").select("*");
 
- if(error){
-  console.error(error);
+ const usuarios = [...new Set(
+   dadosRequisicoes
+     .map(r => r.solicitante)
+     .filter(Boolean)
+ )];
+
+ if(usuarios.length === 0){
+  document.getElementById("listaUsuarios").innerHTML = "Nenhum usuário encontrado";
   return;
  }
 
- const html = data.map(u=>`
-   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #ccc;padding:4px;">
+ const html = usuarios.map(nome => `
+   <div style="
+     display:flex;
+     justify-content:space-between;
+     align-items:center;
+     margin-bottom:6px;
+     border-bottom:1px solid #ccc;
+     padding:6px;
+   ">
      <div>
-       <b>${u.nome}</b><br>
-       <small>${u.setor}</small>
-     </div>
-     <div>
-       <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor}')" style="margin-right:5px;">✏️</button>
-       <button onclick="excluirUsuario('${u.id}')">🗑️</button>
+       <b>${nome}</b>
+       <br>
+       <small>Usuário do sistema</small>
      </div>
    </div>
  `).join("");
