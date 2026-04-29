@@ -746,9 +746,12 @@ const {data} = await db
 .order("created_at",{ascending:true})
 .limit(20)
 
+if(!data) return
+
 data.forEach(m=>render(m))
 
-oldestDate = data[data.length - 1]?.created_at
+// 🔥 PEGA O MAIS ANTIGO
+oldestDate = data[0]?.created_at
 
 setTimeout(() => {
   scrollBottom()
@@ -776,18 +779,19 @@ if(!data || data.length === 0){
   return
 }
 
+// 🔥 PEGA O MAIS ANTIGO
 oldestDate = data[0]?.created_at
 
 const alturaAntes = msgs.scrollHeight
 
-data.forEach(m=>render(m,true))
+// 🔥 INVERTE PARA PREPEND FUNCIONAR CERTO
+data.reverse().forEach(m=>render(m,true))
 
 const alturaDepois = msgs.scrollHeight
 msgs.scrollTop += (alturaDepois - alturaAntes)
 
 loading = false
 }
-
 /* ===== REALTIME ===== */
 function realtime(){
 
@@ -884,9 +888,9 @@ async function atualizarSilencioso(){
   }
 
   /* NORMAL */
- data.forEach(m=>{
+data.reverse().forEach(m=>{
 
-    const id = m.id || m.message_id
+const id = m.id || m.message_id || (m.created_at + "-" + m.role)
 
     if(!mensagensIds.has(id)){
       render(m)
