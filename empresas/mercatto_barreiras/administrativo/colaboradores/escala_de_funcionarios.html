@@ -366,7 +366,21 @@ button:hover{
     <button onclick="mesProximo()">▶</button>
   </div>
 </header>
+<select id="agendaSessao" onchange="render()" style="
+padding:8px;
+border-radius:8px;
+margin-left:10px;
+">
+  <option value="GERAL">GERAL</option>
+  <option value="COZINHA">COZINHA</option>
+  <option value="SALAO">SALÃO</option>
+  <option value="EVENTO">EVENTO</option>
+</select>
 
+
+
+
+  
 <div id="calendar" class="calendar"></div>
 
 <!-- MODAL ESCALA -->
@@ -530,15 +544,18 @@ async function loadFuncionarios(){
 
 
 
-  
 async function loadEscala(){
-const {data}=await sb
-.from("escala_funcionarios")
-.select("*")
-.eq("empresa", "MERCATTO DELICIA")
-.order("data", { ascending: true })
-  
-  escalas=data||[]
+
+  const sessao = document.getElementById("agendaSessao")?.value || "GERAL"
+
+  const {data} = await sb
+    .from("escala_funcionarios")
+    .select("*")
+    .eq("empresa", "MERCATTO DELICIA")
+    .eq("agenda_sessao", sessao) // 🔥 AQUI É O FILTRO
+    .order("data", { ascending: true })
+
+  escalas = data || []
 }
 
 async function render(){
@@ -822,6 +839,7 @@ for(const h of lista){
     saida: h.fim,
     setor: f.setor,
     empresa: "MERCATTO DELICIA",
+    agenda_sessao: document.getElementById("agendaSessao").value, // 🔥 NOVO
     atualizado_em: new Date().toISOString()
   }, {
     ignoreDuplicates: true
