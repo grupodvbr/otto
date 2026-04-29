@@ -501,91 +501,115 @@ let arquivo = null
 let ultimaDataRender = null
 
 
+async function carregarNomeCliente(){
 
-function resetDataRender(){
-  ultimaDataRender = null
+  if(!telefone) return
+
+  const {data} = await db
+    .from("memoria_clientes")
+    .select("nome")
+    .eq("telefone", telefone)
+    .single()
+
+  let nome = data?.nome || telefone
+
+  const el = document.getElementById("nomeCliente")
+
+  if(el){
+    el.innerText = nome
+  }
+
 }
+function gerarAvatar(nome){
 
-async function carregarMais(){
+  let iniciais = nome
+    .split(" ")
+    .slice(0,2)
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
 
-if(loading || !oldestDate) return
-loading = true
-
-const {data, error} = await db
-.from("conversas_whatsapp")
-.select("*")
-.eq("telefone",telefone)
-.lt("created_at",oldestDate)
-.order("created_at",{ascending:false})
-.limit(20)
-
-if(error){
-  console.error("ERRO LOAD MAIS:", error)
-  loading=false
-  return
+  document.getElementById("avatar").innerText = iniciais
 }
+/* ===== TIME ===== */
+function hora(d){
 
-if(!data || data.length===0){
-  loading=false
-  return
-}
+let data
 
-/* 🔥 ATUALIZA DATA MAIS ANTIGA */
-oldestDate = data[data.length - 1]?.created_at
-
-const alturaAntes = msgs.scrollHeight
-
-/* 🔥 CORREÇÃO PRINCIPAL */
-resetDataRender()
-
-/* 🔥 RENDER CORRETO */
-data.reverse().forEach(m=>render(m,true))
-
-const alturaDepois = msgs.scrollHeight
-
-/* 🔥 MANTÉM POSIÇÃO DO SCROLL */
-msgs.scrollTop += (alturaDepois - alturaAntes)
-
-loading=false
-}
-
-/* 🔥 SCROLL CORRIGIDO */
-msgs.addEventListener("scroll",()=>{
-
-if(msgs.scrollTop < msgs.scrollHeight - msgs.clientHeight - 200){
-  scrollBtn.style.display="flex"
+if(d.includes("Z")){
+  data = new Date(d)
 }else{
+  data = new Date(d.replace(" ", "T"))
+}
+
+/* 🔥 CORREÇÃO: REMOVE 3 HORAS */
+data.setHours(data.getHours() - 3)
+
+return new Intl.DateTimeFormat("pt-BR",{
+  hour:"2-digit",
+  minute:"2-digit"
+}).format(data)
+
+}
+  
+function dataLabel(d){
+
+let data
+
+// 🔥 trata os dois formatos (Supabase + local)
+if(d.includes("Z")){
+  data = new Date(d) // UTC
+}else{
+  data = new Date(d.replace(" ", "T")) // banco local
+}
+
+// formatter padrão (comparação)
+const formatter = new Intl.DateTimeFormat("en-CA",{
+  timeZone:"America/Bahia",
+  year:"numeric",
+  month:"2-digit",
+  day:"2-digit"
+})
+
+const hoje = formatter.format(new Date())
+const dataMsg = formatter.format(data)
+
+// HOJE
+if(dataMsg === hoje) return "HOJE"
+
+// ONTEM
+const ontemDate = new Date()
+ontemDate.setDate(ontemDate.getDate()-1)
+
+const ontem = formatter.format(ontemDate)
+
+if(dataMsg === ontem) return "ONTEM"
+
+// PADRÃO (data normal)
+return new Intl.DateTimeFormat("pt-BR",{
+  timeZone:"America/Bahia"
+}).format(data)
+
+}
+/* ===== SCROLL ===== */
+function scrollBottom(){
+  requestAnimationFrame(() => {
+    msgs.scrollTop = msgs.scrollHeight
+  })
   scrollBtn.style.display="none"
 }
 
-/* DISPARO CORRETO */
-if(msgs.scrollTop < 100){
-  carregarMais()
+msgs.addEventListener("scroll",()=>{
+if(msgs.scrollTop < msgs.scrollHeight - msgs.clientHeight - 200){
+scrollBtn.style.display="flex"
+}else{
+scrollBtn.style.display="none"
 }
-
+if(msgs.scrollTop < 50){
+carregarMais()
+}
 })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 function notificar(m){
 
@@ -928,7 +952,7 @@ const temp = {
 id: tempId,
 mensagem:texto,
 created_at:new Date().toLocaleString("sv-SE").replace("T"," "),
-role:"assistant",
+  role:"assistant",
 status:"sent"
 }
 
@@ -938,6 +962,10 @@ scrollBottom()
 msg.value=""
 msg.style.height = "20px"
 
+
+
+
+  
 /* MIDIA */
 let media=null
 let tipo="texto"
@@ -966,57 +994,29 @@ const send = await fetch("/api/send",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-  telefone,
-  mensagem:texto,
-  media_url:media,
-  tipo,
-  nome_arquivo:nomeArquivo
+telefone,
+mensagem:texto,
+media_url:media,
+tipo,
+nome_arquivo:nomeArquivo
 })
 }).then(r => r.json())
 
 const messageId = send?.message_id
 
-/* SALVA */
-const { data, error } = await db
-  .from("conversas_whatsapp")
-  .insert({
-    telefone,
-    mensagem: texto,
-    tipo,
-    media_url: media,
-    nome_arquivo: nomeArquivo,
-    role: "assistant",
-    message_id: messageId,
-    status: "sent"
-  })
-  .select()
-  .single()
-
-if(error){
-  console.error("ERRO AO SALVAR:", error)
-}
-
-if(data?.id){
-  const tempEl = document.getElementById(tempId)
-
-  if(tempEl){
-    tempEl.id = data.id
-    mensagensIds.add(data.id)
-  }
-}
-
-arquivo = null
-preview.style.display = "none"
-
-}
-
-
-
-
-
-
 
   
+
+arquivo=null
+preview.style.display="none"
+
+}
+
+/* ===== START ===== */
+iniciar()
+
+setInterval(atualizarSilencioso, 5000)
+
 function abrirTemplates(){
   const menu = document.getElementById("menuTemplates")
   menu.style.display = menu.style.display === "flex" ? "none" : "flex"
@@ -1277,8 +1277,7 @@ document.addEventListener('touchend', function (event) {
   lastTouchEnd = now;
 }, false);
 
-  iniciar()
-setInterval(atualizarSilencioso, 5000)
+  
 </script>
 
 </body>
