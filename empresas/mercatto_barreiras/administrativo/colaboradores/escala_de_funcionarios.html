@@ -972,38 +972,21 @@ async function gerarPDFMes(){
     orientation: "landscape"
   })
 
-  const logoUrl = "https://github.com/grupodvbr/otto/blob/main/logo/mercatto.png?raw=true"
-
   const ano = dataAtual.getFullYear()
   const mes = dataAtual.getMonth()
-
   const nomeMes = dataAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"})
   const sessao = document.getElementById("agendaSessao").value
 
-  // HEADER
+  /* =========================
+     PAGINA 1 - CALENDARIO
+  ========================= */
+
   doc.setFont("helvetica","bold")
   doc.setFontSize(18)
   doc.text(`ESCALA - ${sessao}`, 14, 15)
 
   doc.setFontSize(11)
   doc.text(nomeMes.toUpperCase(), 14, 22)
-
-  // LOGO
-  try{
-    const response = await fetch(logoUrl)
-    const blob = await response.blob()
-
-    const base64 = await new Promise((resolve)=>{
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result)
-      reader.readAsDataURL(blob)
-    })
-
-    doc.addImage(base64, "PNG", 240, 8, 40, 15)
-
-  }catch(e){
-    console.log("Erro logo")
-  }
 
   const startX = 10
   const startY = 30
@@ -1022,50 +1005,101 @@ async function gerarPDFMes(){
     const x = startX + (col * boxW)
     const y = startY + (row * boxH)
 
-    // QUADRADO
     doc.setDrawColor(200)
     doc.rect(x, y, boxW, boxH)
 
-    // DIA
     doc.setFontSize(10)
     doc.setFont("helvetica","bold")
     doc.text(String(i), x+2, y+5)
 
-    // ESCALAS
     const lista = escalas.filter(e => e.data === dataStr)
 
     doc.setFont("helvetica","normal")
-    doc.setFontSize(5.5)
+    doc.setFontSize(5)
 
-    let linhaY = y + 10
+    let linhaY = y + 9
 
-const listaLimitada = lista.slice(0, 25)
+    lista.slice(0,30).forEach(e=>{
+      if(linhaY < y + boxH - 2){
+        doc.text(e.nome.substring(0,25), x+2, linhaY)
+        linhaY += 2.5
+      }
+    })
 
-listaLimitada.forEach(e=>{
-
-  const nomeCurto = e.nome.split(" ")[0]
-  const texto = `${nomeCurto} (${e.entrada.slice(0,5)})`
-
-  const linhas = doc.splitTextToSize(texto, boxW - 4)
-
-  linhas.forEach(linha=>{
-    if(linhaY < y + boxH - 3){
-      doc.text(linha, x+2, linhaY)
-      linhaY += 3
+    col++
+    if(col === 7){
+      col = 0
+      row++
     }
+  }
+
+  /* =========================
+     PAGINA 2 - TABELA
+  ========================= */
+
+  doc.addPage()
+
+  doc.setFontSize(16)
+  doc.setFont("helvetica","bold")
+  doc.text("RELATÓRIO DE ESCALA", 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(nomeMes.toUpperCase(), 14, 22)
+
+  // pegar funcionarios únicos
+  const mapa = {}
+
+  escalas.forEach(e=>{
+    if(!mapa[e.nome]){
+      mapa[e.nome] = {}
+    }
+    mapa[e.nome][e.data] = `${e.entrada}-${e.saida}`
   })
 
-})
+  const nomes = Object.keys(mapa)
 
-col++
+  let y = 30
+  let x = 10
 
-if(col === 7){
-  col = 0
-  row++
-}
-}
-  doc.save(`escala-${nomeMes}.pdf`)
+  const colWidth = 20
+
+  // HEADER DIAS
+  doc.setFontSize(6)
+  doc.setFont("helvetica","bold")
+
+  for(let d=1; d<=dias; d++){
+    doc.text(String(d), x + 60 + (d * colWidth), y)
   }
+
+  y += 5
+
+  doc.setFont("helvetica","normal")
+
+  nomes.forEach(nome=>{
+
+    if(y > 180){
+      doc.addPage()
+      y = 20
+    }
+
+    // nome
+    doc.text(nome.substring(0,25), x, y)
+
+    // dias
+    for(let d=1; d<=dias; d++){
+
+      const dataStr = `${ano}-${String(mes+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`
+
+      const valor = mapa[nome][dataStr] || "-"
+
+      doc.text(valor, x + 60 + (d * colWidth), y)
+    }
+
+    y += 5
+  })
+
+  doc.save(`escala-${nomeMes}.pdf`)
+}
 </script>
 <div id="modalUser" class="modal">
   <div class="box">
