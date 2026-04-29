@@ -399,10 +399,32 @@ button:hover{
 <div id="modal" class="modal">
   <div class="box">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h3 id="data"></h3>
-      <input type="date" id="dataManual">
-    </div>
+   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:15px">
+
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3 style="margin:0;font-size:20px;font-weight:800;" id="data"></h3>
+
+    <input id="dataManual" placeholder="dd/mm/aaaa" style="
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+      width:140px;
+      text-align:center;
+    ">
+  </div>
+
+  <button onclick="abrirEdicao()" style="
+    align-self:flex-start;
+    background:var(--primary);
+    padding:8px 14px;
+    border-radius:10px;
+    font-size:13px;
+  ">
+    + Adicionar Escala
+  </button>
+
+</div>
 
 <button onclick="abrirEdicao()" style="margin-bottom:10px">
   + Adicionar Escala
@@ -664,7 +686,8 @@ function abrirVisual(data){
   preview.innerHTML = html
 
   modal.style.display="flex"
-  dataEl.innerText = data
+const d = new Date(data)
+dataEl.innerText = d.toLocaleDateString("pt-BR")
 }
 function fechar(){ modal.style.display="none" }
 
@@ -837,8 +860,15 @@ async function salvarEscala(){
     return
   }
 
-  const dataBase = dataManual.value || dataSelecionada
+let dataBase = dataSelecionada
 
+if(dataManual.value){
+  const [dia, mes, ano] = dataManual.value.split("/")
+  dataBase = `${ano}-${mes}-${dia}`
+}
+
+
+  
 for(const h of lista){
 
   const { error } = await sb
@@ -895,8 +925,9 @@ for(const h of lista){
   preview.innerHTML = html
 
   modal.style.display="flex"
-  dataEl.innerText = data
-}
+const d = new Date(data)
+dataEl.innerText = d.toLocaleDateString("pt-BR")
+  }
 
   function abrirEdicao(){
   document.getElementById("formEscala").style.display = "block"
@@ -980,7 +1011,21 @@ function editarEscala(id){
   `
 }
 
+const dataManualInput = document.getElementById("dataManual")
 
+dataManualInput.addEventListener("input", (e)=>{
+  let v = e.target.value.replace(/\D/g,"")
+
+  if(v.length > 8) v = v.slice(0,8)
+
+  if(v.length >= 5){
+    v = v.replace(/(\d{2})(\d{2})(\d+)/, "$1/$2/$3")
+  } else if(v.length >= 3){
+    v = v.replace(/(\d{2})(\d+)/, "$1/$2")
+  }
+
+  e.target.value = v
+})
 
 
 
