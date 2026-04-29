@@ -399,11 +399,6 @@ button:hover{
 <div id="modal" class="modal">
   <div class="box">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h3 id="data"></h3>
-      <input type="date" id="dataManual">
-    </div>
-
 <button onclick="abrirEdicao()" style="margin-bottom:10px">
   + Adicionar Escala
 </button>
@@ -664,7 +659,12 @@ function abrirVisual(data){
   preview.innerHTML = html
 
   modal.style.display="flex"
-  dataEl.innerText = data
+function formatarDataBR(data){
+  const [ano, mes, dia] = data.split("-")
+  return `${dia}/${mes}/${ano}`
+}
+
+
 }
 function fechar(){ modal.style.display="none" }
 
@@ -895,7 +895,7 @@ for(const h of lista){
   preview.innerHTML = html
 
   modal.style.display="flex"
-  dataEl.innerText = data
+  dataEl.innerText = formatarDataBR(data)
 }
 
   function abrirEdicao(){
