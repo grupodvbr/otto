@@ -994,23 +994,48 @@ const send = await fetch("/api/send",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-telefone,
-mensagem:texto,
-media_url:media,
-tipo,
-nome_arquivo:nomeArquivo
+  telefone,
+  mensagem:texto,
+  media_url:media,
+  tipo,
+  nome_arquivo:nomeArquivo
 })
 }).then(r => r.json())
 
 const messageId = send?.message_id
 
+/* 🔥 SALVAR NO SUPABASE (FALTAVA ISSO) */
+const { data, error } = await db
+  .from("conversas_whatsapp")
+  .insert({
+    telefone,
+    mensagem: texto,
+    tipo,
+    media_url: media,
+    nome_arquivo: nomeArquivo,
+    role: "assistant",
+    message_id: messageId,
+    status: "sent"
+  })
+  .select()
+  .single()
+
+if(data?.id){
+  const tempEl = document.getElementById(tempId)
+
+  if(tempEl){
+    tempEl.id = data.id
+    mensagensIds.add(data.id)
+  }
+}
+
+arquivo = null
+preview.style.display = "none"
+
+
+
 
   
-
-arquivo=null
-preview.style.display="none"
-
-}
 
 /* ===== START ===== */
 iniciar()
