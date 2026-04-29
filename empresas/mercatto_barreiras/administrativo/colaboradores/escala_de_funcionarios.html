@@ -1039,29 +1039,31 @@ async function gerarPDFMes(){
 
     let linhaY = y + 10
 
-    lista.forEach(e=>{
-const nomeCurto = e.nome.split(" ")[0]
-const texto = `${nomeCurto} (${e.entrada.slice(0,5)})`
+const listaLimitada = lista.slice(0, 25)
 
-const linhas = doc.splitTextToSize(texto, boxW - 4)
+listaLimitada.forEach(e=>{
 
-linhas.forEach(linha=>{
-  if(linhaY < y + boxH - 2){
-    doc.text(linha, x+2, linhaY)
-    linhaY += 3
-  }
+  const nomeCurto = e.nome.split(" ")[0]
+  const texto = `${nomeCurto} (${e.entrada.slice(0,5)})`
+
+  const linhas = doc.splitTextToSize(texto, boxW - 4)
+
+  linhas.forEach(linha=>{
+    if(linhaY < y + boxH - 3){
+      doc.text(linha, x+2, linhaY)
+      linhaY += 3
+    }
+  })
+
 })
 
-      
+// 🔥 AGORA SIM — FORA DO LOOP
+col++
 
-    col++
-
-    if(col === 7){
-      col = 0
-      row++
-    }
-  }
-
+if(col === 7){
+  col = 0
+  row++
+}
   doc.save(`escala-${nomeMes}.pdf`)
 }
   
