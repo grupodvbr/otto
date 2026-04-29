@@ -543,9 +543,8 @@ if(d.includes("Z")){
 }
 
 /* 🔥 CORREÇÃO: REMOVE 3 HORAS */
-data.setHours(data.getHours() - 3)
-
 return new Intl.DateTimeFormat("pt-BR",{
+  timeZone:"America/Bahia",
   hour:"2-digit",
   minute:"2-digit"
 }).format(data)
@@ -887,7 +886,7 @@ async function atualizarSilencioso(){
   }
 
   /* NORMAL */
-  data.reverse().forEach(m=>{
+ data.forEach(m=>{
 
     const id = m.id || m.message_id
 
