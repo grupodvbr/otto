@@ -826,30 +826,25 @@ if(!entrada || !saida){
   
   const dataBase = dataSelecionada
 
-for(const h of lista){
-
-  const { error } = await sb
+const { error } = await sb
   .from("escala_funcionarios")
   .insert({
     funcionario_id: f.id,
     nome: f.nome,
     data: dataBase,
     entrada: entrada,
-saida: saida,
+    saida: saida,
     setor: f.setor,
     empresa: "MERCATTO DELICIA",
-    agenda_sessao: document.getElementById("agendaSessao").value, // 🔥 NOVO
+    agenda_sessao: document.getElementById("agendaSessao").value,
     atualizado_em: new Date().toISOString()
-  }, {
-    ignoreDuplicates: true
   })
 
-  if(error){
-    console.error("ERRO:", error)
-    alert("Já existe escala nesse horário!")
-  }
+if(error){
+  console.error("ERRO:", error)
+  alert("Já existe escala nesse horário!")
+  return
 }
-
   fechar()
   render()
 }
