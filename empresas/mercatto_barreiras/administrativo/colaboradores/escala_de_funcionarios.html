@@ -7,6 +7,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
@@ -141,14 +142,80 @@ button:hover{
 }
 
 .box{
-  background:var(--card);
-  padding:20px;
-  border-radius:18px;
-  width:520px;
+  background:#ffffff;
+  padding:24px;
+  border-radius:22px;
+  width:600px;
   max-width:95%;
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
-  animation:fadeIn .2s ease;
+  box-shadow:0 30px 80px rgba(0,0,0,.25);
+  animation:fadeIn .25s ease;
+  border:1px solid #e5e7eb;
 }
+
+/* HEADER DO MODAL */
+.box h3{
+  font-size:22px;
+  font-weight:800;
+}
+
+/* DATA */
+#data{
+  font-size:22px;
+  font-weight:900;
+  color:#111827;
+}
+
+/* ITEM ESCALA (CARD) */
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid #e5e7eb;
+  background:#f9fafb;
+  margin-bottom:8px;
+  transition:.2s;
+}
+
+.item:hover{
+  background:#fff;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+/* NOME FUNCIONARIO */
+.item > div:first-child{
+  font-weight:800;
+  font-size:14px;
+}
+
+/* HORARIO */
+.item span{
+  font-size:12px;
+  color:#6b7280;
+  font-weight:600;
+}
+
+/* BOTÕES */
+.item button{
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+/* TITULO SETOR */
+h4{
+  margin-top:15px;
+  font-size:12px;
+  color:#6b7280;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+
+
+
+  
 
 @keyframes fadeIn{
   from{transform:scale(.95);opacity:0}
@@ -512,10 +579,20 @@ button:hover{
 </div>
 
     
-    <div class="actions">
-      <button onclick="fecharCadastro()">Cancelar</button>
-      <button onclick="salvarFuncionario()">Salvar</button>
-    </div>
+<div class="actions">
+
+  <button onclick="gerarPDF()" class="btn" style="background:#111;color:#fff">
+    📄 PDF
+  </button>
+
+  <button class="btn cancel" onclick="fechar()">Cancelar</button>
+  <button class="btn save" onclick="salvarEscala()">Salvar</button>
+
+</div>
+
+
+
+    
 
   </div>
 </div>
@@ -948,7 +1025,79 @@ function editarEscala(id){
   document.getElementById("saida").value = e.saida
 }
 
+async function gerarPDF(){
 
+  const { jsPDF } = window.jspdf
+
+  const doc = new jsPDF({
+    orientation: "landscape"
+  })
+
+  // 🔥 LOGO (troca pela sua URL)
+  const logo = "https://i.imgur.com/your-logo.png"
+
+  // HEADER
+  doc.setFont("helvetica","bold")
+  doc.setFontSize(16)
+  doc.text("ESCALA DE FUNCIONÁRIOS", 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(dataEl.innerText, 14, 22)
+
+  // LOGO
+  try{
+    const img = await fetch(logo).then(r=>r.blob())
+    const reader = new FileReader()
+    reader.readAsDataURL(img)
+    reader.onload = () => {
+      doc.addImage(reader.result, "PNG", 240, 8, 40, 15)
+      montarTabela()
+    }
+  }catch{
+    montarTabela()
+  }
+
+  function montarTabela(){
+
+    let y = 30
+
+    const lista = escalas.filter(e => e.data === dataSelecionada)
+
+    let agrupado = {}
+
+    lista.forEach(e=>{
+      if(!agrupado[e.setor]) agrupado[e.setor] = []
+      agrupado[e.setor].push(e)
+    })
+
+    for(const setor in agrupado){
+
+      doc.setFontSize(12)
+      doc.setFont("helvetica","bold")
+      doc.text(setor, 14, y)
+
+      y += 6
+
+      doc.setFont("helvetica","normal")
+
+      agrupado[setor].forEach(e=>{
+        doc.text(`${e.nome}`, 14, y)
+        doc.text(`${e.entrada} - ${e.saida}`, 120, y)
+        y += 6
+      })
+
+      y += 6
+    }
+
+    doc.save(`escala-${dataSelecionada}.pdf`)
+  }
+}
+
+
+
+
+
+  
 
   
 </script>
