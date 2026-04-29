@@ -399,52 +399,53 @@ button:hover{
 <div id="modal" class="modal">
   <div class="box">
 
-   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:15px">
+<div style="margin-bottom:20px">
 
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h3 style="margin:0;font-size:20px;font-weight:800;" id="data"></h3>
+  <!-- TITULO -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    
+    <div>
+      <div style="font-size:12px;color:#6b7280;font-weight:600">
+        ESCALA DO DIA
+      </div>
+      <div id="data" style="font-size:22px;font-weight:800"></div>
+    </div>
+
+    <button onclick="fechar()" style="
+      background:#e5e7eb;
+      color:#111;
+      padding:6px 10px;
+      border-radius:8px;
+    ">✕</button>
+
+  </div>
+
+  <!-- LINHA PRINCIPAL -->
+  <div style="display:flex;gap:10px;align-items:center">
 
     <input id="dataManual" placeholder="dd/mm/aaaa" style="
-      padding:8px 10px;
+      padding:10px;
       border-radius:10px;
       border:1px solid var(--border);
-      font-size:13px;
-      width:140px;
+      font-size:14px;
+      width:160px;
       text-align:center;
+      font-weight:600;
     ">
+
+    <button onclick="abrirEdicao()" style="
+      background:var(--primary);
+      padding:10px 16px;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:600;
+    ">
+      + Adicionar
+    </button>
+
   </div>
 
-  <button onclick="abrirEdicao()" style="
-    align-self:flex-start;
-    background:var(--primary);
-    padding:8px 14px;
-    border-radius:10px;
-    font-size:13px;
-  ">
-    + Adicionar Escala
-  </button>
-
 </div>
-
-<button onclick="abrirEdicao()" style="margin-bottom:10px">
-  + Adicionar Escala
-</button>
-
-<div id="formEscala" style="display:none">
-
-  <div class="field">
-    <label>Funcionário</label>
-    <select id="funcionario"></select>
-  </div>
-
-  <div id="blocos"></div>
-
-  <button onclick="addBloco()" style="margin-top:10px">
-    + Adicionar Horário
-  </button>
-
-</div>
-
     <div class="lista" id="preview"></div>
 
     <div class="actions">
