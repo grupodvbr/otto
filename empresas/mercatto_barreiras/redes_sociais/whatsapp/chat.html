@@ -504,12 +504,16 @@ function resetDataRender(){
   ultimaDataRender = null
 }
 
+function resetDataRender(){
+  ultimaDataRender = null
+}
+
 async function carregarMais(){
 
 if(loading || !oldestDate) return
 loading = true
 
-const {data} = await db
+const {data, error} = await db
 .from("conversas_whatsapp")
 .select("*")
 .eq("telefone",telefone)
@@ -517,21 +521,31 @@ const {data} = await db
 .order("created_at",{ascending:false})
 .limit(20)
 
-if(!data || data.length===0){
-loading=false
-return
+if(error){
+  console.error("ERRO LOAD MAIS:", error)
+  loading=false
+  return
 }
 
+if(!data || data.length===0){
+  loading=false
+  return
+}
+
+/* 🔥 ATUALIZA DATA MAIS ANTIGA */
 oldestDate = data[data.length - 1]?.created_at
 
 const alturaAntes = msgs.scrollHeight
 
-/* 🔥 CORREÇÃO */
+/* 🔥 CORREÇÃO PRINCIPAL */
 resetDataRender()
 
+/* 🔥 RENDER CORRETO */
 data.reverse().forEach(m=>render(m,true))
 
 const alturaDepois = msgs.scrollHeight
+
+/* 🔥 MANTÉM POSIÇÃO DO SCROLL */
 msgs.scrollTop += (alturaDepois - alturaAntes)
 
 loading=false
