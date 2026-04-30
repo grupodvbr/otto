@@ -193,6 +193,40 @@ button[onclick^="rem"]{
   }
 
 }
+.cal-grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+margin-top:10px;
+}
+
+.cal-day{
+padding:10px;
+background:#f1f5f9;
+border-radius:8px;
+text-align:center;
+cursor:pointer;
+font-size:13px;
+}
+
+.cal-day:hover{
+background:#3b82f6;
+color:#fff;
+}
+
+.cal-header{
+font-weight:700;
+text-align:center;
+margin-bottom:5px;
+}
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -205,6 +239,29 @@ button[onclick^="rem"]{
 <div id="listaUsuarios" class="lista"></div>
 
 <input type="date" id="data">
+<div id="calendario" style="margin-top:15px;"></div>
+
+<div class="card">
+<h3>Tarefas do Dia</h3>
+<table>
+<thead>
+<tr>
+<th>Tarefa</th>
+<th>Início</th>
+<th>Fim</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="tarefasDia"></tbody>
+</table>
+</div>
+
+
+
+
+  
+
+  
 </div>
 
 <div class="card">
@@ -287,6 +344,8 @@ function selUser(usuario,nome){
 usuarioSelecionado=usuario;
 buscaUsuario.value=nome;
 listaUsuarios.innerHTML="";
+
+gerarCalendario(); // 🔥 AQUI
 }
 
 // 🔎 BUSCAR TAREFA
@@ -383,6 +442,79 @@ alert("Salvo!");
 tarefas=[];
 render();
 }
+
+
+
+
+
+
+function gerarCalendario(){
+
+const hoje = new Date();
+const ano = hoje.getFullYear();
+const mes = hoje.getMonth();
+
+const primeiroDia = new Date(ano, mes, 1).getDay();
+const totalDias = new Date(ano, mes+1, 0).getDate();
+
+let html = `<div class="cal-header">${mes+1}/${ano}</div>`;
+html += `<div class="cal-grid">`;
+
+// espaços antes
+for(let i=0;i<primeiroDia;i++){
+html += `<div></div>`;
+}
+
+// dias
+for(let d=1; d<=totalDias; d++){
+
+const dataFormatada = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+html += `
+<div class="cal-day" onclick="selecionarDia('${dataFormatada}')">
+${d}
+</div>
+`;
+}
+
+html += `</div>`;
+
+document.getElementById("calendario").innerHTML = html;
+}
+
+
+async function selecionarDia(data){
+
+document.getElementById("data").value = data;
+
+// buscar tarefas daquele dia
+const { data: tarefasDB } = await sb
+.from("agenda_checklist")
+.select("*")
+.eq("usuario", usuarioSelecionado)
+.eq("data", data);
+
+const tbody = document.getElementById("tarefasDia");
+tbody.innerHTML = "";
+
+(tarefasDB || []).forEach(t=>{
+
+tbody.innerHTML += `
+<tr>
+<td>${t.tarefa}</td>
+<td>${t.hora_inicio || '-'}</td>
+<td>${t.hora_fim || '-'}</td>
+<td>${t.status_execucao || '-'}</td>
+</tr>
+`;
+
+});
+}
+
+
+
+
+  
 </script>
 
 </body>
