@@ -273,7 +273,9 @@ body.dark .card-status span {
 }
 
 .popup-body{
-  padding:18px;
+  padding:15px;
+  flex:1;
+  overflow-y:auto;
 }
 
 .form-group{
@@ -359,7 +361,11 @@ body.dark .card-status span {
   border:1px solid #dc3545 !important;
   box-shadow:0 0 0 2px rgba(220,53,69,.2);
 }
-  
+  #listaEstoque{
+  max-height:45vh;
+  overflow-y:auto;
+  padding-right:5px;
+}
 </style>
 </head>
 <body>
@@ -995,31 +1001,54 @@ async function abrirEstoque(){
   document.getElementById("popupEstoque").style.display="flex";
   document.body.style.overflow="hidden";
 
-  // 🔹 busca produtos
-const { data: produtos } = await sb
-  .from("mercatto_estoque")
-  .select("*");
-  // 🔹 busca movimentações
+  const seteDias = new Date();
+  seteDias.setDate(seteDias.getDate() - 7);
+
+  // 🔹 produtos
+  const { data: produtos } = await sb
+    .from("mercatto_estoque")
+    .select("*");
+
+  // 🔹 movimentações recentes
   const { data: mov } = await sb
     .from("mercatto_requisicoes")
-    .select("*");
-const mapa = {};
+    .select("produto_id, created_at")
+    .gte("created_at", seteDias.toISOString());
 
-(produtos || []).forEach(p=>{
-  mapa[p.id] = {
+  // 🔥 mapa de uso
+  const uso = {};
+
+  (mov || []).forEach(m=>{
+    uso[m.produto_id] = (uso[m.produto_id] || 0) + 1;
+  });
+
+  // 🔥 monta lista
+  const lista = (produtos || []).map(p=>({
     id: p.id,
     nome: p.produto,
     atual: parseFloat(p.saldo) || 0,
     minimo: parseFloat(p.estoque_minimo) || 0,
-    maximo: parseFloat(p.estoque_ideal) || 0
-  };
-});
+    maximo: parseFloat(p.estoque_ideal) || 0,
+    uso: uso[p.id] || 0
+  }));
 
-  estoqueGlobal = Object.values(mapa);
+  // 🔥 ordenação inteligente
+  lista.sort((a,b)=>{
 
-  renderEstoque(estoqueGlobal);
+    // mais usados primeiro
+    if(b.uso !== a.uso) return b.uso - a.uso;
+
+    // depois críticos
+    if(a.atual <= a.minimo && b.atual > b.minimo) return -1;
+    if(b.atual <= b.minimo && a.atual > a.minimo) return 1;
+
+    return 0;
+  });
+
+  estoqueGlobal = lista;
+
+  renderEstoque(lista);
 }
-
 function fecharEstoque(){
   document.getElementById("popupEstoque").style.display="none";
   document.body.style.overflow="auto";
@@ -1050,7 +1079,7 @@ function renderEstoque(lista){
 
         <!-- NOME -->
         <div style="font-size:14px;font-weight:600;">
-          ${p.nome}
+        ${p.nome} ${p.uso > 0 ? "🔥" : ""}
         </div>
 
         <!-- NUMEROS -->
@@ -1208,8 +1237,14 @@ function getFiltrados(){
 
 
   <div id="popupEstoque" class="popup-overlay">
-  <div class="popup-box" style="max-width:800px">
+<div class="popup-box" style="
+max-width:900px;
+height:85vh;
+display:flex;
+flex-direction:column;
+">
 
+  
     <div class="popup-header">
       <span>📦 Controle de Estoque</span>
       <button onclick="fecharEstoque()">✖</button>
@@ -1217,15 +1252,35 @@ function getFiltrados(){
 
     <div class="popup-body">
 
-      <input id="buscaEstoque" placeholder="Buscar produto..." 
-      style="width:100%;padding:10px;border-radius:8px;margin-bottom:10px;border:1px solid #ccc"
-      oninput="filtrarEstoque()">
+<div style="
+position:sticky;
+top:0;
+background:var(--bg);
+z-index:5;
+padding-bottom:10px;
+">
 
-      <div id="listaEstoque"></div>
+<input id="buscaEstoque" placeholder="Buscar produto..."
+style="
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:14px;
+"
+oninput="filtrarEstoque()">
 
-      <hr style="margin:15px 0">
+</div>
 
-      <div id="movimentacaoBox"></div>
+<div id="listaEstoque"></div>
+
+<div id="movimentacaoBox" style="
+margin-top:15px;
+padding-top:10px;
+border-top:1px solid #ccc;
+max-height:150px;
+overflow:auto;
+"></div>
 
     </div>
   </div>
