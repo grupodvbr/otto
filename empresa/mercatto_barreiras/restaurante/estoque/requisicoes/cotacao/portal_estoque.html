@@ -83,22 +83,42 @@ body {
   overflow:hidden;
 }
 
-#splash h1::after {
+/* FAIXA DE LUZ GLOBAL */
+#splash::after {
   content:"";
   position:absolute;
   top:0;
-  left:-150%;
-  width:100%;
+  left:-200%;
+  width:300%;
   height:100%;
+
   background:linear-gradient(
-      120deg,
-      transparent 0%,
-      rgba(255,255,255,0.55) 50%,
-      transparent 100%
+    110deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 30%,
+    rgba(255,255,255,0.35) 50%,
+    rgba(255,255,255,0.08) 70%,
+    transparent 100%
   );
-  animation: shineMove 2.3s ease-in-out forwards;
-  animation-delay:0.4s;
+
+  animation: luzFull 2.2s ease-in-out forwards;
+  animation-delay:0.3s;
+  pointer-events:none;
 }
+
+/* ANIMAÇÃO SUAVE */
+@keyframes luzFull {
+  0% {
+    left:-200%;
+    transform:skewX(-20deg);
+  }
+  100% {
+    left:200%;
+    transform:skewX(-20deg);
+  }
+}
+
+     
 
 @keyframes shineMove {
   0% { left:-150%; }
