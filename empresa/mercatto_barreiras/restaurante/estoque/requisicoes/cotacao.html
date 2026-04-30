@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Cotação PRO - Mercatto</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:Inter;background:#0f172a;color:#fff;}
+header{padding:15px;background:#020617;display:flex;justify-content:space-between;}
+.tabs{display:flex;gap:10px;}
+.tab{cursor:pointer;padding:8px 12px;border-radius:8px;background:#1e293b;}
+.active{background:#3b82f6;}
+.container{padding:15px;height:calc(100vh - 70px);overflow:auto;}
+
+.card{
+background:#020617;
+padding:15px;
+border-radius:10px;
+margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+}
+
+.grid{border-collapse:collapse;width:max-content;min-width:100%;}
+.grid th,.grid td{border:1px solid #1e293b;padding:6px;text-align:center;}
+.grid th{position:sticky;top:0;background:#020617;}
+.produto{position:sticky;left:0;background:#020617;text-align:left;font-weight:600;}
+
+input{width:70px;padding:5px;border-radius:6px;border:none;text-align:center;}
+
+.melhor{background:#10b98133;}
+.selecionado{outline:2px solid #10b981;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>📊 Cotação PRO</h2>
+
+<div class="tabs">
+<div class="tab active" onclick="trocar('cotacao')">Cotação</div>
+<div class="tab" onclick="trocar('compras')">Compras</div>
+<div class="tab" onclick="trocar('analise')">Análise</div>
+</div>
+</header>
+
+<div class="container" id="conteudo"></div>
+
+<script>
+
+const sb = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let produtos=[], fornecedores=[], cotacoes={};
+
+// =========================
+// TROCA DE TELA
+// =========================
+function trocar(tela){
+
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+event.target.classList.add("active");
+
+if(tela=="cotacao") telaCotacao();
+if(tela=="compras") telaCompras();
+if(tela=="analise") telaAnalise();
+}
+
+// =========================
+// CARREGAR DADOS
+// =========================
+async function carregar(){
+
+const {data:p}=await sb.from("mercatto_estoque").select("*");
+const {data:f}=await sb.from("fornecedores_mercatto").select("*");
+const {data:c}=await sb.from("cotacao_mercatto").select("*");
+
+produtos=p||[];
+fornecedores=f||[];
+cotacoes={};
+
+(c||[]).forEach(i=>{
+cotacoes[i.produto_id+"_"+i.fornecedor_id]=i;
+});
+}
+
+// =========================
+// 🧾 TELA COTAÇÃO
+// =========================
+async function telaCotacao(){
+
+await carregar();
+
+let html="<table class='grid'><tr><th>Produto</th>";
+
+fornecedores.forEach(f=> html+=`<th>${f.nome}</th>`);
+
+html+="</tr>";
+
+produtos.forEach(p=>{
+
+html+=`<tr><td class="produto">${p.produto}</td>`;
+
+fornecedores.forEach(f=>{
+
+const key=p.produto_id+"_"+f.id;
+const v=cotacoes[key]?.valor_unitario||"";
+
+html+=`
+<td onclick="selectCell(this,'${p.produto_id}','${f.id}')">
+<input value="${v}" onchange="edit('${p.produto_id}','${f.id}',this.value)">
+</td>`;
+});
+
+html+="</tr>";
+});
+
+html+="</table>";
+
+conteudo.innerHTML=html;
+
+destacar();
+}
+
+// =========================
+// EDITAR
+// =========================
+function edit(p,f,v){
+
+cotacoes[p+"_"+f]={
+produto_id:p,
+fornecedor_id:f,
+valor_unitario:parseFloat(v)
+};
+
+destacar();
+}
+
+// =========================
+// MELHOR PREÇO
+// =========================
+function destacar(){
+
+document.querySelectorAll("tr").forEach((tr,i)=>{
+
+if(i==0)return;
+
+let menor=999999;
+
+const tds=tr.querySelectorAll("td:not(.produto)");
+
+tds.forEach(td=>{
+const v=parseFloat(td.querySelector("input").value);
+if(v && v<menor) menor=v;
+});
+
+tds.forEach(td=>{
+const v=parseFloat(td.querySelector("input").value);
+td.classList.remove("melhor");
+if(v===menor) td.classList.add("melhor");
+});
+});
+}
+
+// =========================
+// SELECIONAR
+// =========================
+function selectCell(td,p,f){
+
+td.parentNode.querySelectorAll("td").forEach(t=>t.classList.remove("selecionado"));
+td.classList.add("selecionado");
+
+cotacoes[p+"_"+f].status="Aprovado";
+}
+
+// =========================
+// 💰 GERAR COMPRA
+// =========================
+async function gerarCompra(){
+
+for(const k in cotacoes){
+
+const c=cotacoes[k];
+
+if(c.status==="Aprovado"){
+
+await sb.from("cotacao_mercatto").upsert({
+produto_id:c.produto_id,
+fornecedor_id:c.fornecedor_id,
+valor_unitario:c.valor_unitario,
+status:"Aprovado"
+});
+
+}
+}
+
+alert("Compra gerada!");
+}
+
+// =========================
+// 📦 TELA COMPRAS
+// =========================
+async function telaCompras(){
+
+const {data}=await sb.from("cotacao_mercatto")
+.select("*")
+.eq("status","Aprovado");
+
+let html="<h3>Pedidos</h3>";
+
+data.forEach(i=>{
+html+=`
+<div class="card">
+${i.produto_nome} - ${i.valor_unitario}
+<button onclick="receber('${i.id}')">Receber</button>
+</div>`;
+});
+
+conteudo.innerHTML=html;
+}
+
+// =========================
+// 📥 RECEBER
+// =========================
+async function receber(id){
+
+await sb.from("cotacao_mercatto")
+.update({status:"Recebido"})
+.eq("id",id);
+
+alert("Entrada no estoque automática!");
+telaCompras();
+}
+
+// =========================
+// 📊 ANALISE
+// =========================
+async function telaAnalise(){
+
+const {data}=await sb.from("cotacao_mercatto").select("*");
+
+let total=0;
+let menor=0;
+
+data.forEach(i=>{
+total+=i.valor_unitario||0;
+});
+
+conteudo.innerHTML=`
+<div class="card">💰 Total cotado: R$ ${total.toFixed(2)}</div>
+<div class="card">📉 Média preços: R$ ${(total/data.length||0).toFixed(2)}</div>
+`;
+}
+
+telaCotacao();
+
+</script>
+</body>
+</html>
