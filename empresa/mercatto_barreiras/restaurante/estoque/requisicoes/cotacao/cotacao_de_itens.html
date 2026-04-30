@@ -3,63 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Cotação</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
+
 body{
+  margin:0;
   font-family:Inter;
-  background:#f5f7fb;
-  padding:20px;
+  background:#eef2f7;
 }
 
 .container{
-  max-width:900px;
+  max-width:1000px;
   margin:auto;
-}
-
-.box{
-  background:#fff;
   padding:20px;
-  border-radius:12px;
+}
+
+.header{
+  font-size:22px;
+  font-weight:700;
   margin-bottom:20px;
-  box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
-
-input{
-  padding:10px;
-  margin:5px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-button{
-  padding:10px 15px;
-  border:none;
-  border-radius:8px;
-  background:#2563eb;
-  color:#fff;
-  cursor:pointer;
 }
 
 .card{
   background:#fff;
   padding:20px;
-  border-radius:12px;
-  box-shadow:0 5px 20px rgba(0,0,0,.08);
-  margin-top:20px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  margin-bottom:20px;
 }
 
-.card h3{
-  margin:0 0 10px;
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+input,select{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+button{
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:12px 18px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button:hover{
+  background:#1d4ed8;
+}
+
+.itens{
+  margin-top:15px;
 }
 
 .item{
   display:flex;
-  gap:10px;
-  margin-bottom:10px;
+  justify-content:space-between;
+  padding:10px;
+  border-radius:10px;
+  background:#f3f4f6;
+  margin-bottom:8px;
 }
+
+.resumo{
+  border-left:6px solid #2563eb;
+}
+
+.small{
+  color:#6b7280;
+  font-size:13px;
+}
+
+.badge{
+  background:#dbeafe;
+  color:#1e3a8a;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+}
+
 </style>
 </head>
 
@@ -67,39 +103,34 @@ button{
 
 <div class="container">
 
-<h2>💰 Nova Cotação</h2>
+<div class="header">💰 Nova Cotação</div>
 
-<div class="box">
+<div class="card">
 
-<input id="nome" placeholder="Nome da Cotação">
-
-<br>
-
-<label>Data da Cotação:</label>
+<div class="row">
+<input id="nome" placeholder="Nome da cotação">
 <input id="dataCotacao" type="date">
+<input id="dataHoje" disabled>
+</div>
 
 <br>
-
-<label>Data de Hoje:</label>
-<input id="dataHoje" disabled>
-
-<br><br>
 
 <button onclick="criar()">Criar Cotação</button>
 
 </div>
 
-<div id="areaItens" class="box" style="display:none">
+<div id="areaItens" class="card" style="display:none">
 
-<h3>Itens</h3>
+<h3>Itens da Cotação</h3>
 
-<div class="item">
-<input id="produto" placeholder="Produto">
+<div class="row">
+<select id="produtoSelect"></select>
+<input id="produtoManual" placeholder="Ou digite produto" style="display:none">
 <input id="qtd" type="number" placeholder="Qtd">
 <button onclick="addItem()">Adicionar</button>
 </div>
 
-<div id="listaItens"></div>
+<div class="itens" id="listaItens"></div>
 
 </div>
 
@@ -117,37 +148,52 @@ const sb = supabase.createClient(
 let cotacaoId = null;
 let itens = [];
 
-// DATA HOJE FORMATADA
-function formatarDataHoje(){
+// =====================
+// DATA HOJE
+// =====================
+function hoje(){
   const d = new Date();
-  const dia = String(d.getDate()).padStart(2,'0');
-  const mes = String(d.getMonth()+1).padStart(2,'0');
-  const ano = d.getFullYear();
-
-  return `${dia}/${mes}/${ano}`;
+  return d.toLocaleDateString("pt-BR");
 }
 
-dataHoje.value = formatarDataHoje();
+dataHoje.value = hoje();
+
+// =====================
+// CARREGAR ESTOQUE
+// =====================
+async function carregarProdutos(){
+
+  const { data } = await sb
+    .from("mercatto_estoque")
+    .select("produto")
+    .eq("ativo", true);
+
+  if(!data || data.length === 0){
+    produtoSelect.style.display = "none";
+    produtoManual.style.display = "block";
+    return;
+  }
+
+  produtoSelect.innerHTML =
+    `<option value="">Selecione produto</option>` +
+    data.map(p=>`<option>${p.produto}</option>`).join("");
+}
 
 // =====================
 // CRIAR COTAÇÃO
 // =====================
 async function criar(){
 
-  const nome = document.getElementById("nome").value;
-  const dataCotacao = document.getElementById("dataCotacao").value;
+  const nome = nome.value;
+  const dataC = dataCotacao.value;
 
   const { data, error } = await sb
     .from("cotacoes")
-    .insert([{
-      nome,
-      data_cotacao: dataCotacao,
-      itens: []
-    }])
+    .insert([{ nome, data_cotacao: dataC }])
     .select();
 
   if(error){
-    alert("Erro ao criar");
+    alert("Erro");
     return;
   }
 
@@ -163,56 +209,68 @@ async function criar(){
 // =====================
 async function addItem(){
 
-  const prod = produto.value;
-  const quantidade = qtd.value;
+  let produtoNome = produtoSelect.value || produtoManual.value;
+  let quantidade = Number(qtd.value);
 
-  if(!prod || !quantidade){
-    alert("Preencha!");
+  if(!produtoNome || !quantidade){
+    alert("Preencha corretamente");
     return;
   }
 
   itens.push({
-    produto: prod,
-    quantidade: Number(quantidade)
+    produto: produtoNome,
+    quantidade
   });
 
-  await salvarItens();
+  await salvar();
 
-  produto.value = "";
+  renderItens();
+  atualizarResumo();
+
   qtd.value = "";
-
-  renderLista();
-  carregarResumo();
 }
 
 // =====================
 // SALVAR JSON
 // =====================
-async function salvarItens(){
+async function salvar(){
 
   await sb
     .from("cotacoes")
     .update({
-      itens: itens,
+      itens,
       atualizado_em: new Date()
     })
     .eq("id", cotacaoId);
 }
 
 // =====================
-// RENDER LISTA
+// RENDER ITENS
 // =====================
-function renderLista(){
+function renderItens(){
 
-  listaItens.innerHTML = itens.map(i=>`
-    <div>- ${i.produto} (${i.quantidade})</div>
+  listaItens.innerHTML = itens.map((i,index)=>`
+    <div class="item">
+      <div>${i.produto} (${i.quantidade})</div>
+      <div onclick="remover(${index})" style="cursor:pointer">❌</div>
+    </div>
   `).join("");
+}
+
+// =====================
+// REMOVER ITEM
+// =====================
+function remover(index){
+  itens.splice(index,1);
+  salvar();
+  renderItens();
+  atualizarResumo();
 }
 
 // =====================
 // RESUMO
 // =====================
-async function carregarResumo(){
+async function atualizarResumo(){
 
   const { data } = await sb
     .from("cotacoes")
@@ -226,25 +284,31 @@ async function carregarResumo(){
 function renderResumo(d){
 
   resumo.innerHTML = `
-    <div class="card">
+    <div class="card resumo">
       <h3>${d.nome}</h3>
 
-      <p><b>📅 Data Cotação:</b> ${d.data_cotacao || "-"}</p>
-      <p><b>📆 Criado em:</b> ${formatarDataHoje()}</p>
-      <p><b>📦 Itens:</b> ${d.itens?.length || 0}</p>
-      <p><b>📊 Status:</b> ${d.status}</p>
+      <div class="small">📅 Data Cotação: ${d.data_cotacao || "-"}</div>
+      <div class="small">📆 Criado: ${hoje()}</div>
 
-      <button onclick="realizar()">Realizar</button>
+      <br>
+
+      <div class="badge">Itens: ${d.itens?.length || 0}</div>
+      <div class="badge">${d.status}</div>
+
+      <br><br>
+
+      <button onclick="realizar()">Realizar Cotação</button>
     </div>
   `;
 }
 
 // =====================
-// REALIZAR (futuro)
-// =====================
 function realizar(){
-  alert("Próxima etapa: abrir tela de cotação tipo Excel");
+  alert("Etapa 2: Tela estilo Excel com fornecedores");
 }
+
+// =====================
+carregarProdutos();
 
 </script>
 
