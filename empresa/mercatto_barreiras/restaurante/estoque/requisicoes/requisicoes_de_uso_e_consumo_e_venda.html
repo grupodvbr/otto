@@ -1121,43 +1121,96 @@ function filtrarEstoque(){
   renderEstoque(filtrado);
 }
 
+let movDataGlobal = [];
+
 async function verMovimentacao(id,nome){
 
-  const seteDias = new Date();
-  seteDias.setDate(seteDias.getDate()-7);
+  document.getElementById("popupMov").style.display="flex";
+  document.body.style.overflow="hidden";
 
-  const { data, error } = await sb
+  document.getElementById("tituloMov").innerText = "📊 " + nome;
+
+  const { data } = await sb
     .from("mercatto_requisicoes")
     .select("*")
     .eq("produto_id", id)
-    .gte("created_at", seteDias.toISOString())
     .order("created_at",{ascending:false});
 
-  if(error){
-    console.error(error);
-    return;
-  }
+  movDataGlobal = data || [];
 
-  const html = `
-    <h3 style="margin-bottom:10px">${nome}</h3>
-    ${(data || []).map(m=>`
-      <div style="
-        padding:8px;
-        margin-bottom:6px;
-        border-radius:8px;
-        background:#111;
-        color:#fff;
-      ">
-        ${m.quantidade} ${m.unidade || ''} - ${m.status}<br>
-        <small>${new Date(m.created_at).toLocaleString()}</small>
-      </div>
-    `).join("") || "Sem movimentação"}
-  `;
-
-  document.getElementById("movimentacaoBox").innerHTML = html;
+  preencherFiltrosMov();
+  filtrarMov();
 }
 
+function preencherFiltrosMov(){
 
+  const setores = [...new Set(movDataGlobal.map(m=>m.setor).filter(Boolean))];
+
+  document.getElementById("movSetor").innerHTML =
+    '<option value="">Todos os setores</option>' +
+    setores.map(s=>`<option>${s}</option>`).join('');
+}
+
+function filtrarMov(){
+
+  const ini = document.getElementById("movDataInicio").value;
+  const fim = document.getElementById("movDataFim").value;
+  const setor = document.getElementById("movSetor").value;
+  const qtd = parseFloat(document.getElementById("movQtd").value) || 0;
+
+  const filtrado = movDataGlobal.filter(m=>{
+
+    const d = new Date(m.created_at);
+
+    if(ini && d < new Date(ini)) return false;
+    if(fim && d > new Date(fim)) return false;
+
+    if(setor && m.setor !== setor) return false;
+
+    if(qtd && parseFloat(m.quantidade) < qtd) return false;
+
+    return true;
+  });
+
+  renderMov(filtrado);
+}
+
+function renderMov(lista){
+
+  const html = lista.map(m=>`
+
+    <div style="
+      padding:12px;
+      margin-bottom:8px;
+      border-radius:10px;
+      background:#0f172a;
+      color:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    ">
+
+      <div>
+        <b>${m.quantidade} ${m.unidade || ""}</b><br>
+        <small>${m.setor || ""}</small>
+      </div>
+
+      <div style="text-align:right">
+        <div>${m.status}</div>
+        <small>${new Date(m.created_at).toLocaleString()}</small>
+      </div>
+
+    </div>
+
+  `).join("") || "Sem movimentação";
+
+  document.getElementById("listaMov").innerHTML = html;
+}
+
+function fecharMov(){
+  document.getElementById("popupMov").style.display="none";
+  document.body.style.overflow="auto";
+}
 function getFiltrados(){
 
   const fs = document.getElementById('filtroStatus').value.toUpperCase();
@@ -1274,16 +1327,66 @@ oninput="filtrarEstoque()">
 
 <div id="listaEstoque"></div>
 
-<div id="movimentacaoBox" style="
-margin-top:15px;
-padding-top:10px;
-border-top:1px solid #ccc;
-max-height:150px;
-overflow:auto;
-"></div>
+
 
     </div>
   </div>
+</div>
+
+
+
+
+  <div id="popupMov" class="popup-overlay">
+
+<div class="popup-box" style="
+max-width:900px;
+height:85vh;
+display:flex;
+flex-direction:column;
+">
+
+<div class="popup-header">
+  <span id="tituloMov">📊 Movimentação</span>
+  <button onclick="fecharMov()">✖</button>
+</div>
+
+<div class="popup-body">
+
+<!-- FILTROS -->
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr 1fr 1fr;
+gap:10px;
+margin-bottom:10px;
+">
+
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr 1fr 1fr;
+gap:10px;
+margin-bottom:10px;
+">
+
+<input type="date" id="movDataInicio" onchange="filtrarMov()">
+
+<input type="date" id="movDataFim" onchange="filtrarMov()">
+
+<select id="movSetor" onchange="filtrarMov()"></select>
+
+<input type="number" id="movQtd" placeholder="Qtd mínima" oninput="filtrarMov()">
+
+</div>
+
+</div>
+
+<!-- LISTA -->
+<div id="listaMov" style="
+flex:1;
+overflow:auto;
+"></div>
+
+</div>
+</div>
 </div>
 </body>
 </html>
