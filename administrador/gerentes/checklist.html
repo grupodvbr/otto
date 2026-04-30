@@ -2,27 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agenda de Checklist</title>
+<title>Agenda Checklist</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body{
-  font-family: Inter;
-  margin:0;
-  background:#f1f5f9;
-}
-
-header{
-  background:#020617;
-  color:#fff;
-  padding:15px;
-  font-size:20px;
-}
-
-.container{
-  padding:20px;
-}
+body{font-family:Inter;margin:0;background:#f1f5f9}
+header{background:#020617;color:#fff;padding:15px;font-size:20px}
+.container{padding:20px}
 
 .card{
   background:#fff;
@@ -32,39 +19,26 @@ header{
   box-shadow:0 5px 20px rgba(0,0,0,0.05);
 }
 
-input, select{
+input{
   padding:10px;
   width:100%;
-  margin-bottom:10px;
   border:1px solid #ccc;
   border-radius:6px;
+  margin-bottom:10px;
 }
 
 button{
-  padding:10px 15px;
+  padding:8px 12px;
   border:none;
   border-radius:6px;
   cursor:pointer;
 }
 
-.btn-add{ background:#22c55e; color:#fff; }
-.btn-remove{ background:#ef4444; color:#fff; }
-.btn-save{ background:#3b82f6; color:#fff; width:100%; }
+.btn-add{background:#22c55e;color:#fff}
+.btn-remove{background:#ef4444;color:#fff}
+.btn-save{background:#3b82f6;color:#fff;width:100%}
 
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-th, td{
-  padding:10px;
-  border-bottom:1px solid #ddd;
-  text-align:center;
-}
-
-th{ background:#f8fafc; }
-
-.search-results{
+.lista{
   max-height:200px;
   overflow:auto;
   border:1px solid #ccc;
@@ -74,145 +48,194 @@ th{ background:#f8fafc; }
   padding:10px;
   cursor:pointer;
 }
+.item:hover{background:#e2e8f0}
 
-.item:hover{
-  background:#e2e8f0;
+table{width:100%;border-collapse:collapse}
+td,th{padding:10px;border-bottom:1px solid #ddd;text-align:center}
+th{background:#f8fafc}
+
+.modal{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;
+  align-items:center;
 }
 
-.status-ok{ color:#22c55e; font-weight:bold; }
-.status-atraso{ color:#ef4444; font-weight:bold; }
+.modal-box{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  width:300px;
+}
 </style>
 </head>
 
 <body>
 
-<header>Agenda de Checklist por Funcionário</header>
+<header>Agenda Checklist</header>
 
 <div class="container">
 
-<!-- CONFIG -->
+<!-- USUARIO -->
 <div class="card">
-<h3>Configuração</h3>
+<h3>Selecionar Funcionário</h3>
 
-<select id="usuario"></select>
+<input type="text" id="buscaUsuario" placeholder="Buscar usuário...">
+<div class="lista" id="listaUsuarios"></div>
+
 <input type="date" id="data">
-
 </div>
 
-<!-- BUSCA -->
+<!-- TAREFAS -->
 <div class="card">
-<h3>Adicionar Tarefa</h3>
+<h3>Buscar Tarefas</h3>
 
-<input type="text" id="busca" placeholder="Buscar tarefa...">
-<div class="search-results" id="resultados"></div>
-
+<input type="text" id="buscaTarefa" placeholder="Buscar tarefa...">
+<div class="lista" id="listaTarefas"></div>
 </div>
 
 <!-- PLANILHA -->
 <div class="card">
-<h3>Montagem da Agenda</h3>
+<h3>Agenda</h3>
 
 <table>
 <thead>
 <tr>
 <th>Tarefa</th>
-<th>Início</th>
+<th>Inicio</th>
 <th>Fim</th>
 <th>Status</th>
-<th>Ação</th>
+<th></th>
 </tr>
 </thead>
 
 <tbody id="tabela"></tbody>
 </table>
 
-<button class="btn-save" onclick="salvar()">Salvar Agenda</button>
+<button class="btn-save" onclick="salvar()">Salvar</button>
 
 </div>
 
+</div>
+
+<!-- MODAL HORARIO -->
+<div class="modal" id="modal">
+<div class="modal-box">
+<h3>Definir Horário</h3>
+
+<input type="time" id="inicio">
+<input type="time" id="fim">
+
+<button class="btn-add" onclick="confirmarHorario()">Confirmar</button>
+
+</div>
 </div>
 
 <script>
-const supabase = supabase.createClient(
+const client = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-let lista = [];
+let usuarioSelecionado = null;
+let tarefas = [];
+let tarefaTemp = null;
 
 // ================= USUARIOS =================
-async function carregarUsuarios(){
-  const { data } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('ativo', true);
-
-  const select = document.getElementById('usuario');
-
-  data.forEach(u=>{
-    const op = document.createElement('option');
-    op.value = u.usuario;
-    op.innerText = u.nome + ' ('+u.setor+')';
-    select.appendChild(op);
-  });
-}
-
-// ================= BUSCA =================
-document.getElementById('busca').addEventListener('input', async e=>{
+document.getElementById('buscaUsuario').addEventListener('input', async e=>{
   const termo = e.target.value;
 
-  if(termo.length < 2) return;
+  const { data } = await client
+    .from('usuarios')
+    .select('*')
+    .ilike('nome', `%${termo}%`);
 
-  const { data } = await supabase
+  const lista = document.getElementById('listaUsuarios');
+  lista.innerHTML = '';
+
+  data.forEach(u=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerText = u.nome + ' ('+u.setor+')';
+
+    div.onclick = ()=>{
+      usuarioSelecionado = u.usuario;
+      document.getElementById('buscaUsuario').value = u.nome;
+      lista.innerHTML = '';
+    };
+
+    lista.appendChild(div);
+  });
+});
+
+// ================= TAREFAS =================
+document.getElementById('buscaTarefa').addEventListener('input', async e=>{
+  const termo = e.target.value;
+
+  const { data } = await client
     .from('checklist_mercatto')
     .select('*')
     .ilike('tarefa', `%${termo}%`);
 
-  const div = document.getElementById('resultados');
-  div.innerHTML = '';
+  const lista = document.getElementById('listaTarefas');
+  lista.innerHTML = '';
 
-  data.forEach(item=>{
-    const el = document.createElement('div');
-    el.className = 'item';
-    el.innerText = item.tarefa;
+  data.forEach(t=>{
+    const div = document.createElement('div');
+    div.className='item';
+    div.innerText = t.tarefa;
 
-    el.onclick = ()=> adicionar(item);
+    div.onclick = ()=>{
+      tarefaTemp = t.tarefa;
+      abrirModal();
+    };
 
-    div.appendChild(el);
+    lista.appendChild(div);
   });
 });
 
-// ================= ADD =================
-function adicionar(item){
-  lista.push({
-    tarefa: item.tarefa,
-    inicio: '',
-    fim: '',
-    status: 'pendente'
-  });
-
-  render();
+// ================= MODAL =================
+function abrirModal(){
+  document.getElementById('modal').style.display='flex';
 }
 
-// ================= REMOVER =================
-function remover(i){
-  lista.splice(i,1);
+function confirmarHorario(){
+  const inicio = document.getElementById('inicio').value;
+  const fim = document.getElementById('fim').value;
+
+  tarefas.push({
+    tarefa: tarefaTemp,
+    inicio,
+    fim
+  });
+
+  document.getElementById('modal').style.display='none';
   render();
 }
 
 // ================= RENDER =================
 function render(){
   const tbody = document.getElementById('tabela');
-  tbody.innerHTML = '';
+  tbody.innerHTML='';
 
-  lista.forEach((t,i)=>{
+  tarefas.forEach((t,i)=>{
+
+    const agora = new Date();
+    const hoje = agora.toISOString().split('T')[0];
+    const dataFim = new Date(`${hoje}T${t.fim}`);
+
+    let status = agora > dataFim ? 'Atrasado' : 'Dentro';
+
     const tr = document.createElement('tr');
 
-    tr.innerHTML = `
+    tr.innerHTML=`
       <td>${t.tarefa}</td>
-      <td><input type="time" onchange="setInicio(${i}, this.value)"></td>
-      <td><input type="time" onchange="setFim(${i}, this.value)"></td>
-      <td id="status_${i}">Pendente</td>
+      <td>${t.inicio}</td>
+      <td>${t.fim}</td>
+      <td style="color:${status=='Atrasado'?'red':'green'}">${status}</td>
       <td><button class="btn-remove" onclick="remover(${i})">X</button></td>
     `;
 
@@ -220,79 +243,45 @@ function render(){
   });
 }
 
-// ================= SET HORAS =================
-function setInicio(i,val){
-  lista[i].inicio = val;
-}
-
-function setFim(i,val){
-  lista[i].fim = val;
-  calcularStatus(i);
-}
-
-// ================= STATUS =================
-function calcularStatus(i){
-  const agora = new Date();
-  const hoje = agora.toISOString().split('T')[0];
-
-  const fim = lista[i].fim;
-
-  if(!fim) return;
-
-  const dataFim = new Date(`${hoje}T${fim}`);
-
-  let status = '';
-
-  if(agora > dataFim){
-    status = 'Atrasado';
-  }else{
-    status = 'Dentro do horário';
-  }
-
-  lista[i].status = status;
-
-  const el = document.getElementById('status_'+i);
-
-  el.innerText = status;
-  el.className = status === 'Atrasado' ? 'status-atraso' : 'status-ok';
+// ================= REMOVER =================
+function remover(i){
+  tarefas.splice(i,1);
+  render();
 }
 
 // ================= SALVAR =================
 async function salvar(){
 
-  const usuario = document.getElementById('usuario').value;
   const data = document.getElementById('data').value;
 
-  if(!usuario || lista.length == 0){
+  if(!usuarioSelecionado || tarefas.length == 0){
     alert('Preencha tudo');
     return;
   }
 
-  const inserts = lista.map(t=>({
-    usuario,
+  const inserts = tarefas.map(t=>({
+    usuario: usuarioSelecionado,
     tarefa: t.tarefa,
     data,
     hora_inicio: t.inicio,
     hora_fim: t.fim,
-    status_execucao: t.status
+    status_execucao: 'pendente'
   }));
 
-  const { error } = await supabase
+  const { error } = await client
     .from('agenda_checklist')
     .insert(inserts);
 
   if(error){
     console.log(error);
-    alert('Erro');
+    alert('Erro ao salvar');
     return;
   }
 
-  alert('Agenda salva!');
-  lista = [];
+  alert('Salvo com sucesso!');
+  tarefas = [];
   render();
 }
-
-carregarUsuarios();
 </script>
 
 </body>
