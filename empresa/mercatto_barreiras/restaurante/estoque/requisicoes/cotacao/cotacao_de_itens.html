@@ -184,8 +184,8 @@ async function carregarProdutos(){
 // =====================
 async function criar(){
 
-  const nome = nome.value;
-  const dataC = dataCotacao.value;
+const nomeInput = document.getElementById("nome").value;
+const dataC = document.getElementById("dataCotacao").value;
 
   const { data, error } = await sb
     .from("cotacoes")
