@@ -722,14 +722,10 @@ const supabaseClient=supabase.createClient(
 
   const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-if(!usuario){
+if(!user || user.nivel_acesso != 0){
   location.href = "login.html";
 }
 
-// segurança extra
-if(usuario.nivel_acesso == 0){
-  location.href = "login.html";
-}
 
 
 
