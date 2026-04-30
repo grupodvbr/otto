@@ -850,46 +850,144 @@ function fecharUsuarios(){
  document.body.style.overflow = "auto";
 }
 
+let usuariosGlobal = [];
+
 async function carregarUsuarios(){
 
   const { data, error } = await sb
     .from("usuarios_do_sistema")
-    .select("id, nome, setor, cargo, senha"); // ✅ agora inclui senha
+    .select("*");
 
   if(error){
-    console.error("Erro ao buscar usuários:", error);
-    document.getElementById("listaUsuarios").innerHTML = "Erro ao carregar";
+    console.error(error);
     return;
   }
 
-  if(!data || data.length === 0){
-    document.getElementById("listaUsuarios").innerHTML = "Nenhum usuário encontrado";
-    return;
-  }
+  usuariosGlobal = data || [];
 
-  const html = data.map(u => `
+  renderUsuarios(usuariosGlobal);
+}
+
+function renderUsuarios(lista){
+
+  const LINK_PEDIDOS = "https://reservas-mercatto.vercel.app/empresa/mercatto_barreiras/restaurante/estoque/requisicoes/pedido_de_requisicoes.html"; // 🔥 COLOCA SEU LINK
+
+  const html = lista.map(u => {
+
+    const numero = (u.whatsapp || "").replace(/\D/g,'');
+
+    const msg = encodeURIComponent(
+`Acesso ao sistema de requisições:
+
+👤 Usuário: ${u.nome}
+🔐 Senha: ${u.senha}
+🏢 Setor: ${u.setor}
+
+🔗 ${LINK_PEDIDOS}`
+    );
+
+    return `
     <div style="
+      background:linear-gradient(135deg,#0f172a,#020617);
+      color:#fff;
+      border-radius:16px;
+      padding:14px;
       display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:6px;
-      border-bottom:1px solid #ccc;
-      padding:6px;
+      flex-direction:column;
+      gap:8px;
+      box-shadow:0 10px 25px rgba(0,0,0,.3);
     ">
-      <div>
-        <b>${u.nome}</b><br>
-        <small>${u.setor || "Sem setor"} - ${u.cargo || ""}</small><br>
-        <small style="color:#dc3545">Senha: ${u.senha || "—"}</small> <!-- 👈 mostrando senha -->
+
+      <div style="font-weight:700;font-size:15px;">
+        ${u.nome}
       </div>
 
-      <div>
-        <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor || ""}','${u.senha || ""}')">✏️</button>
-        <button onclick="excluirUsuario('${u.id}')">🗑️</button>
+      <div style="font-size:12px;opacity:.8">
+        ${u.setor || "-"} • ${u.cargo || ""}
       </div>
+
+      <div style="font-size:12px;color:#f87171">
+        🔐 ${u.senha}
+      </div>
+
+      <!-- AÇÕES -->
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        margin-top:8px;
+      ">
+
+        <!-- WHATSAPP -->
+        <button onclick="window.open('https://wa.me/${numero}?text=${msg}','_blank')"
+        style="
+          background:#25D366;
+          border:none;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+          color:#fff;
+        ">
+        🟢 WhatsApp
+        </button>
+
+        <!-- COPIAR -->
+        <button onclick="copiarLink('${u.nome}','${u.senha}','${u.setor}')"
+        style="
+          background:#3b82f6;
+          border:none;
+          border-radius:8px;
+          padding:6px 10px;
+          cursor:pointer;
+          color:#fff;
+        ">
+        🔗 Copiar
+        </button>
+
+        <!-- EDITAR -->
+        <button onclick="editarUsuario('${u.id}','${u.nome}','${u.setor}')">✏️</button>
+
+        <!-- EXCLUIR -->
+        <button onclick="excluirUsuario('${u.id}')">🗑️</button>
+
+      </div>
+
     </div>
-  `).join("");
+    `;
+  }).join("");
 
   document.getElementById("listaUsuarios").innerHTML = html;
+}
+
+
+function copiarLink(nome, senha, setor){
+
+  const LINK = "https://reservas-mercatto.vercel.app/empresa/mercatto_barreiras/restaurante/estoque/requisicoes/pedido_de_requisicoes.html";
+
+  const texto = `Acesso ao sistema:
+
+Usuário: ${nome}
+Senha: ${senha}
+Setor: ${setor}
+
+${LINK}`;
+
+  navigator.clipboard.writeText(texto);
+
+  mostrarAlerta("Link copiado!");
+}
+
+
+
+function filtrarUsuarios(){
+
+  const v = document.getElementById("buscaUsuario").value.toLowerCase();
+
+  const filtrado = usuariosGlobal.filter(u =>
+    (u.nome || "").toLowerCase().includes(v) ||
+    (u.setor || "").toLowerCase().includes(v)
+  );
+
+  renderUsuarios(filtrado);
 }
 
 
@@ -1249,11 +1347,16 @@ function getFiltrados(){
   
 </script>
 
-
 <div id="popupUsuarios" class="popup-overlay">
 
-  <div class="popup-box">
+  <div class="popup-box" style="
+    max-width:1100px;
+    height:85vh;
+    display:flex;
+    flex-direction:column;
+  ">
 
+    <!-- HEADER -->
     <div class="popup-header">
       <span>👤 Gestão de Usuários</span>
       <button onclick="fecharUsuarios()">✖</button>
@@ -1261,30 +1364,41 @@ function getFiltrados(){
 
     <div class="popup-body">
 
-      <div class="form-group">
-        <label>Nome</label>
-        <input id="nomeUser" placeholder="Digite o nome">
-      </div>
+      <!-- TOPO -->
+      <div style="
+        display:grid;
+        grid-template-columns:2fr 1fr 1fr 1fr;
+        gap:10px;
+        margin-bottom:10px;
+      ">
 
-      <div class="form-group">
-        <label>Setor</label>
-        <input id="setorUser" placeholder="Digite o setor">
-      </div>
+        <input id="buscaUsuario" placeholder="🔍 Buscar usuário..."
+        oninput="filtrarUsuarios()"
+        style="padding:10px;border-radius:10px;border:1px solid #ccc;">
 
-      <div class="form-group">
-        <label>Senha</label>
-        <input id="senhaUser" type="password" placeholder="Digite a senha">
+        <input id="nomeUser" placeholder="Nome">
+
+        <input id="setorUser" placeholder="Setor">
+
+        <input id="senhaUser" placeholder="Senha">
+
       </div>
 
       <button class="btn-save" onclick="salvarUsuario()">Salvar Usuário</button>
 
-      <div id="listaUsuarios" class="lista-usuarios"></div>
+      <!-- LISTA -->
+      <div id="listaUsuarios" style="
+        flex:1;
+        overflow:auto;
+        margin-top:15px;
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+        gap:12px;
+      "></div>
 
     </div>
-
   </div>
 </div>
-
 
 
 
