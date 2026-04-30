@@ -717,6 +717,22 @@ const supabaseClient=supabase.createClient(
 "sb_publishable_oN2CuBzXHaUF7NHYS_M7aw_tBqVeD-x"
 );
 
+
+
+  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+if(!usuario){
+  location.href = "login.html";
+}
+
+// segurança extra
+if(usuario.nivel_acesso == 0){
+  location.href = "login.html";
+}
+
+
+
+  
 function toggleSub(id){
 const el=document.getElementById(id);
 el.style.display=el.style.display==="block"?"none":"block";
