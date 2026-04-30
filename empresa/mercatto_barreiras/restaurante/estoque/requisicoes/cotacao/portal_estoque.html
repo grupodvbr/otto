@@ -10,15 +10,16 @@
 <style>
 /* ============================= */
 :root {
-  --azul: #020617;
-  --azul-sec: #0f172a;
-  --azul-card: #111c2e;
-  --azul-hover: #1e3a8a;
+  --bg-top: #334155;
+  --bg-bottom: #020617;
 
-  --azul-destaque: #3b82f6;
-  --azul-brilho: #60a5fa;
+  --content-bg: #0f172a;
+  --card-bg: #020617;
 
-  --shadow: 0 10px 40px rgba(0,0,0,0.6);
+  --azul: #3b82f6;
+  --azul-light: #60a5fa;
+
+  --shadow: 0 20px 60px rgba(0,0,0,0.7);
   --glow: 0 0 25px rgba(59,130,246,0.5);
 }
 
@@ -31,29 +32,31 @@
 }
 
 /* ============================= */
+/* FUNDO GERAL */
 body {
-  background: radial-gradient(circle at top, #334155, #020617);
+  background: radial-gradient(circle at top, var(--bg-top), var(--bg-bottom));
   height:100vh;
   display:flex;
   overflow:hidden;
   color:white;
 }
 
-
+/* ============================= */
+/* CONTAINER PRINCIPAL (CINZA REAL) */
 #content {
   flex:1;
   padding:35px;
   overflow-y:auto;
 
-  background: #0f172a;
-  border-radius: 20px;
-  margin: 15px;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  border-radius:20px;
+  margin:15px;
+
+  box-shadow: var(--shadow);
 }
 
-
-  
 /* =============================
-   SPLASH ULTRA
+   SPLASH
 ============================= */
 #splash {
   position:fixed;
@@ -69,7 +72,6 @@ body {
   animation-delay: 2.6s;
 }
 
-/* TEXTO COM BRILHO FORTE */
 #splash h1 {
   font-size:64px;
   letter-spacing:8px;
@@ -79,7 +81,6 @@ body {
   animation: fadeInUp 1.2s ease forwards;
 }
 
-/* LINHA BRILHO */
 #splash h1::after {
   content:"";
   position:absolute;
@@ -97,7 +98,6 @@ body {
   animation-delay:0.5s;
 }
 
-/* ANIMAÇÕES */
 @keyframes shineMove {
   0% { left:-150%; }
   100% { left:150%; }
@@ -113,7 +113,7 @@ body {
 }
 
 /* =============================
-   SIDEBAR PREMIUM
+   SIDEBAR
 ============================= */
 #sidebar {
   width:270px;
@@ -128,28 +128,21 @@ body {
   width:75px;
 }
 
-/* BOTÃO */
 #toggleSidebar {
   position:absolute;
   top:20px;
   right:-15px;
   width:36px;
   height:36px;
-  background: var(--azul-destaque);
+  background: var(--azul);
   border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
   box-shadow: var(--glow);
-  transition:0.3s;
 }
 
-#toggleSidebar:hover {
-  transform:scale(1.1);
-}
-
-/* TÍTULO */
 .sidebar-title {
   font-size:24px;
   font-weight:600;
@@ -161,7 +154,7 @@ body {
   opacity:0;
 }
 
-/* ITENS */
+/* MENU */
 .nav-item {
   padding:14px;
   border-radius:12px;
@@ -183,7 +176,6 @@ body {
   box-shadow: var(--glow);
 }
 
-/* TEXTO */
 .nav-text {
   transition:0.2s;
 }
@@ -193,10 +185,8 @@ body {
 }
 
 /* =============================
-   CONTEÚDO
+   TÍTULO
 ============================= */
-
-
 #content h1 {
   font-size:34px;
   margin-bottom:25px;
@@ -204,7 +194,7 @@ body {
 }
 
 /* =============================
-   CARDS ULTRA PREMIUM
+   CARDS
 ============================= */
 .cards {
   display:flex;
@@ -227,7 +217,7 @@ body {
   transition:0.3s;
 }
 
-/* BORDA BRILHO */
+/* BORDA LUZ */
 .card::before {
   content:"";
   position:absolute;
@@ -244,7 +234,7 @@ body {
   transition:0.3s;
 }
 
-/* LUZ PASSANDO */
+/* BRILHO PASSANDO */
 .card::after {
   content:"";
   position:absolute;
@@ -262,8 +252,8 @@ body {
 
 /* HOVER */
 .card:hover {
-  transform:translateY(-10px) scale(1.04);
-  box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+  transform:translateY(-10px) scale(1.05);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.9);
 }
 
 .card:hover::before {
@@ -274,7 +264,6 @@ body {
   animation: shineMove 1.5s ease;
 }
 
-/* IMAGEM */
 .card img {
   width:120px;
   height:120px;
@@ -282,7 +271,6 @@ body {
   object-fit:contain;
 }
 
-/* TEXTO */
 .card p {
   font-weight:600;
   color:#bfdbfe;
@@ -301,7 +289,7 @@ body {
 }
 
 /* =============================
-   SCROLL PREMIUM
+   SCROLL
 ============================= */
 ::-webkit-scrollbar {
   width:8px;
