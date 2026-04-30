@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agenda de Checklist</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+body{
+  font-family: Inter;
+  margin:0;
+  background:#f1f5f9;
+}
+
+header{
+  background:#020617;
+  color:#fff;
+  padding:15px;
+  font-size:20px;
+}
+
+.container{
+  padding:20px;
+}
+
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.05);
+}
+
+input, select{
+  padding:10px;
+  width:100%;
+  margin-bottom:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.btn-add{ background:#22c55e; color:#fff; }
+.btn-remove{ background:#ef4444; color:#fff; }
+.btn-save{ background:#3b82f6; color:#fff; width:100%; }
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+  text-align:center;
+}
+
+th{ background:#f8fafc; }
+
+.search-results{
+  max-height:200px;
+  overflow:auto;
+  border:1px solid #ccc;
+}
+
+.item{
+  padding:10px;
+  cursor:pointer;
+}
+
+.item:hover{
+  background:#e2e8f0;
+}
+
+.status-ok{ color:#22c55e; font-weight:bold; }
+.status-atraso{ color:#ef4444; font-weight:bold; }
+</style>
+</head>
+
+<body>
+
+<header>Agenda de Checklist por Funcionário</header>
+
+<div class="container">
+
+<!-- CONFIG -->
+<div class="card">
+<h3>Configuração</h3>
+
+<select id="usuario"></select>
+<input type="date" id="data">
+
+</div>
+
+<!-- BUSCA -->
+<div class="card">
+<h3>Adicionar Tarefa</h3>
+
+<input type="text" id="busca" placeholder="Buscar tarefa...">
+<div class="search-results" id="resultados"></div>
+
+</div>
+
+<!-- PLANILHA -->
+<div class="card">
+<h3>Montagem da Agenda</h3>
+
+<table>
+<thead>
+<tr>
+<th>Tarefa</th>
+<th>Início</th>
+<th>Fim</th>
+<th>Status</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="tabela"></tbody>
+</table>
+
+<button class="btn-save" onclick="salvar()">Salvar Agenda</button>
+
+</div>
+
+</div>
+
+<script>
+const supabase = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let lista = [];
+
+// ================= USUARIOS =================
+async function carregarUsuarios(){
+  const { data } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('ativo', true);
+
+  const select = document.getElementById('usuario');
+
+  data.forEach(u=>{
+    const op = document.createElement('option');
+    op.value = u.usuario;
+    op.innerText = u.nome + ' ('+u.setor+')';
+    select.appendChild(op);
+  });
+}
+
+// ================= BUSCA =================
+document.getElementById('busca').addEventListener('input', async e=>{
+  const termo = e.target.value;
+
+  if(termo.length < 2) return;
+
+  const { data } = await supabase
+    .from('checklist_mercatto')
+    .select('*')
+    .ilike('tarefa', `%${termo}%`);
+
+  const div = document.getElementById('resultados');
+  div.innerHTML = '';
+
+  data.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerText = item.tarefa;
+
+    el.onclick = ()=> adicionar(item);
+
+    div.appendChild(el);
+  });
+});
+
+// ================= ADD =================
+function adicionar(item){
+  lista.push({
+    tarefa: item.tarefa,
+    inicio: '',
+    fim: '',
+    status: 'pendente'
+  });
+
+  render();
+}
+
+// ================= REMOVER =================
+function remover(i){
+  lista.splice(i,1);
+  render();
+}
+
+// ================= RENDER =================
+function render(){
+  const tbody = document.getElementById('tabela');
+  tbody.innerHTML = '';
+
+  lista.forEach((t,i)=>{
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>${t.tarefa}</td>
+      <td><input type="time" onchange="setInicio(${i}, this.value)"></td>
+      <td><input type="time" onchange="setFim(${i}, this.value)"></td>
+      <td id="status_${i}">Pendente</td>
+      <td><button class="btn-remove" onclick="remover(${i})">X</button></td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ================= SET HORAS =================
+function setInicio(i,val){
+  lista[i].inicio = val;
+}
+
+function setFim(i,val){
+  lista[i].fim = val;
+  calcularStatus(i);
+}
+
+// ================= STATUS =================
+function calcularStatus(i){
+  const agora = new Date();
+  const hoje = agora.toISOString().split('T')[0];
+
+  const fim = lista[i].fim;
+
+  if(!fim) return;
+
+  const dataFim = new Date(`${hoje}T${fim}`);
+
+  let status = '';
+
+  if(agora > dataFim){
+    status = 'Atrasado';
+  }else{
+    status = 'Dentro do horário';
+  }
+
+  lista[i].status = status;
+
+  const el = document.getElementById('status_'+i);
+
+  el.innerText = status;
+  el.className = status === 'Atrasado' ? 'status-atraso' : 'status-ok';
+}
+
+// ================= SALVAR =================
+async function salvar(){
+
+  const usuario = document.getElementById('usuario').value;
+  const data = document.getElementById('data').value;
+
+  if(!usuario || lista.length == 0){
+    alert('Preencha tudo');
+    return;
+  }
+
+  const inserts = lista.map(t=>({
+    usuario,
+    tarefa: t.tarefa,
+    data,
+    hora_inicio: t.inicio,
+    hora_fim: t.fim,
+    status_execucao: t.status
+  }));
+
+  const { error } = await supabase
+    .from('agenda_checklist')
+    .insert(inserts);
+
+  if(error){
+    console.log(error);
+    alert('Erro');
+    return;
+  }
+
+  alert('Agenda salva!');
+  lista = [];
+  render();
+}
+
+carregarUsuarios();
+</script>
+
+</body>
+</html>
