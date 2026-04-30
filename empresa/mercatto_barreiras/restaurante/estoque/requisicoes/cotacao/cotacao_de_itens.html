@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Nova Cotação</title>
+<title>Cotação Inteligente</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,89 +14,98 @@
 body{
   margin:0;
   font-family:Inter;
-  background:#eef2f7;
-}
-
-.container{
-  width:100%;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
+  background:#f1f5f9;
 }
 
 .top{
-  padding:20px;
   background:#fff;
+  padding:20px;
   box-shadow:0 5px 20px rgba(0,0,0,.05);
 }
 
-.top h2{
-  margin:0 0 10px;
-}
-
-.row{
+.search{
   display:flex;
   gap:10px;
 }
 
-input,select{
+.search input{
+  flex:1;
   padding:12px;
   border-radius:10px;
   border:1px solid #ddd;
-  flex:1;
 }
 
+.search-results{
+  background:#fff;
+  border-radius:10px;
+  margin-top:5px;
+  max-height:200px;
+  overflow:auto;
+  box-shadow:0 10px 20px rgba(0,0,0,.1);
+}
+
+.search-item{
+  padding:10px;
+  cursor:pointer;
+}
+
+.search-item:hover{
+  background:#f3f4f6;
+}
+
+.container{
+  padding:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+th{
+  background:#111827;
+  color:#fff;
+  padding:12px;
+}
+
+td{
+  padding:10px;
+  text-align:center;
+  border-bottom:1px solid #eee;
+}
+
+input{
+  width:80px;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  text-align:center;
+}
+
+.resultado{
+  font-weight:700;
+  color:#2563eb;
+}
+
+.alerta{ background:#fee2e2; }
+.ok{ background:#dcfce7; }
+
 button{
-  padding:12px 18px;
+  padding:10px 15px;
   border:none;
   border-radius:10px;
   background:#2563eb;
   color:#fff;
-  font-weight:600;
   cursor:pointer;
 }
 
-.main{
-  flex:1;
-  display:flex;
-  gap:20px;
-  padding:20px;
-}
-
-.left{
-  flex:2;
-  background:#fff;
-  border-radius:16px;
-  padding:20px;
-  overflow:auto;
-}
-
-.right{
-  flex:1;
-  background:#fff;
-  border-radius:16px;
-  padding:20px;
-}
-
-.item{
-  display:flex;
-  justify-content:space-between;
-  padding:12px;
-  border-radius:10px;
-  background:#f3f4f6;
-  margin-bottom:10px;
-}
-
-.badge{
-  background:#dbeafe;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-}
-
-.title{
-  font-weight:700;
-  margin-bottom:10px;
+.remove{
+  cursor:pointer;
+  color:red;
 }
 
 </style>
@@ -104,49 +113,41 @@ button{
 
 <body>
 
-<div class="container">
-
 <div class="top">
 
-<h2>💰 Nova Cotação</h2>
+<h2>📦 Montar Cotação</h2>
 
-<div class="row">
-<input id="nome" placeholder="Nome da cotação">
-<input id="dataCotacao" type="date">
-<input id="dataHoje" disabled>
-<button onclick="criar()">Salvar Cotação</button>
+<div class="search">
+<input id="busca" placeholder="Buscar produto..." oninput="buscar()">
+<input id="qtdAdd" type="number" placeholder="Qtd">
 </div>
 
+<div id="resultados" class="search-results"></div>
+
 </div>
 
-<div class="main">
+<div class="container">
 
-<div class="left">
+<table>
+<thead>
+<tr>
+<th>Produto</th>
+<th>Atual</th>
+<th>Mín</th>
+<th>Ideal</th>
+<th>Comprar</th>
+<th>Resultado</th>
+<th></th>
+</tr>
+</thead>
 
-<div class="title">Adicionar Itens</div>
+<tbody id="body"></tbody>
 
-<div class="row">
-<select id="produtoSelect"></select>
-<input id="produtoManual" placeholder="Produto manual" style="display:none">
-<input id="qtd" type="number" placeholder="Qtd">
-<button onclick="addItem()">Adicionar</button>
-</div>
+</table>
 
 <br>
 
-<div id="listaItens"></div>
-
-</div>
-
-<div class="right">
-
-<div class="title">Resumo</div>
-
-<div id="resumo"></div>
-
-</div>
-
-</div>
+<button onclick="salvar()">Salvar Cotação</button>
 
 </div>
 
@@ -157,133 +158,157 @@ const sb = supabase.createClient(
  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const el = id => document.getElementById(id);
-
-let itens = [];
-
-// =====================
-// DATA HOJE
-// =====================
-function hoje(){
-  return new Date().toLocaleDateString("pt-BR");
-}
-el("dataHoje").value = hoje();
+let estoque = [];
+let selecionados = [];
 
 // =====================
 // CARREGAR ESTOQUE
 // =====================
-async function carregarProdutos(){
+async function carregar(){
 
   const { data } = await sb
     .from("mercatto_estoque")
-    .select("produto")
+    .select("*")
     .eq("ativo", true);
 
-  if(!data || data.length === 0){
-    el("produtoSelect").style.display = "none";
-    el("produtoManual").style.display = "block";
+  estoque = data;
+}
+
+carregar();
+
+// =====================
+// BUSCA
+// =====================
+function buscar(){
+
+  const termo = busca.value.toLowerCase();
+
+  if(!termo){
+    resultados.innerHTML = "";
     return;
   }
 
-  el("produtoSelect").innerHTML =
-    `<option value="">Selecione</option>` +
-    data.map(p=>`<option>${p.produto}</option>`).join("");
-}
+  const filtrados = estoque.filter(p =>
+    p.produto.toLowerCase().includes(termo)
+  ).slice(0,10);
 
-// =====================
-// ADD ITEM
-// =====================
-function addItem(){
-
-  let nome = el("produtoSelect").value || el("produtoManual").value;
-  let qtd = Number(el("qtd").value);
-
-  if(!nome || !qtd){
-    alert("Preencha corretamente");
-    return;
-  }
-
-  itens.push({
-    produto: nome,
-    quantidade: qtd
-  });
-
-  el("qtd").value = "";
-
-  renderItens();
-  renderResumoPreview();
-}
-
-// =====================
-// RENDER ITENS
-// =====================
-function renderItens(){
-
-  el("listaItens").innerHTML = itens.map((i,index)=>`
-    <div class="item">
-      <div>${i.produto} (${i.quantidade})</div>
-      <div onclick="remover(${index})" style="cursor:pointer">❌</div>
+  resultados.innerHTML = filtrados.map(p=>`
+    <div class="search-item" onclick="add('${p.id}')">
+      ${p.produto}
     </div>
   `).join("");
 }
 
 // =====================
-// REMOVER
+// ADD PRODUTO
+// =====================
+function add(id){
+
+  const qtd = Number(qtdAdd.value);
+
+  if(!qtd){
+    alert("Informe quantidade");
+    return;
+  }
+
+  const p = estoque.find(x => x.id === id);
+
+  if(selecionados.find(x => x.id === id)){
+    alert("Já adicionado");
+    return;
+  }
+
+  selecionados.push({
+    ...p,
+    comprar: qtd
+  });
+
+  resultados.innerHTML = "";
+  busca.value = "";
+  qtdAdd.value = "";
+
+  render();
+}
+
+// =====================
+// RENDER
+// =====================
+function render(){
+
+  body.innerHTML = selecionados.map((d,i)=>{
+
+    const resultado = Number(d.saldo) + Number(d.comprar);
+
+    let classe = "";
+    if(resultado < d.estoque_minimo) classe = "alerta";
+    else if(resultado >= d.estoque_ideal) classe = "ok";
+
+    return `
+    <tr class="${classe}">
+      <td>${d.produto}</td>
+      <td>${d.saldo}</td>
+      <td>${d.estoque_minimo}</td>
+      <td>${d.estoque_ideal}</td>
+
+      <td>
+        <input type="number"
+          value="${d.comprar}"
+          onchange="update(${i}, this.value)">
+      </td>
+
+      <td class="resultado">${resultado}</td>
+
+      <td class="remove" onclick="remover(${i})">✖</td>
+    </tr>
+    `;
+  }).join("");
+}
+
+// =====================
+function update(i,val){
+  selecionados[i].comprar = Number(val);
+  render();
+}
+
 // =====================
 function remover(i){
-  itens.splice(i,1);
-  renderItens();
-  renderResumoPreview();
+  selecionados.splice(i,1);
+  render();
 }
 
 // =====================
-// RESUMO PREVIEW
+// SALVAR
 // =====================
-function renderResumoPreview(){
+async function salvar(){
 
-  el("resumo").innerHTML = `
-    <p><b>Itens:</b> ${itens.length}</p>
-    <p><b>Status:</b> Em criação</p>
-  `;
-}
-
-// =====================
-// CRIAR COTAÇÃO
-// =====================
-async function criar(){
-
-  const nome = el("nome").value;
-  const dataC = el("dataCotacao").value;
-
-  if(!nome || !dataC || itens.length === 0){
-    alert("Preencha tudo e adicione itens");
+  if(selecionados.length === 0){
+    alert("Nenhum item");
     return;
   }
 
-  const { data, error } = await sb
-    .from("cotacoes")
-    .insert([{
-      nome,
-      data_cotacao: dataC,
-      itens
-    }])
-    .select();
+  const nome = prompt("Nome da cotação:");
+  if(!nome) return;
 
-  if(error){
-    console.error(error);
-    alert("Erro ao salvar");
-    return;
-  }
+  const itens = selecionados.map(d=>({
+    produto: d.produto,
+    comprar: d.comprar,
+    atual: d.saldo,
+    minimo: d.estoque_minimo,
+    ideal: d.estoque_ideal,
+    resultado: d.saldo + d.comprar
+  }));
 
-  alert("Cotação criada com sucesso!");
+  await sb.from("cotacoes").insert([{
+    nome,
+    data_cotacao: new Date(),
+    itens
+  }]);
 
-  itens = [];
-  renderItens();
-  renderResumoPreview();
+  alert("Cotação salva!");
+
+  selecionados = [];
+  render();
 }
-
-// =====================
-carregarProdutos();
 
 </script>
 
