@@ -410,9 +410,11 @@ const fim = new Date(rangeSelecionado[1]);
 
 while(d <= fim){
 
-  const iso = d.toISOString().slice(0,10);
-  const val = porDia[iso] || 0;
+const dias = Object.keys(porDia).sort();
+const valores = dias.map(d => porDia[d]);
+const cores = valores.map(v => v === 0 ? "#dc2626" : "#2563eb");
 
+  
   dias.push(iso);
   valores.push(val);
   cores.push(val===0 ? "#dc2626" : "#2563eb");
