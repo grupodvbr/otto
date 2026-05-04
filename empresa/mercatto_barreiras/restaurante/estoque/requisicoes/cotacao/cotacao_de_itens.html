@@ -149,7 +149,32 @@ th:first-child{
   padding-left:20px;
 }
 
-  
+.search-bar{
+  background:#fff;
+  padding:12px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,.05);
+}
+
+.search-bar input:first-child{
+  flex:1;
+}
+
+.search-bar input[type="number"]{
+  width:90px;
+}
+
+.search-bar select{
+  width:90px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  background:#fff;
+}
+
+.search-bar button{
+  width:130px;
+}
 </style>
 </head>
 
@@ -159,23 +184,22 @@ th:first-child{
 
 <h2>📦 Montar Cotação</h2>
 
-<div class="search" style="flex-direction:column;">
+<div class="search-bar">
 
 <input id="busca" placeholder="🔍 Buscar produto..." oninput="buscar()">
 
-<div id="produtoSelecionado" style="display:none; margin-top:10px; background:#eef2ff; padding:10px; border-radius:10px;">
-  <strong id="nomeProduto"></strong><br>
-  <small>Unidade: <span id="unidadeProduto"></span></small>
-</div>
+<input id="qtdAdd" type="number" value="1">
 
-<div class="add-area">
-  
-  <input id="qtdAdd" type="number" placeholder="Quantidade">
-  <button onclick="confirmarAdd()">Adicionar</button>
-</div>
+<select id="unidadeSelect">
+  <option value="UN">UN</option>
+  <option value="CX">CX</option>
+  <option value="KG">KG</option>
+  <option value="LT">LT</option>
+</select>
+
+<button onclick="confirmarAdd()">Adicionar</button>
 
 </div>
-
 
 
 
@@ -301,7 +325,8 @@ function confirmarAdd(){
 selecionados.push({
   ...produtoSelecionado,
   comprar: qtd,
-  preco: produtoSelecionado.preco || null // futuro: última cotação
+  unidade_uso: document.getElementById("unidadeSelect").value,
+  preco: produtoSelecionado.preco || null
 });
   // reset
   produtoSelecionado = null;
