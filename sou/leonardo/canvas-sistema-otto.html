@@ -1202,8 +1202,20 @@ if(detectarAtivarOtto(texto)){
 
   iframe.src = "agente.html?t=" + Date.now()
 
-  popup.style.display = "flex"
+const popup = document.getElementById("popupOverlay")
+const iframe = popup.querySelector("iframe")
 
+iframe.src = "agente.html?t=" + Date.now()
+
+popup.style.display = "flex"
+
+// 🔥 AGORA SIM LIGA O MICROFONE
+setTimeout(()=>{
+  iframe.contentWindow.postMessage({ tipo:"mic", acao:"on" }, "*")
+}, 800)
+
+
+  
   return
 }
 
@@ -1241,7 +1253,6 @@ if(detectarDesativarOtto(texto)){
 
   }
 
-  recognition.start()
 
 }else{
   console.log("❌ navegador não suporta voz")
@@ -1393,7 +1404,16 @@ function enviarOttoManual(){
       color:#fff;
     ">
       Canvas
-      <button onclick="document.getElementById('popupOverlay').style.display='none'" style="
+      <button onclick="
+const popup = document.getElementById('popupOverlay');
+const iframe = popup.querySelector('iframe');
+
+iframe.contentWindow.postMessage({ tipo:'mic', acao:'off' }, '*');
+
+popup.style.display='none';
+"
+        
+        style="
         background:none;
         border:none;
         color:#fff;
