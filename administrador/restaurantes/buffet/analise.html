@@ -478,9 +478,22 @@ let totalDesperdicio = 0;
   if(r.tipo === "RETIRADA") totalRetirado += q;
   if(r.tipo === "DEVOLUCAO") totalDesperdicio += q;
 
-  if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
-    porDia[r.data] = (porDia[r.data]||0) + q;
-  }
+const nomeProduto = (r.produto_nome || "").toLowerCase();
+const termo = (searchPrato.value || "").toLowerCase();
+
+// 🔎 FILTRO POR BUSCA
+if(termo && !nomeProduto.includes(termo)){
+  return;
+}
+
+// 📊 gráfico só soma se passou no filtro
+if(r.tipo === 'MONTAGEM' || r.tipo === 'REPOSICAO'){
+  porDia[r.data] = (porDia[r.data] || 0) + q;
+}
+
+
+
+  
 });
 const termo = (searchPrato.value || "").toLowerCase();
 
