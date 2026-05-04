@@ -270,7 +270,37 @@ async function carregar(){
 }
 
 carregar();
+carregarPreCotacao();
 
+
+async function carregarPreCotacao(){
+
+  const { data } = await sb
+    .from("pre_cotacao_mercatto")
+    .select("*")
+    .order("created_at", { ascending:true });
+
+  if(!data) return;
+
+  selecionados = data.map(d => ({
+    id: d.produto_id,
+    produto: d.produto,
+    saldo: d.atual,
+    estoque_minimo: d.minimo,
+    estoque_ideal: d.ideal,
+    comprar: d.quantidade,
+    unidade_uso: d.unidade,
+    preco: d.preco
+  }));
+
+  render();
+}
+
+
+
+
+
+  
 // =====================
 // BUSCA
 // =====================
@@ -331,12 +361,26 @@ function confirmarAdd(){
     return;
   }
 
-selecionados.push({
+const novo = {
   ...produtoSelecionado,
   comprar: qtd,
   unidade_uso: document.getElementById("unidadeSelect").value,
   preco: produtoSelecionado.preco || null
-});
+};
+
+selecionados.push(novo);
+
+// 🔥 SALVA NO BANCO
+await sb.from("pre_cotacao_mercatto").insert([{
+  produto: novo.produto,
+  produto_id: novo.id,
+  quantidade: novo.comprar,
+  unidade: novo.unidade_uso,
+  atual: novo.saldo,
+  minimo: novo.estoque_minimo,
+  ideal: novo.estoque_ideal,
+  preco: novo.preco
+}]);
   // reset
 // reset
 produtoSelecionado = null;
@@ -401,11 +445,19 @@ function update(i,val){
 }
 
 // =====================
-function remover(i){
+async function remover(i){
+
+  const item = selecionados[i];
+
+  await sb
+    .from("pre_cotacao_mercatto")
+    .delete()
+    .eq("produto_id", item.id);
+
   selecionados.splice(i,1);
+
   render();
 }
-
 // =====================
 // SALVAR
 // =====================
@@ -436,8 +488,12 @@ async function salvar(){
 
   alert("Cotação salva!");
 
-  selecionados = [];
-  render();
+// limpa pré-cotação
+await sb.from("pre_cotacao_mercatto").delete().neq("id", "");
+
+// limpa tela
+selecionados = [];
+render();
 }
 
 </script>
