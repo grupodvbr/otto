@@ -1124,10 +1124,12 @@ if(SpeechRecognition){
 
   recognition.onstart = () => console.log("[OTTO] 🎧 Microfone iniciado")
 
-  recognition.onend = () => {
-    console.log("[OTTO] 🔁 Reiniciando...")
-    setTimeout(()=>recognition.start(), 500)
-  }
+recognition.onend = () => {
+  console.log("[OTTO] 🔁 Reiniciando...")
+  setTimeout(()=>{
+    try{ recognition.start() }catch(e){}
+  }, 1000)
+}
 
  recognition.onresult = (event) => {
 
@@ -1242,8 +1244,7 @@ if(detectarDesativarOtto(texto)){
 
   }
 
-// ❌ DESATIVADO NO CANVAS
-// recognition.start()
+recognition.start()
 }else{
   console.log("❌ navegador não suporta voz")
 }
