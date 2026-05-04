@@ -89,15 +89,15 @@ th{
   text-align:center;
 }
 
-/* CELULAS */
 td{
-  padding:10px;
-  border-bottom:1px solid #e5e7eb;
-  border-right:1px solid #e5e7eb;
+  padding:8px 10px;
+  border-bottom:1px solid #f1f5f9;
+  border-right:1px solid #f1f5f9;
   text-align:center;
-  height:70px;
-  vertical-align:middle;
+  height:60px;
 }
+
+
 
 /* ================= PRODUTO ================= */
 .prod{
@@ -325,8 +325,12 @@ function render(){
           <div class="box">
 
             <div class="row">
-              <input placeholder="R$" oninput="calc(${index})" id="p_${index}_${f}">
-            </div>
+<input 
+  value="${memoriaInputs[`p_${index}_${f}`] || ''}"
+  placeholder="R$"
+  oninput="calc(${index})"
+  id="p_${index}_${f}"
+>            </div>
 
             <div id="r_${index}_${f}" class="result"></div>
 
@@ -354,6 +358,7 @@ function calc(index){
   selecionados.forEach(f=>{
 
     let elInput = document.getElementById(`p_${index}_${f}`);
+    memoriaInputs[`p_${index}_${f}`] = elInput.value;
     let valor = elInput.value.replace(",", ".");
 
     if(!valor) return;
