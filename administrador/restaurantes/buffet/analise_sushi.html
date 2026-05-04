@@ -4,37 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Análise Sushi</title>
+<title>Sushi • Analítico PRO</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Inter;
-  background:#f6f7fb;
-}
-
-.app{
-  padding:20px;
-}
+body{margin:0;font-family:Inter;background:#f6f7fb}
+.app{padding:16px}
 
 .card{
   background:#fff;
-  border-radius:14px;
-  padding:15px;
+  border-radius:16px;
+  padding:14px;
   margin-bottom:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
 }
 
-.title{
-  font-size:20px;
-  font-weight:900;
-}
+.title{font-size:20px;font-weight:900}
 
 .filters{
   display:flex;
@@ -42,7 +32,7 @@ body{
   flex-wrap:wrap;
 }
 
-input{
+input,select{
   padding:10px;
   border-radius:10px;
   border:1px solid #ddd;
@@ -55,12 +45,23 @@ button{
   border-radius:10px;
   padding:10px 14px;
   font-weight:800;
-  cursor:pointer;
 }
 
-.chart-wrap{
-  height:220px;
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
 }
+
+.kpi{
+  background:#f8fafc;
+  padding:10px;
+  border-radius:12px;
+}
+
+.kpi h3{margin:0;font-size:18px}
+
+.chart-wrap{height:220px}
 
 table{
   width:100%;
@@ -80,13 +81,47 @@ th,td{
 <div class="app">
 
 <div class="card">
-  <div class="title">Análise Sushi</div>
+  <div class="title">🍣 Análise Sushi PRO</div>
 </div>
 
 <div class="card">
   <div class="filters">
-    <input id="range" placeholder="Período">
-    <input id="busca" placeholder="Buscar item...">
+
+<select id="empresa">
+  <option value="">Todas empresas</option>
+  <option value="MERCATTO">Mercatto</option>
+  <option value="VILLA">Villa</option>
+</select>
+
+<input id="range" placeholder="Período">
+<input id="busca" placeholder="Buscar item...">
+
+<button onclick="carregar()">Atualizar</button>
+
+  </div>
+</div>
+
+<div class="card">
+  <div class="kpis">
+    <div class="kpi">
+      <small>Produção</small>
+      <h3 id="prod">0</h3>
+    </div>
+
+    <div class="kpi">
+      <small>Reaproveitamento</small>
+      <h3 id="reap">0</h3>
+    </div>
+
+    <div class="kpi">
+      <small>Desperdício</small>
+      <h3 id="desp">0</h3>
+    </div>
+
+    <div class="kpi">
+      <small>% Erro</small>
+      <h3 id="erro">0%</h3>
+    </div>
   </div>
 </div>
 
@@ -98,25 +133,15 @@ th,td{
 </div>
 
 <div class="card">
-  <b>Resumo</b>
-
-  <div style="display:flex;gap:10px;margin-top:10px">
-    <div>Produção: <b id="prod">0</b></div>
-    <div>Reaproveitamento: <b id="reap">0</b></div>
-    <div>Desperdício: <b id="desp">0</b></div>
-  </div>
-</div>
-
-<div class="card">
-  <b>Por item</b>
-
+  <b>Ranking de Itens</b>
   <table>
     <thead>
       <tr>
         <th>Item</th>
-        <th>Produção</th>
-        <th>Reaproveitamento</th>
-        <th>Desperdício</th>
+        <th>Prod</th>
+        <th>Reap</th>
+        <th>Desp</th>
+        <th>% Erro</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
@@ -132,15 +157,18 @@ const sb = supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-let rangeSelecionado;
+let rangeSelecionado = [
+  new Date(Date.now()-6*86400000).toISOString().slice(0,10),
+  new Date().toISOString().slice(0,10)
+];
 
 flatpickr("#range",{
   mode:"range",
   dateFormat:"Y-m-d",
+  defaultDate:rangeSelecionado,
   onChange:(d)=>{
     if(d.length===2){
       rangeSelecionado = d.map(x=>x.toISOString().slice(0,10));
-      carregar();
     }
   }
 });
@@ -154,16 +182,24 @@ let pagina = 0;
 
 while(true){
 
-  const { data, error } = await sb
+  let query = sb
     .from("controle_sushi")
     .select("*")
     .gte("data_registro", rangeSelecionado[0])
     .lte("data_registro", rangeSelecionado[1])
     .range(pagina*1000, (pagina+1)*1000 - 1);
 
+  const empresa = document.getElementById("empresa").value;
+
+  if(empresa){
+    query = query.eq("empresa", empresa); // 🔥 só funciona se coluna existir
+  }
+
+  const { data, error } = await query;
+
   if(error){
     console.error(error);
-    return;
+    break;
   }
 
   if(!data || data.length === 0) break;
@@ -175,12 +211,12 @@ while(true){
   pagina++;
 }
 
+// ===== PROCESSAMENTO =====
+
 const porItem = {};
 const porDia = {};
 
-let prod = 0;
-let reap = 0;
-let desp = 0;
+let prod=0, reap=0, desp=0;
 
 const busca = document.getElementById("busca").value.toLowerCase();
 
@@ -211,24 +247,42 @@ dados.forEach(r=>{
 
 });
 
-document.getElementById("prod").innerText = prod;
-document.getElementById("reap").innerText = reap;
-document.getElementById("desp").innerText = desp;
+// ===== KPIS =====
+
+document.getElementById("prod").innerText = prod.toFixed(2);
+document.getElementById("reap").innerText = reap.toFixed(2);
+document.getElementById("desp").innerText = desp.toFixed(2);
+
+const erro = prod > 0 ? (desp / prod * 100) : 0;
+document.getElementById("erro").innerText = erro.toFixed(1)+"%";
+
+// ===== TABELA =====
 
 tbody.innerHTML = Object.entries(porItem)
 .sort((a,b)=>b[1].prod - a[1].prod)
-.map(([nome,v])=>`
-<tr>
-<td><b>${nome}</b></td>
-<td>${v.prod}</td>
-<td>${v.reap}</td>
-<td style="color:red">${v.desp}</td>
-</tr>
-`).join("");
+.map(([nome,v])=>{
 
-const dias = [];
-const valores = [];
-const cores = [];
+  const total = v.prod;
+  const perc = total > 0 ? (v.desp/total*100) : 0;
+
+  return `
+  <tr>
+    <td><b>${nome}</b></td>
+    <td>${v.prod.toFixed(2)}</td>
+    <td>${v.reap.toFixed(2)}</td>
+    <td style="color:red">${v.desp.toFixed(2)}</td>
+    <td style="font-weight:900;color:${perc>30?'#dc2626':'#16a34a'}">
+      ${perc.toFixed(1)}%
+    </td>
+  </tr>
+  `;
+}).join("");
+
+// ===== GRÁFICO =====
+
+const dias=[];
+const valores=[];
+const cores=[];
 
 let d = new Date(rangeSelecionado[0]);
 const fim = new Date(rangeSelecionado[1]);
@@ -236,13 +290,11 @@ const fim = new Date(rangeSelecionado[1]);
 while(d <= fim){
 
   const iso = d.toISOString().slice(0,10);
-
   const val = porDia[iso] || 0;
 
   dias.push(iso);
   valores.push(val);
-
-  cores.push(val === 0 ? "#dc2626" : "#2563eb");
+  cores.push(val===0 ? "#dc2626" : "#2563eb");
 
   d = new Date(d.getTime()+86400000);
 }
@@ -267,6 +319,8 @@ chart = new Chart(document.getElementById("chart"),{
 });
 
 }
+
+carregar();
 
 document.getElementById("busca").oninput = carregar;
 
