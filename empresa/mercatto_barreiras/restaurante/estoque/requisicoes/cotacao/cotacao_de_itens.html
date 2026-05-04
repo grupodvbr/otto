@@ -197,8 +197,7 @@ th:first-child{
 
 <div class="search-bar">
 
-<input id="busca" placeholder="🔍 Buscar produto..." oninput="buscar()">
-
+<input id="busca" placeholder="🔍 Buscar produto...">
 <input id="qtdAdd" type="number" value="1">
 
 <select id="unidadeSelect">
@@ -342,7 +341,7 @@ function selecionarProduto(id){
 
   resultados.innerHTML = "";
 }
-function confirmarAdd(){
+async function confirmarAdd(){
 
   if(!produtoSelecionado){
     alert("Selecione um produto");
