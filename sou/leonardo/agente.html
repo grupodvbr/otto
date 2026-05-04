@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OTTO • Assistente Inteligente</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --primary:#22c55e;
+  --secondary:#2563eb;
+  --text:#ffffff;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+header{
+  padding:16px;
+  background:rgba(15,23,42,0.8);
+  backdrop-filter:blur(10px);
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid #1e293b;
+}
+
+#chat{
+  flex:1;
+  overflow:auto;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.msg{
+  max-width:75%;
+  padding:14px;
+  border-radius:14px;
+}
+
+.user{background:var(--secondary);align-self:flex-end;}
+.bot{background:var(--card);}
+
+footer{
+  padding:12px;
+  display:flex;
+  gap:10px;
+}
+
+input{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+}
+
+button{
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:var(--secondary);
+  color:white;
+}
+
+#mic{
+  position:fixed;
+  bottom:90px;
+  right:20px;
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  background:var(--primary);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+}
+
+
+.typing{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+
+.dot{
+  width:8px;
+  height:8px;
+  background:#94a3b8;
+  border-radius:50%;
+  animation: bounce 1.2s infinite;
+}
+
+.dot:nth-child(2){ animation-delay: 0.2s; }
+.dot:nth-child(3){ animation-delay: 0.4s; }
+
+@keyframes bounce{
+  0%,80%,100%{ transform:translateY(0); opacity:0.5; }
+  40%{ transform:translateY(-6px); opacity:1; }
+}
+
+
+
+
+
+
+
+
+
+  
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🤖 OTTO</h2>
+</header>
+
+<div id="chat"></div>
+
+<div id="mic">🎤</div>
+
+<footer>
+  <input id="input" placeholder="Digite ou fale..." />
+  <button id="send">Enviar</button>
+</footer>
+
+<script>
+// ================= LOG =================
+function log(msg){
+  console.log(`[OTTO] ${new Date().toLocaleTimeString()} → ${msg}`)
+}
+
+// ================= ELEMENTOS =================
+const chat = document.getElementById("chat")
+const input = document.getElementById("input")
+
+let ativo = false
+let textoBuffer = ""
+let timeoutSilencio = null
+
+// ================= CHAT =================
+function addMsg(texto, tipo){
+  const div = document.createElement("div")
+  div.className = "msg " + tipo
+  div.innerText = texto
+  chat.appendChild(div)
+  chat.scrollTop = chat.scrollHeight
+}
+
+// ================= VOZ =================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+const recognition = new SpeechRecognition()
+
+recognition.lang = "pt-BR"
+recognition.continuous = true
+recognition.interimResults = true
+
+recognition.onstart = () => log("🎧 Microfone iniciado")
+
+recognition.onend = () => {
+  log("🔁 Reiniciando microfone...")
+  setTimeout(()=>recognition.start(),500)
+}
+
+recognition.onerror = (e) => log("❌ Erro voz: " + e.error)
+
+// ================= RESULTADO =================
+recognition.onresult = (event) => {
+
+  let textoAtual = ""
+
+  for(let i = event.resultIndex; i < event.results.length; i++){
+    textoAtual += event.results[i][0].transcript
+  }
+
+  textoAtual = textoAtual.toLowerCase()
+
+  log("🎤 Parcial: " + textoAtual)
+
+  // 🔥 ATIVAÇÃO (SEM FOTO)
+  const acordou =
+    textoAtual.includes("otto") ||
+    textoAtual.includes("otô") ||
+    textoAtual.includes("o to")
+
+  if(acordou && !ativo){
+    ativo = true
+    textoBuffer = ""
+    log("🟢 ATIVADO PELO OTTO")
+    return
+  }
+
+if(!ativo){
+  log("🟡 Auto ativando (modo contínuo)")
+  ativo = true
+}
+  // 🔥 ACUMULA TEXTO
+  textoBuffer = textoAtual
+
+  log("🧠 Buffer atual: " + textoBuffer)
+
+  // 🔁 RESET TIMER
+  if(timeoutSilencio){
+    clearTimeout(timeoutSilencio)
+    log("⏳ Reset timer silêncio")
+  }
+
+  // ⏳ ESPERA 5 SEGUNDOS DE SILÊNCIO
+  timeoutSilencio = setTimeout(() => {
+
+    let textoFinal = textoBuffer
+      .replace(/otto|otô|o to/gi,"")
+      .trim()
+
+    log("⌛ SILÊNCIO DETECTADO")
+
+    if(textoFinal.length < 3){
+      log("⚠️ Ignorado (muito curto)")
+      return
+    }
+
+    log("✅ FRASE FINAL: " + textoFinal)
+
+    enviarMensagem(textoFinal)
+
+    // 🔥 RESET COMPLETO
+    ativo = false
+    textoBuffer = ""
+
+  }, 5000)
+}
+
+recognition.start()
+
+
+
+
+
+
+let typingEl = null
+
+function mostrarProcessando(){
+  typingEl = document.createElement("div")
+  typingEl.className = "msg bot"
+
+  typingEl.innerHTML = `
+    <div class="typing">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  `
+
+  chat.appendChild(typingEl)
+  chat.scrollTop = chat.scrollHeight
+}
+
+function removerProcessando(){
+  if(typingEl){
+    typingEl.remove()
+    typingEl = null
+  }
+}
+
+
+
+
+
+
+
+  
+// ================= API =================
+async function enviarMensagem(texto){
+
+  log("📤 Enviando: " + texto)
+
+  addMsg(texto, "user")
+mostrarProcessando()
+  try{
+
+    const res = await fetch("/api/admin-agente", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer mercatto_admin_2026"
+      },
+      body:JSON.stringify({
+        pergunta: texto,
+        numero: "557798253249"
+      })
+    })
+
+    log("🌐 Status: " + res.status)
+
+    if(!res.ok){
+      const erro = await res.text()
+      log("❌ API erro: " + erro)
+      addMsg("Erro: " + erro, "bot")
+      return
+    }
+
+    const data = await res.json()
+
+    log("📥 Resposta recebida")
+removerProcessando()
+    addMsg(data.resposta, "bot")
+
+    falar(data.resposta)
+
+  }catch(e){
+    log("❌ Falha conexão: " + e.message)
+    addMsg("Erro conexão", "bot")
+  }
+}
+
+// ================= VOZ =================
+function falar(texto){
+  log("🔊 Falando")
+  const msg = new SpeechSynthesisUtterance(texto)
+  msg.lang = "pt-BR"
+  speechSynthesis.speak(msg)
+}
+
+// ================= INPUT =================
+document.getElementById("send").onclick = () => {
+  if(input.value.trim()){
+    enviarMensagem(input.value)
+    input.value = ""
+  }
+}
+
+input.addEventListener("keypress", e=>{
+  if(e.key === "Enter"){
+    document.getElementById("send").click()
+  }
+})
+
+// ================= MIC =================
+document.getElementById("mic").onclick = () => {
+  ativo = true
+  textoBuffer = ""
+  log("🎤 Ativado manualmente")
+}
+
+
+
+
+
+// ================= RECEBER DO PAINEL =================
+window.addEventListener("message", (event) => {
+
+  if(event.data.tipo === "pergunta"){
+
+    const texto = event.data.texto
+
+    log("📥 Recebido do painel: " + texto)
+
+    enviarMensagem(texto) // 🔥 USA SUA FUNÇÃO REAL
+
+  }
+
+})
+
+
+
+
+
+
+  
+</script>
+
+</body>
+</html>
