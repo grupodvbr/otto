@@ -415,9 +415,11 @@ async function salvar(){
 
     selecionados.forEach(f=>{
 
-      const precoTotal = Number(
-        document.getElementById(`p_${index}_${f}`)?.value || 0
-      );
+const valorInput = document.getElementById(`p_${index}_${f}`)?.value;
+
+if(!valorInput) return;
+
+const precoTotal = Number(valorInput.replace(",", "."));
 
 if(precoTotal !== null && precoTotal !== ""){
         linha.fornecedores.push({
