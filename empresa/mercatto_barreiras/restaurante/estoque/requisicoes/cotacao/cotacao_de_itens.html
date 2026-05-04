@@ -495,7 +495,7 @@ await sb.from("pre_cotacao_mercatto").delete().neq("id", "");
 selecionados = [];
 render();
 }
-
+document.getElementById("busca").addEventListener("input", buscar);
 </script>
 
 </body>
