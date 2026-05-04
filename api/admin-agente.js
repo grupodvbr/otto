@@ -13,6 +13,8 @@ const supabase = createClient(
 )
 
 
+
+
 const LOGOS = {
   "MERCATTO DELÍCIA": "COLOQUE_LINK_AQUI",
   "VILLA GOURMET": "COLOQUE_LINK_AQUI",
