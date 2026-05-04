@@ -205,8 +205,18 @@ tr:hover td{
 
 <div class="top">
 <input id="buscaFornecedor" placeholder="🔍 Buscar fornecedor..." oninput="filtrarFornecedor()">
-<div id="listaFornecedores" style="background:#fff; border:1px solid #ddd; max-height:150px; overflow:auto;"></div>
-  
+<div id="listaFornecedores" style="
+  position:absolute;
+  background:#fff;
+  border:1px solid #ddd;
+  width:260px;
+  max-height:200px;
+  overflow:auto;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  display:none;
+  z-index:10;
+"></div>  
   
   <button onclick="addFornecedor()">+ Fornecedor</button>
 </div>
@@ -266,11 +276,16 @@ async function init(){
 /* ADD FORNECEDOR */
 function addFornecedor(id){
 
-  if(selecionados.includes(id)) return;
+  if(!id) return;
+
+  if(selecionados.includes(id)){
+    alert("Fornecedor já adicionado");
+    return;
+  }
 
   selecionados.push(id);
 
-  listaFornecedores.innerHTML = "";
+  listaFornecedores.style.display = "none";
   buscaFornecedor.value = "";
 
   render();
@@ -418,21 +433,35 @@ function getNome(id){
 init();
 
 
-  function filtrarFornecedor(){
+function filtrarFornecedor(){
 
   const termo = buscaFornecedor.value.toLowerCase();
+
+  if(!termo){
+    listaFornecedores.style.display = "none";
+    return;
+  }
 
   const filtrados = fornecedores.filter(f =>
     f.nome.toLowerCase().includes(termo)
   );
 
+  listaFornecedores.style.display = "block";
+
   listaFornecedores.innerHTML = filtrados.map(f=>`
-    <div style="padding:8px; cursor:pointer;"
-      onclick="addFornecedor('${f.id}')">
+    <div style="
+      padding:10px;
+      cursor:pointer;
+      border-bottom:1px solid #eee;
+    "
+    onclick="addFornecedor('${f.id}')">
       ${f.nome}
     </div>
   `).join("");
 }
+
+
+  
 </script>
 
 </body>
