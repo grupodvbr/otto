@@ -22,11 +22,8 @@ const adminAgente = require("./admin-agente")
 function carregarAgente(empresa, nome){
   try{
 
-let empresaPath = (empresa || "mercatto")
-  .toLowerCase()
-  .replace(/\s/g,"_")
+    let empresaPath = "mercatto" // força manual
 
-    
     let agenteNome = nome === "gerente"
       ? "gerentes"
       : nome
@@ -136,14 +133,8 @@ if(req.method === "GET"){
 if(req.method === "POST"){
   try{
 
-console.log("🔥 BODY:", JSON.stringify(req.body,null,2))
-
-const change = req.body?.entry?.[0]?.changes?.[0]?.value
-
-if(!change){
-  console.log("⚠️ CHANGE NÃO ENCONTRADO")
-  return res.status(200).end()
-}
+    const change = req.body?.entry?.[0]?.changes?.[0]?.value
+    if(!change) return res.status(200).end()
 
     // ignora status
     if(change.statuses){
@@ -200,56 +191,62 @@ if(!change){
 
     const usuario = await buscarUsuarioPorTelefone(numero)
 
-if(!usuario){
+    if(!usuario){
 
-  console.log("⚠️ USUÁRIO NÃO CADASTRADO - CONTINUANDO PARA DEBUG")
+      console.log("⛔ USUÁRIO NÃO CADASTRADO")
 
-  // opcional: avisar admin
-  await enviarMensagem(ADMIN_ALERTA,
+      await enviarMensagem(
+        ADMIN_ALERTA,
 `🚨 USUÁRIO NÃO CADASTRADO
 
 📱 ${numero}
 💬 ${texto}`
-  )
+      )
 
-  // 🔥 NÃO BLOQUEIA MAIS
-}
+      return res.status(200).end()
+    }
 
 
     
-let nivel = 0
-let usuarioSeguro = usuario || {
-  nome: "DESCONHECIDO",
-  nivel_acesso: 0,
-  agente: "admin",
-  empresa: "mercatto"
-}
+    const nivel = usuario.nivel_acesso
 
-nivel = usuarioSeguro.nivel_acesso
-
-console.log("👤 USUARIO:", usuarioSeguro.nome)
-console.log("🔑 NIVEL:", nivel)
-console.log("🤖 AGENTE:", usuarioSeguro.agente || "admin")
+    console.log("👤 USUARIO:", usuario.nome)
+    console.log("🔑 NIVEL:", nivel)
+   console.log("🤖 AGENTE:", usuario.agente || "admin")
 
 let agenteSelecionado = null
 
 // 🔥 NIVEL 0 SEMPRE ADMIN
-if(usuarioSeguro.nivel_acesso === 0){
+if(usuario.nivel_acesso === 0){
   agenteSelecionado = adminAgente
 }else{
-  agenteSelecionado = carregarAgente(
-    usuarioSeguro.empresa,
-    usuarioSeguro.agente || "admin"
-  )
+agenteSelecionado = carregarAgente(
+  usuario.empresa,
+  usuario.agente || "admin"
+)
+
 }
 
 
     
 if(!agenteSelecionado){
 
-  console.log("⚠️ AGENTE NÃO ENCONTRADO - USANDO ADMIN")
+  console.log("⛔ AGENTE NÃO EXISTE - BLOQUEADO")
 
-  agenteSelecionado = adminAgente
+  await enviarMensagem(
+    ADMIN_ALERTA,
+`🚨 AGENTE NÃO ENCONTRADO
+
+👤 ${usuario.nome}
+📱 ${numero}
+🤖 agente: ${usuario.agente}
+
+💬 Mensagem:
+${texto}`
+  )
+
+  // 🔥 NÃO RESPONDE AO USUÁRIO
+  return res.status(200).end()
 }
     /* ================= PREPARA REQ ================= */
 
