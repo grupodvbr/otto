@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>CARNEIRO HOLDING</title>
+  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+
+:root{
+  --bg:#020617;
+  --card:#0f172a;
+  --card2:#020617;
+  --primary:#2563eb;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+  --text:#ffffff;
+  --sub:#94a3b8;
+  --border:#1e293b;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+/* ================= BASE ================= */
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden; /* 🔥 SEM SCROLL PRA TV */
+  font-family:Inter;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ================= HEADER ================= */
+header{
+  height:50px;
+  background:#020617;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 15px;
+}
+
+header div:first-child{
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+#status{
+  font-size:11px;
+  color:var(--sub);
+}
+
+/* ================= REMOVE CONTROLS ================= */
+.controls,
+#kpis,
+#periodo{
+  display:none !important;
+}
+
+/* ================= GRID FIXO TV ================= */
+.grid{
+  height: calc(100vh - 50px);
+  display:grid;
+
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: repeat(3, 1fr);
+
+  gap:8px;
+  padding:8px;
+}
+
+
+
+  /* LINHA 1 */
+#villa        { grid-column:1; grid-row:1; }
+
+/* LINHA 2 */
+#delicia      { grid-column:1; grid-row:2; }
+
+
+
+/* LINHA 3 */
+#padaria      { grid-column:1; grid-row:3; }
+/* ================= CARD ================= */
+.card{
+  background:linear-gradient(180deg,var(--card),var(--card2));
+  border-radius:14px;
+  padding:6px 8px 8px 8px; /* menos espaço em cima */
+  overflow:hidden; /* 🔥 IMPEDE ESTOURO */
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 15px 35px rgba(0,0,0,0.5);
+  border:1px solid var(--border);
+  height:100%;
+    min-height:0; /* 🔥 PERMITE ENCOLHER */
+}
+
+/* ================= TOP ================= */
+.card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:4px;
+}
+
+/* ================= LOGO ================= */
+.logo{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid var(--border);
+
+  margin-top:-2px; /* 🔥 ajuste fino */
+  transform:none; /* 🔥 remove o excesso */
+}
+@media (min-width:1400px){
+  .logo{
+    margin-top:-1px;
+  }
+}
+/* ================= VALOR ================= */
+.valor{
+  font-size:clamp(10px, 1.4vw, 12px);
+  font-weight:800;
+  color:var(--success);
+  letter-spacing:0.5px;
+}
+
+/* ================= VENDAS ================= */
+.vendas{
+  font-size:12px;
+  color:var(--sub);
+  margin-top:4px;
+}
+
+
+/* ================= MÊS ================= */
+.mes{
+  margin-top:8px;
+  padding:8px;
+  border-radius:8px;
+  background:linear-gradient(135deg,#020617,#020617);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:clamp(10px, 1.5vw, 12px);
+  border:1px solid var(--border);
+}
+
+.mes span:last-child{
+  font-size:14px;
+  font-weight:800;
+  color:#22c55e;
+}
+
+/* ================= CANCELADOS ================= */
+.cancel{
+  font-size:11px;
+  color:var(--danger);
+  margin-top:4px;
+}
+
+/* ================= METAS ================= */
+.metas{
+  display:grid;
+  grid-template-columns: auto auto;
+  justify-content:center;
+  gap:6px 6px;
+}
+.meta-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+.meta-valor{
+  font-size:10px;
+  color:#94a3b8;
+  font-weight:700;
+}
+.mini-ticket{
+  grid-column: span 2;
+
+  display:flex;
+  flex-direction:column;
+
+  width:80px;
+  margin:0 auto;
+
+  padding:5px 6px;
+
+  border-radius:10px;
+
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+}
+
+/* título */
+.mini-label{
+  font-size:8px;
+  color:#64748b;
+  font-weight:600;
+  text-align:center;
+  margin-bottom:2px;
+}
+
+/* linha correta */
+.mini-valores{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+}
+
+/* vendas */
+.mini-vendas{
+  font-size:9px;
+  color:#94a3b8;
+  font-weight:700;
+}
+
+/* ticket */
+.mini-ticket-text{
+  font-size:10px;
+  color:#22c55e;
+  font-weight:800;
+}
+/* BOLINHA */
+.bola{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  position:relative;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:11px;
+  font-weight:700;
+
+  overflow:hidden;
+}
+
+/* FURO INTERNO (define a espessura) */
+.bola::before{
+  content:"";
+  position:absolute;
+  width:28px;
+  height:28px;
+  background:#020617;
+  border-radius:50%;
+  z-index:1;
+}
+
+/* TEXTO % */
+.bola span{
+  position:relative;
+  z-index:2;
+  font-size:11px;
+  font-weight:700;
+}
+
+/* CORES */
+.prata{
+  background:conic-gradient(#c0c0c0 var(--p), #1e293b 0);
+}
+
+.ouro{
+  background:conic-gradient(#d4af37 var(--p), #1e293b 0);
+}
+
+/* ================= TOTAL CARD ================= */
+.total-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.total-card .titulo{
+  font-size:12px;
+  color:var(--sub);
+}
+
+.total-card .valor{
+  font-size:34px;
+}
+
+/* ================= STATUS ================= */
+.status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#22c55e;
+  position:fixed;
+  top:8px;
+  right:10px;
+  box-shadow:0 0 8px #22c55e;
+}
+
+.status-dot.loading{
+  background:#f59e0b;
+  box-shadow:0 0 8px #f59e0b;
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  0%{ transform:scale(1); opacity:1 }
+  50%{ transform:scale(1.3); opacity:0.5 }
+  100%{ transform:scale(1); opacity:1 }
+}
+
+/* ================= POPUP ================= */
+#popupOverlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+#popupOverlay.active{
+  display:flex;
+}
+
+#popupBox{
+  background:#020617;
+  border-radius:14px;
+  padding:20px;
+  width:350px;
+  max-height:80vh;
+  overflow:auto;
+  border:1px solid var(--border);
+}
+
+/* ================= RESPONSIVO ================= */
+
+/* TV GRANDE */
+@media (min-width:1400px){
+  .valor{ font-size:32px; }
+}
+
+/* TABLET */
+@media (max-width:900px){
+  .grid{
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    overflow:auto;
+  }
+
+  html,body{
+    overflow:auto;
+  }
+}
+
+
+
+
+.bola span{
+  font-weight:800;
+}
+
+
+.almoco{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+
+  margin-top:6px;
+  padding:6px;
+  border-radius:8px;
+  background:#020617;
+  font-size:clamp(9px, 1.3vw, 11px);
+  border:1px solid var(--border);
+}
+
+#extra{
+  grid-column: span 3;
+}
+
+#barraResumo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:4px 10px;
+  border-radius:8px;
+
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+
+  font-size:11px;
+  color:#94a3b8;
+
+  backdrop-filter: blur(6px);
+}
+
+/* destaque leve */
+#barraResumo b{
+  color:#22c55e;
+  font-weight:700;
+}.grid{
+  height: calc(100vh - 50px);
+  display:grid;
+  grid-template-columns: 1fr 2fr;
+  gap:8px;
+  padding:8px;
+}
+
+/* 🔵 ESQUERDA (3 LINHAS) */
+.col-esquerda{
+  display:grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap:8px;
+}
+
+/* 🟢 DIREITA (3 COLUNAS AUTOMÁTICAS) */
+.col-direita{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap:8px;
+}
+/* opcional: esconder extra */
+#extra{
+  display:none;
+}
+
+
+
+  .grid{
+  height: calc(100vh - 50px);
+  display:grid;
+
+  grid-template-columns: 1fr 2fr; /* esquerda menor, direita maior */
+  grid-template-rows: repeat(3, 1fr);
+
+  gap:8px;
+  padding:8px;
+}
+.right-grid{
+  grid-column:2;
+  grid-row:1 / 4;
+
+  display:grid;
+
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+
+  gap:8px;
+}
+.valor-mes{
+  font-size:clamp(12px, 1.6vw, 16px);
+  font-weight:900;
+  color:#22c55e;
+  letter-spacing:0.5px;
+}
+
+
+
+
+
+.info-box{
+  display:flex;
+  flex-direction:column;
+  margin-top:2px;
+}
+
+.vendas-linha{
+  font-size:11px;
+  color:#94a3b8;
+  line-height:1.2;
+}
+
+.ticket-linha{
+  font-size:11px;
+  color:#94a3b8;
+  line-height:1.2;
+}
+
+.cancel-inline{
+  margin-left:6px;
+  font-size:10px;
+  color:#ef4444;
+  font-weight:700;
+}
+.metas div{
+  text-align:center;
+}
+
+
+
+  .burst-vendas{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#22c55e;
+  color:#000;
+  font-size:12px;
+  font-weight:800;
+  padding:4px 8px;
+  border-radius:8px;
+  animation: subirFade 2s ease forwards;
+  pointer-events:none;
+}
+
+@keyframes subirFade{
+  0%{
+    opacity:0;
+    transform:translateY(20px) scale(0.8);
+  }
+  30%{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-30px) scale(1.1);
+  }
+}
+
+
+/* ================= MOBILE FINAL (FORÇA TOTAL) ================= */
+@media (max-width:900px){
+
+  html, body{
+    overflow:auto !important;
+  }
+
+  /* 🔥 FORÇA virar coluna */
+  .grid{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px !important;
+
+    height:auto !important;
+    padding:12px !important;
+  }
+
+  /* 🔥 quebra a grid interna */
+  .right-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px;
+  }
+
+  /* 🔥 cards quadrados */
+  .card{
+    width:100% !important;
+    aspect-ratio:1/1 !important;
+
+    height:auto !important;
+    min-height:auto !important;
+
+    padding:12px !important;
+  }
+
+  /* 🔥 remove qualquer posição fixa antiga */
+  #villa,
+  #delicia,
+  #padaria{
+    grid-column:auto !important;
+    grid-row:auto !important;
+  }
+
+  /* 🔥 tipografia melhor */
+  .valor-mes{
+    font-size:18px !important;
+  }
+
+  .valor{
+    font-size:16px !important;
+  }
+
+  .vendas,
+  .ticket-linha{
+    font-size:13px !important;
+  }
+
+  .logo{
+    width:42px !important;
+    height:42px !important;
+  }
+
+}
+
+
+#ottoAura{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  background: radial-gradient(circle, #22c55e, transparent 70%);
+  box-shadow:
+    0 0 40px #22c55e,
+    0 0 80px #2563eb,
+    0 0 120px #22c55e;
+
+  animation: aura 2s infinite ease-in-out;
+}
+
+@keyframes aura{
+  0%{ transform:scale(1); opacity:0.7 }
+  50%{ transform:scale(1.3); opacity:1 }
+  100%{ transform:scale(1); opacity:0.7 }
+}
+
+
+
+
+
+
+
+
+
+
+    
+</style>
+</head>
+
+<body>
+
+<div id="statusDot" class="status-dot"></div>
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div>CARNEIRO HOLDING</div>
+    <div id="barraResumo"></div>
+  </div>
+  <div id="status"></div>
+</header>
+
+<!-- GRID FIXO TV -->
+<div class="grid">
+
+  <!-- ESQUERDA -->
+  <div id="villa" class="card"></div>
+  <div id="delicia" class="card"></div>
+  <div id="padaria" class="card"></div>
+
+  <!-- DIREITA (GRID INTERNA) -->
+  <div class="right-grid">
+    <div id="restaurante" class="card"></div>
+    <div id="emporio" class="card"></div>
+    <div id="mkids" class="card"></div>
+    <div id="totalMercatto" class="card total-card"></div>
+  </div>
+
+</div>
+
+
+<script>
+
+// ================= SUPABASE =================
+const supabaseClient = window.supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+// 🔥 DINÂMICOS
+let API_URL = ""
+let API_MES = ""
+let METAS = {}
+
+
+  
+// ================= FORMAT =================
+const brl = v => Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+
+const numero = v => Number(v).toLocaleString("pt-BR", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0
+})
+
+// ================= NORMALIZA EMPRESA =================
+function normalizarEmpresa(empBase, caixa){
+
+  const nome = (empBase || "").toUpperCase()
+
+  if(nome.includes("DELICIA")) return "DELICIA"
+  if(nome.includes("VILLA")) return "VILLA"
+  if(nome.includes("PADARIA")) return "PADARIA"
+
+  if(nome.includes("MERCATTO")){
+    if(caixa >= 1 && caixa <= 5) return "MERCATTO EMPORIO"
+    if(caixa >= 6) return "MERCATTO RESTAURANTE"
+  }
+
+  return nome
+}
+
+// ================= PROCESS =================
+function removerAcentos(str){
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}
+
+function mapearNome(nome){
+
+  nome = removerAcentos(nome || "").toUpperCase()
+
+  // 🔥 MAIS ESPECÍFICO PRIMEIRO
+  if(nome.includes("PADARIA")) return "PADARIA"
+  if(nome.includes("VILLA")) return "VILLA"
+  if(nome.includes("EMPORIO")) return "MERCATTO EMPORIO"
+  if(nome.includes("RESTAURANTE")) return "MERCATTO RESTAURANTE"
+  if(nome.includes("DELICIA")) return "DELICIA"
+
+  return nome
+}
+
+
+
+async function carregarConfig(){
+
+  const { data, error } = await supabaseClient
+    .from("url_api")
+    .select("*")
+
+  if(error){
+    console.log("❌ Erro URL API:", error)
+    return
+  }
+
+  data.forEach(item => {
+
+    if(item.tipo === "resumo_dia"){
+      API_URL = item.url
+    }
+
+    if(item.tipo === "resumo_mes"){
+      API_MES = item.url
+    }
+
+  })
+
+  console.log("✅ URLs:", API_URL, API_MES)
+}
+
+
+
+async function carregarMetas(){
+
+  const { data, error } = await supabaseClient
+    .from("metas_empresas")
+    .select("*")
+
+  if(error){
+    console.log("❌ Erro metas:", error)
+    return
+  }
+
+  const mapa = {}
+
+  data.forEach(m => {
+
+    const nome = mapearNome(m.empresa)
+
+    mapa[nome] = {
+      prata: Number(m.meta_prata || 0),
+      ouro: Number(m.meta_ouro || 0)
+    }
+
+  })
+
+  METAS = mapa
+
+  console.log("✅ Metas carregadas:", METAS)
+}
+
+  
+function process(resumo){
+
+  const result = {
+    DELICIA: { total:0, vendas:0, novos:0 },
+    VILLA: { total:0, vendas:0, novos:0 },
+    PADARIA: { total:0, vendas:0, novos:0 },
+    "MERCATTO RESTAURANTE": { total:0, vendas:0, novos:0 },
+    "MERCATTO EMPORIO": { total:0, vendas:0, novos:0 }
+  }
+
+  if(!resumo || !resumo.empresas) return result
+
+  resumo.empresas.forEach(emp => {
+
+    const nome = mapearNome(emp.empresa)
+
+    if(!result[nome]) return // ignora se não mapear
+
+    result[nome].total += Number(emp.faturamento || 0)
+    result[nome].vendas += Number(emp.vendas || 0)
+
+  })
+
+  return result
+}
+
+
+
+
+
+ function processMes(resumo){
+
+  const result = {
+    DELICIA: 0,
+    VILLA: 0,
+    PADARIA: 0,
+    "MERCATTO RESTAURANTE": 0,
+    "MERCATTO EMPORIO": 0
+  }
+
+  if(!resumo || !resumo.empresas) return result
+
+  resumo.empresas.forEach(emp => {
+
+    const nomeOriginal = (emp.empresa || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+
+    let nome = ""
+
+    if(nomeOriginal.includes("PADARIA")) nome = "PADARIA"
+    else if(nomeOriginal.includes("VILLA")) nome = "VILLA"
+    else if(nomeOriginal.includes("EMPORIO")) nome = "MERCATTO EMPORIO"
+    else if(nomeOriginal.includes("RESTAURANTE")) nome = "MERCATTO RESTAURANTE"
+    else if(nomeOriginal.includes("DELICIA")) nome = "DELICIA"
+
+    if(!nome) return
+
+    result[nome] += Number(emp.faturamento_mes || 0)
+
+  })
+
+  return result
+}
+
+
+  
+// ================= METAS =================
+
+
+function getMetaEmpresa(nome){
+  return METAS[nome] || null
+}
+
+// ================= LOGO =================
+function getLogo(emp){
+  if(emp.includes("VILLA")) return "logo/villa.png"
+  if(emp.includes("DELICIA")) return "logo/delicia.png"
+  if(emp.includes("PADARIA")) return "logo/padaria.png"
+  if(emp.includes("RESTAURANTE")) return "logo/mercatto.png"
+  if(emp.includes("EMPORIO")) return "logo/emporio.png"
+  return ""
+}
+
+// ================= RENDER =================
+function render(dados, dadosMes){
+  function montarCard(emp){
+
+    const d = dados[emp] || {
+      
+      total:0,
+      vendas:0,
+      almocoTotal:0,
+      almocoVendas:0
+    }
+
+const vendasAntes = vendasAnteriores[emp] || 0
+const diff = d.vendas - vendasAntes
+
+vendasAnteriores[emp] = d.vendas
+
+let burst = ""
+
+if(diff > 0){
+  burst = `<div class="burst-vendas">+${diff} vendas</div>`
+}
+
+    
+const totalMesBase = dadosMes[emp] || 0
+const totalHoje = d.total || 0
+
+const totalMes = totalMesBase + totalHoje
+  
+    
+    const ticket = d.vendas ? d.total / d.vendas : 0
+
+    const meta = getMetaEmpresa(emp)
+
+   let metasHTML = ""
+
+if(meta){
+
+  const pct1 = Math.min((totalMes / meta.prata) * 100, 100)
+  const pct2 = Math.min((totalMes / meta.ouro) * 100, 100)
+
+  metasHTML = `
+    <div class="metas">
+      
+      <div class="meta-item">
+        <div class="bola prata" style="--p:${pct1}%">
+          <span>${pct1.toFixed(0)}%</span>
+        </div>
+        <div class="meta-valor">${numero(meta.prata)}</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="bola ouro" style="--p:${pct2}%">
+          <span>${pct2.toFixed(0)}%</span>
+        </div>
+        <div class="meta-valor">${numero(meta.ouro)}</div>
+      </div>
+
+    </div>
+  `
+}
+    return `
+<div class="card-top">
+  ${burst}
+  
+  <div style="display:flex;gap:10px">
+          <img src="${getLogo(emp)}" class="logo">
+          <div>
+            <div class="valor-mes">${brl(totalMes)}</div>
+<div class="valor" id="valor-${emp}">${brl(d.total)}</div>
+<div class="vendas">
+  ${d.vendas} vendas 
+  ${d.novos > 0 ? `• +${d.novos}` : ""}
+</div>            <div class="ticket-linha">Ticket: ${brl(ticket)}</div>
+          </div>
+        </div>
+        ${metasHTML}
+      </div>
+    `
+  }
+
+  document.getElementById("villa").innerHTML = montarCard("VILLA")
+  document.getElementById("delicia").innerHTML = montarCard("DELICIA")
+  document.getElementById("padaria").innerHTML = montarCard("PADARIA")
+  document.getElementById("restaurante").innerHTML = montarCard("MERCATTO RESTAURANTE")
+  document.getElementById("emporio").innerHTML = montarCard("MERCATTO EMPORIO")
+
+
+
+
+
+
+
+
+  // 🔥 ANIMAÇÃO DOS VALORES
+setTimeout(() => {
+
+ ["VILLA","DELICIA","PADARIA","MERCATTO RESTAURANTE","MERCATTO EMPORIO"]
+.forEach(emp => {
+
+  const el = document.getElementById(`valor-${emp}`)
+  if(!el) return
+
+  const valor = dados[emp]?.total || 0
+
+  const vendasAntes = vendasAnteriores[emp] || 0
+  const vendasAgora = dados[emp]?.vendas || 0
+
+  const mudou = vendasAgora > vendasAntes
+
+  if(mudou){
+    animarNumero(el, valor)
+  }else{
+    el.innerText = brl(valor) // 🔥 fica estático
+  }
+
+})
+
+}, 50)
+  // TOTAL GERAL
+  let total = 0
+  let vendas = 0
+
+  Object.values(dados).forEach(d=>{
+    total += d.total
+    vendas += d.vendas
+  })
+
+  document.getElementById("barraResumo").innerHTML =
+    `Hoje: <b>${brl(total)}</b> • ${vendas} vendas`
+}
+
+// ================= LOAD =================
+let ultimoMapa = new Map()
+let vendasAnteriores = {}
+async function load(){
+
+  try{
+
+    document.getElementById("statusDot").classList.add("loading")
+
+if(!API_URL) return
+
+const res = await fetch(API_URL + "?t=" + Date.now(), {
+  cache: "no-store"
+})
+
+  const data = await res.json()
+
+const dadosDia = process(data)
+
+let dadosMes = {}
+
+if(API_MES){
+  try{
+    const resMes = await fetch(API_MES + "?t=" + Date.now(), {
+      cache: "no-store"
+    })
+    const dataMes = await resMes.json()
+
+    dadosMes = processMes(dataMes)
+
+  }catch(e){
+    console.log("❌ erro mes:", e)
+  }
+}
+
+render(dadosDia, dadosMes)
+
+
+
+    
+
+    // 🔥 usa direto da API (mais correto)
+    document.getElementById("barraResumo").innerHTML =
+      `Hoje: <b>${brl(data.faturamento)}</b> • ${data.vendas} vendas`
+
+    document.getElementById("statusDot").classList.remove("loading")
+
+  }catch(e){
+    console.log("❌ Erro API:", e)
+  }
+
+}
+
+// ================= START =================
+window.addEventListener("DOMContentLoaded", async () => {
+
+  // 🔥 CARREGA CONFIG PRIMEIRO
+  await carregarConfig()
+
+  // 🔥 CARREGA METAS
+  await carregarMetas()
+
+  // 🔥 GARANTE QUE TEM URL
+  if(!API_URL){
+    console.log("❌ API_URL não carregada")
+    return
+  }
+
+  loop()
+})
+
+// 🔥 LOOP INTELIGENTE (NÃO TRAVA)
+async function loop(){
+
+  await load()
+
+  setTimeout(loop, 5000) // 🔥 5 SEGUNDOS (TEMPO REAL)
+}
+
+
+
+
+
+  function animarNumero(el, valorFinal){
+
+  const valorAtual = Number(el.dataset.valor || 0)
+  const duracao = 800
+  const inicio = performance.now()
+
+  function frame(agora){
+    const progresso = Math.min((agora - inicio) / duracao, 1)
+
+    const valor = valorAtual + (valorFinal - valorAtual) * progresso
+
+    el.innerText = brl(valor)
+    el.dataset.valor = valorFinal
+
+    if(progresso < 1){
+      requestAnimationFrame(frame)
+    }
+  }
+
+  requestAnimationFrame(frame)
+}
+
+
+let ottoAtivo = false
+// ================= VOZ OTTO =================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+if(SpeechRecognition){
+
+  const recognition = new SpeechRecognition()
+
+  recognition.lang = "pt-BR"
+  recognition.continuous = true
+  recognition.interimResults = true
+
+  recognition.onstart = () => console.log("[OTTO] 🎧 Microfone iniciado")
+
+  recognition.onend = () => {
+    console.log("[OTTO] 🔁 Reiniciando...")
+    setTimeout(()=>recognition.start(), 500)
+  }
+
+ recognition.onresult = (event) => {
+
+  let texto = ""
+
+  for(let i = event.resultIndex; i < event.results.length; i++){
+    texto += event.results[i][0].transcript
+  }
+
+  texto = texto.toLowerCase()
+
+  console.log("[OTTO] 🎤", texto)
+
+  // 🔥 ATIVAR
+  if(texto.includes("ativar sistema otto")){
+    console.log("[OTTO] 🔐 Abrindo popup")
+    abrirSenhaOtto()
+    return
+  }
+
+  // 🔴 DESATIVAR
+  if(texto.includes("desativar sistema otto")){
+    console.log("[OTTO] 🔴 Desativando")
+    document.getElementById("ottoOverlay").style.display = "none"
+    ottoAtivo = false
+    return
+  }
+
+  // 🧠 EXECUTAR COM OTTO ATIVO
+  if(ottoAtivo){
+
+    clearTimeout(window.ottoTimer)
+
+    window.ottoTimer = setTimeout(()=>{
+      console.log("[OTTO] ⌛ Silêncio → enviando")
+      perguntarOtto(texto)
+    }, 2000)
+
+  }
+
+  
+
+
+  }
+
+  recognition.start()
+
+}else{
+  console.log("❌ navegador não suporta voz")
+}
+function abrirSenhaOtto(){
+  document.getElementById("ottoSenha").style.display = "flex"
+}
+
+function validarSenhaOtto(){
+
+  const senha = document.getElementById("senhaOtto").value
+
+  // 🔐 SUA SENHA
+  if(senha === "Otto"){
+
+    document.getElementById("ottoSenha").style.display = "none"
+    document.getElementById("ottoOverlay").style.display = "flex"
+
+    ottoAtivo = true
+
+    console.log("🚀 OTTO ATIVADO")
+
+  }else{
+    alert("Senha incorreta")
+  }
+}
+
+async function perguntarOtto(texto){
+
+  console.log("[OTTO] 📤 Enviando:", texto)
+
+  try{
+
+const res = await fetch("/api/admin-agente", {
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json",
+    "Authorization":"Bearer mercatto_admin_2026"
+  },
+      body: JSON.stringify({
+        pergunta: texto,
+        numero: "557798253249"
+      })
+    })
+
+    console.log("[OTTO] 🌐 Status:", res.status)
+
+    if(!res.ok){
+      const erro = await res.text()
+      console.log("[OTTO] ❌ Erro:", erro)
+      return mostrarRespostaOtto("Erro: " + erro)
+    }
+
+    const data = await res.json()
+
+    console.log("[OTTO] 📥 Resposta:", data.resposta)
+
+    addMensagem(data.resposta, "bot")
+
+  }catch(e){
+    console.log("[OTTO] ❌ Falha:", e.message)
+    mostrarRespostaOtto("Erro de conexão")
+  }
+
+}
+  
+ function fecharOtto(){
+  document.getElementById("ottoOverlay").style.display = "none"
+  ottoAtivo = false
+}
+
+function addMensagem(texto, tipo="bot"){
+
+  const chat = document.getElementById("ottoChat")
+
+  const msg = document.createElement("div")
+
+  msg.style.padding = "10px"
+  msg.style.borderRadius = "10px"
+  msg.style.maxWidth = "80%"
+  msg.style.fontSize = "14px"
+
+  if(tipo === "user"){
+    msg.style.background = "#2563eb"
+    msg.style.alignSelf = "flex-end"
+  }else{
+    msg.style.background = "#0f172a"
+    msg.style.alignSelf = "flex-start"
+  }
+
+  msg.innerText = texto
+
+  chat.appendChild(msg)
+
+  chat.scrollTop = chat.scrollHeight
+}
+
+function enviarOttoManual(){
+
+  const input = document.getElementById("ottoInput")
+  const texto = input.value
+
+  if(!texto) return
+
+  addMensagem(texto, "user")
+  input.value = ""
+
+  perguntarOtto(texto)
+}
+
+
+
+
+
+  
+
+  
+</script>
+<div id="popupOverlay" style="
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+">
+
+  <div id="popupBox" style="
+    background:white;
+    border-radius:16px;
+    padding:20px;
+    width:90%;
+    max-width:400px;
+    max-height:80vh;
+    overflow:auto;
+  ">
+    <div style="font-weight:800;margin-bottom:10px">Finalizadoras</div>
+    <div id="popupContent"></div>
+  </div>
+
+</div>
+<!-- ================= OTTO CHAT POPUP ================= -->
+<div id="ottoOverlay" style="
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.6);
+  z-index:99999;
+">
+
+  <div style="
+    width:95%;
+    max-width:420px;
+    height:80vh;
+    background:#020617;
+    border-radius:16px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid #1e293b;
+  ">
+
+    <!-- HEADER -->
+    <div style="
+      padding:12px;
+      background:#020617;
+      border-bottom:1px solid #1e293b;
+      font-weight:800;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    ">
+      OTTO • Assistente
+      <button onclick="fecharOtto()" style="
+        background:none;
+        border:none;
+        color:#fff;
+        font-size:18px;
+        cursor:pointer;
+      ">✕</button>
+    </div>
+
+    <!-- CHAT -->
+    <div id="ottoChat" style="
+      flex:1;
+      padding:12px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    "></div>
+
+    <!-- INPUT -->
+    <div style="
+      padding:10px;
+      border-top:1px solid #1e293b;
+      display:flex;
+      gap:8px;
+    ">
+      <input id="ottoInput" placeholder="Digite ou fale..."
+        style="
+          flex:1;
+          padding:10px;
+          border-radius:8px;
+          border:none;
+          background:#0f172a;
+          color:#fff;
+        "
+        onkeydown="if(event.key==='Enter') enviarOttoManual()"
+      >
+
+      <button onclick="enviarOttoManual()" style="
+        padding:10px 14px;
+        border:none;
+        border-radius:8px;
+        background:#22c55e;
+        color:#000;
+        font-weight:800;
+      ">
+        Enviar
+      </button>
+    </div>
+
+  </div>
+</div>
+  <!-- ================= POPUP SENHA OTTO ================= -->
+<div id="ottoSenha" style="
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.7);
+  z-index:99999;
+">
+
+  <div style="
+    background:#020617;
+    padding:30px;
+    border-radius:14px;
+    width:300px;
+    text-align:center;
+    border:1px solid #1e293b;
+  ">
+
+    <h3 style="margin-bottom:15px">🔐 Ativar OTTO</h3>
+
+    <input id="senhaOtto" type="password" placeholder="Digite a senha"
+      style="width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px">
+
+    <button onclick="validarSenhaOtto()" style="
+      width:100%;
+      padding:10px;
+      border:none;
+      border-radius:8px;
+      background:#22c55e;
+      color:#000;
+      font-weight:800;
+    ">
+      Ativar
+    </button>
+
+  </div>
+</div>
+</body>
+</html>
