@@ -1194,16 +1194,18 @@ function detectarDesativarOtto(texto){
 
 
    
-// 🔥 ATIVAR INTELIGENTE
 if(detectarAtivarOtto(texto)){
   console.log("[OTTO] 🚀 Abrindo Canvas OTTO")
 
-  document.getElementById("popupOverlay").style.display = "flex"
+  const popup = document.getElementById("popupOverlay")
+  const iframe = popup.querySelector("iframe")
+
+  iframe.src = "canvas.html?t=" + Date.now()
+
+  popup.style.display = "flex"
 
   return
 }
-
-
 
 
 
