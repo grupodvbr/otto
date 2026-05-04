@@ -499,7 +499,11 @@ if(termo && !nomeProduto.includes(termo)){
 
 // 📊 gráfico só soma se passou no filtro
 if(r.tipo === 'MONTAGEM' || r.tipo === 'REPOSICAO'){
-  porDia[r.data] = (porDia[r.data] || 0) + q;
+const diaKey = (r.data || "").slice(0,10);
+
+porDia[diaKey] = (porDia[diaKey] || 0) + q;
+
+
 }
 
 
@@ -610,8 +614,15 @@ const dias = [];
 const valores = [];
 const pontosVermelhos = [];
 
-const inicio = new Date(rangeSelecionado[0]);
-const fim = new Date(rangeSelecionado[1]);
+function parseLocalDate(iso){
+  const [y,m,d] = iso.split("-");
+  return new Date(y, m-1, d);
+}
+
+const inicio = parseLocalDate(rangeSelecionado[0]);
+const fim = parseLocalDate(rangeSelecionado[1]);
+
+  
 
 for(let d = new Date(inicio); d <= fim; ){
 
