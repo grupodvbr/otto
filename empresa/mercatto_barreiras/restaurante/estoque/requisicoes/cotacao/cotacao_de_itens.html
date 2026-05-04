@@ -45,13 +45,23 @@ body{
 }
 
 .search-item{
-  padding:10px;
+  padding:12px;
   cursor:pointer;
+  border-bottom:1px solid #eee;
+  display:flex;
+  justify-content:space-between;
 }
 
 .search-item:hover{
-  background:#f3f4f6;
+  background:#f1f5f9;
 }
+
+.search-item small{
+  color:#64748b;
+}
+
+
+  
 
 .container{
   padding:20px;
@@ -117,10 +127,26 @@ button{
 
 <h2>📦 Montar Cotação</h2>
 
-<div class="search">
-<input id="busca" placeholder="Buscar produto..." oninput="buscar()">
-<input id="qtdAdd" type="number" placeholder="Qtd">
+<div class="search" style="flex-direction:column;">
+
+<input id="busca" placeholder="🔍 Buscar produto..." oninput="buscar()">
+
+<div id="produtoSelecionado" style="display:none; margin-top:10px; background:#eef2ff; padding:10px; border-radius:10px;">
+  <strong id="nomeProduto"></strong><br>
+  <small>Unidade: <span id="unidadeProduto"></span></small>
 </div>
+
+<div style="display:flex; gap:10px; margin-top:10px;">
+  <input id="qtdAdd" type="number" placeholder="Quantidade">
+  <button onclick="confirmarAdd()">Adicionar</button>
+</div>
+
+</div>
+
+
+
+
+  
 
 <div id="resultados" class="search-results"></div>
 
@@ -192,17 +218,39 @@ function buscar(){
     p.produto.toLowerCase().includes(termo)
   ).slice(0,10);
 
-  resultados.innerHTML = filtrados.map(p=>`
-    <div class="search-item" onclick="add('${p.id}')">
-      ${p.produto}
-    </div>
-  `).join("");
+resultados.innerHTML = filtrados.map(p=>`
+  <div class="search-item" onclick="selecionarProduto('${p.id}')">
+    <span>${p.produto}</span>
+    <small>${p.unidade_uso || 'UN'}</small>
+  </div>
+`).join("");
 }
 
 // =====================
 // ADD PRODUTO
 // =====================
-function add(id){
+let produtoSelecionado = null;
+
+function selecionarProduto(id){
+
+  const p = estoque.find(x => x.id === id);
+
+  produtoSelecionado = p;
+
+  nomeProduto.innerText = p.produto;
+  unidadeProduto.innerText = p.unidade_uso || 'UN';
+
+  document.getElementById("produtoSelecionado").style.display = "block";
+
+  resultados.innerHTML = "";
+}
+
+function confirmarAdd(){
+
+  if(!produtoSelecionado){
+    alert("Selecione um produto");
+    return;
+  }
 
   const qtd = Number(qtdAdd.value);
 
@@ -211,19 +259,19 @@ function add(id){
     return;
   }
 
-  const p = estoque.find(x => x.id === id);
-
-  if(selecionados.find(x => x.id === id)){
+  if(selecionados.find(x => x.id === produtoSelecionado.id)){
     alert("Já adicionado");
     return;
   }
 
   selecionados.push({
-    ...p,
+    ...produtoSelecionado,
     comprar: qtd
   });
 
-  resultados.innerHTML = "";
+  // reset
+  produtoSelecionado = null;
+  document.getElementById("produtoSelecionado").style.display = "none";
   busca.value = "";
   qtdAdd.value = "";
 
@@ -245,8 +293,13 @@ function render(){
 
     return `
     <tr class="${classe}">
-      <td>${d.produto}</td>
-      <td>${d.saldo}</td>
+<td>
+  ${d.produto}
+  <br><small>${d.unidade_uso || 'UN'}</small>
+</td>
+
+
+<td>${d.saldo}</td>
       <td>${d.estoque_minimo}</td>
       <td>${d.estoque_ideal}</td>
 
