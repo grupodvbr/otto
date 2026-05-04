@@ -319,8 +319,9 @@ function buscar(){
 resultados.innerHTML = filtrados.map(p=>`
   <div class="search-item" onclick="selecionarProduto('${p.id}')">
     <span>${p.produto}</span>
-    <small>${p.unidade_uso || 'UN'}</small>
-  </div>
+<small>${p.und_compra || p.unidade || 'UN'}</small>
+
+</div>
 `).join("");
 }
 
@@ -337,8 +338,8 @@ function selecionarProduto(id){
 
   busca.value = p.produto;
 
-  document.getElementById("unidadeSelect").value = p.unidade_uso || 'UN';
-
+document.getElementById("unidadeSelect").value = p.und_compra || p.unidade || 'UN';
+  
   resultados.innerHTML = "";
 }
 async function confirmarAdd(){
@@ -364,6 +365,7 @@ const novo = {
   ...produtoSelecionado,
   comprar: qtd,
   unidade_uso: document.getElementById("unidadeSelect").value,
+  qtd_unidades: produtoSelecionado.qtd_unidades || 1,
   preco: produtoSelecionado.preco || null
 };
 
@@ -378,7 +380,8 @@ await sb.from("pre_cotacao_mercatto").insert([{
   atual: novo.saldo,
   minimo: novo.estoque_minimo,
   ideal: novo.estoque_ideal,
-  preco: novo.preco
+preco: novo.preco,
+qtd_unidades: novo.qtd_unidades
 }]);
   // reset
 // reset
@@ -405,7 +408,10 @@ function render(){
     return `
     <tr class="${classe}">
 <td style="text-align:left; white-space:nowrap;">
-  ${d.produto} <small style="color:#64748b">(${d.unidade_uso || 'UN'})</small>
+  ${d.produto} <small style="color:#64748b">(${d.unidade_uso || 'UN'}) 
+<small style="color:#94a3b8">
+  ${d.qtd_unidades ? `→ ${d.qtd_unidades} UN` : ''}
+</small></small>
 </td>
 
 
