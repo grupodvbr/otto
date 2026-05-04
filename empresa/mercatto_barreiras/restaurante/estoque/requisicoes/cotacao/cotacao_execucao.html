@@ -17,45 +17,33 @@ body{
   background:#eef2f7;
 }
 
-/* HEADER */
 .header{
-  position:sticky;
-  top:0;
   background:#0f172a;
   color:#fff;
   padding:15px 20px;
-  z-index:10;
-  box-shadow:0 5px 20px rgba(0,0,0,.2);
+  font-weight:600;
 }
 
-.header h2{
-  margin:0;
-  font-size:18px;
-}
-
-/* TOPO */
 .top{
   display:flex;
   gap:10px;
-  padding:15px 20px;
+  padding:15px;
   background:#fff;
-  border-bottom:1px solid #ddd;
+  border-bottom:1px solid #e5e7eb;
 }
 
 select,button{
-  padding:10px;
-  border-radius:10px;
+  padding:10px 12px;
+  border-radius:8px;
   border:1px solid #ddd;
-  font-weight:600;
+  font-weight:500;
 }
 
 button{
   background:#2563eb;
   color:#fff;
-  cursor:pointer;
 }
 
-/* TABELA */
 .table-wrap{
   overflow:auto;
 }
@@ -64,55 +52,52 @@ table{
   width:100%;
   border-collapse:collapse;
   background:#fff;
-  min-width:900px;
-}
-
-/* HEADER FIXO */
-thead{
-  position:sticky;
-  top:60px;
-  z-index:5;
 }
 
 th{
   background:#020617;
   color:#fff;
-  padding:12px;
-  font-size:13px;
-  border-right:1px solid #111;
+  padding:10px;
+  font-size:12px;
+  font-weight:600;
 }
 
 td{
   padding:8px;
   border-bottom:1px solid #eee;
-  border-right:1px solid #eee;
   text-align:center;
 }
 
 /* PRODUTO */
 .prod{
   text-align:left;
-  min-width:220px;
+  width:260px;
 }
 
 .prod strong{
-  display:block;
+  font-size:14px;
 }
 
-.sub{
+.prod span{
   font-size:11px;
   color:#64748b;
 }
 
-/* INPUTS */
-.input-group{
+/* BLOCO FORNECEDOR */
+.box{
   display:flex;
   flex-direction:column;
+  gap:5px;
+}
+
+/* INPUTS */
+.row{
+  display:flex;
   gap:4px;
 }
 
 input{
-  width:100%;
+  width:70px;
   padding:6px;
   border-radius:6px;
   border:1px solid #ccc;
@@ -121,15 +106,16 @@ input{
 
 /* RESULTADO */
 .result{
-  font-size:12px;
+  font-size:13px;
   font-weight:700;
 }
 
-/* CORES */
-.verde{background:#dcfce7;}
-.vermelho{background:#fee2e2;}
-.laranja{background:#fef3c7;}
+/* CORES SUAVES */
+.verde{ background:#ecfdf5; }
+.vermelho{ background:#fef2f2; }
+.laranja{ background:#fffbeb; }
 
+  
 </style>
 </head>
 
@@ -217,9 +203,7 @@ function render(){
     <tr>
       <th>Produto</th>
       <th>Qtd</th>
-      ${selecionados.map(f=>`
-        <th>${getNome(f)}</th>
-      `).join("")}
+      ${selecionados.map(f=>`<th>${getNome(f)}</th>`).join("")}
     </tr>
   `;
 
@@ -233,8 +217,8 @@ function render(){
     let linha = `
       <tr>
         <td class="prod">
-          <strong>${i.produto}</strong>
-          <span class="sub">Compra: ${und} | ${qtdUni} unidades</span>
+          <strong>${i.produto}</strong><br>
+          <span>${qtdUni} UN por ${und}</span>
         </td>
         <td>${i.comprar}</td>
     `;
@@ -242,9 +226,14 @@ function render(){
     selecionados.forEach(f=>{
       linha += `
         <td id="cell_${index}_${f}">
-          <div class="input-group">
-            <input placeholder="Preço" oninput="calc(${index})" id="p_${index}_${f}">
+          <div class="box">
+
+            <div class="row">
+              <input placeholder="R$" oninput="calc(${index})" id="p_${index}_${f}">
+            </div>
+
             <div id="r_${index}_${f}" class="result"></div>
+
           </div>
         </td>
       `;
@@ -261,23 +250,26 @@ function calc(index){
 
   const item = cotacao.itens[index];
   const prod = estoque.find(p=>p.produto === item.produto);
+
   const qtdUni = prod?.qtd_unidades || 1;
 
   let valores = [];
 
   selecionados.forEach(f=>{
 
-    let preco = document.getElementById(`p_${index}_${f}`).value;
+    let elInput = document.getElementById(`p_${index}_${f}`);
+    let valor = elInput.value.replace(",", ".");
 
-    preco = preco.replace(",", ".");
-    preco = Number(preco);
+    if(!valor) return;
 
-    if(!preco) return;
+    let preco = Number(valor);
+
+    if(isNaN(preco)) return;
 
     const custo = preco / qtdUni;
 
     document.getElementById(`r_${index}_${f}`).innerText =
-      "R$ " + custo.toFixed(2) + " / UN";
+      "R$ " + custo.toFixed(2);
 
     valores.push({f, custo});
   });
