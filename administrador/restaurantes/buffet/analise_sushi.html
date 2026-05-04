@@ -264,11 +264,7 @@ const sb = supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-function hojeBR(){
-  const d = new Date();
-  return new Date(d.getTime() - 3*60*60*1000).toISOString().slice(0,10);
-}
-
+// ===== DATA BR =====
 function hojeBR(){
   const d = new Date();
   return new Date(d.getTime() - 3*60*60*1000).toISOString().slice(0,10);
@@ -279,6 +275,7 @@ let rangeSelecionado = [
   hojeBR()
 ];
 
+// ===== DATE PICKER =====
 flatpickr("#range",{
   mode:"range",
   dateFormat:"Y-m-d",
@@ -292,169 +289,145 @@ flatpickr("#range",{
 
 let chart;
 
+// ===== FUNÇÃO PRINCIPAL =====
 async function carregar(){
 
+  let dados = [];
+  let pagina = 0;
+  const TAMANHO = 1000;
 
+  // 🔥 PAGINAÇÃO REAL
+  while(true){
 
-let dados = [];
-let pagina = 0;
-const TAMANHO = 1000;
+    const from = pagina * TAMANHO;
+    const to = from + TAMANHO - 1;
 
-while(true){
+    let query = sb
+      .from("controle_sushi")
+      .select("*")
+      .gte("data_registro", rangeSelecionado[0])
+      .lte("data_registro", rangeSelecionado[1])
+      .range(from, to);
 
-  const from = pagina * TAMANHO;
-  const to = from + TAMANHO - 1;
+    const empresa = document.getElementById("empresa").value;
 
-  let query = sb
-    .from("controle_sushi")
-.select("*")
-    .gte("data_registro", rangeSelecionado[0])
-    .lte("data_registro", rangeSelecionado[1])
-    .range(from, to);
+    if(empresa){
+      query = query.eq("empresa", empresa);
+    }
 
-  const empresa = document.getElementById("empresa").value;
+    const { data, error } = await query;
 
-  if(empresa){
-    query = query.eq("empresa", empresa);
+    if(error){
+      console.error(error);
+      break;
+    }
+
+    if(!data || data.length === 0) break;
+
+    dados = dados.concat(data);
+
+    if(data.length < TAMANHO) break;
+
+    pagina++;
   }
 
-  const { data, error } = await query;
+  // ===== PROCESSAMENTO =====
+  const porItem = {};
+  const porDia = {};
 
-  if(error){
-    console.error("ERRO:", error);
-    break;
-  }
+  let prod=0, reap=0, desp=0;
 
-  if(!data || data.length === 0){
-    break;
-  }
+  const busca = document.getElementById("busca").value.toLowerCase();
 
-  dados = dados.concat(data);
+  dados.forEach(r=>{
 
-  if(data.length < TAMANHO){
-    break;
-  }
+    const nomeOriginal = r.nome || "SEM NOME";
+    const nome = nomeOriginal.toLowerCase();
 
-  pagina++;
-}
-// ===== PROCESSAMENTO =====
+    if(busca && !nome.includes(busca)) return;
 
-const porItem = {};
-const porDia = {};
+    if(!porItem[nomeOriginal]){
+      porItem[nomeOriginal] = {prod:0,reap:0,desp:0};
+    }
 
-let prod=0, reap=0, desp=0;
+    const q = Number(r.quantidade || 0);
 
-const busca = document.getElementById("busca").value.toLowerCase();
+    if(r.tipo === "Produção"){
+      porItem[nomeOriginal].prod += q;
+      prod += q;
 
-dados.forEach(r=>{
+      porDia[r.data_registro] = (porDia[r.data_registro] || 0) + q;
+    }
 
-const nome = (r.nome || "").toLowerCase();
+    if(r.tipo === "Reaproveitamento"){
+      porItem[nomeOriginal].reap += q;
+      reap += q;
+    }
 
-if(busca && !nome.includes(busca)) return;
+    if(r.tipo === "Desperdício"){
+      porItem[nomeOriginal].desp += q;
+      desp += q;
+    }
 
+  });
 
-  
-const nomeOriginal = r.nome || "SEM NOME";
-const nome = nomeOriginal.toLowerCase();
+  // ===== KPIs =====
+  document.getElementById("prod").innerText = prod.toFixed(2);
+  document.getElementById("reap").innerText = reap.toFixed(2);
+  document.getElementById("desp").innerText = desp.toFixed(2);
 
-if(busca && !nome.includes(busca)) return;
+  const erro = prod > 0 ? (desp / prod * 100) : 0;
+  document.getElementById("erro").innerText = erro.toFixed(1)+"%";
 
-porItem[nomeOriginal] ||= {prod:0,reap:0,desp:0};
+  // ===== TABELA =====
+  document.getElementById("tbody").innerHTML = Object.entries(porItem)
+    .sort((a,b)=>b[1].prod - a[1].prod)
+    .map(([nome,v])=>{
 
+      const total = v.prod;
+      const perc = total > 0 ? (v.desp/total*100) : 0;
 
+      return `
+      <tr>
+        <td><b>${nome}</b></td>
+        <td>${v.prod.toFixed(2)}</td>
+        <td>${v.reap.toFixed(2)}</td>
+        <td style="color:red">${v.desp.toFixed(2)}</td>
+        <td style="font-weight:900;color:${perc>30?'#dc2626':'#16a34a'}">
+          ${perc.toFixed(1)}%
+        </td>
+      </tr>
+      `;
+    }).join("");
 
+  // ===== GRÁFICO CORRETO =====
+  const dias = Object.keys(porDia).sort();
+  const valores = dias.map(d => porDia[d]);
+  const cores = valores.map(v => v === 0 ? "#dc2626" : "#2563eb");
 
-  
-  const q = Number(r.quantidade || 0);
+  if(chart) chart.destroy();
 
-  if(r.tipo === "Produção"){
-    porItem[r.nome].prod += q;
-    prod += q;
-
-    porDia[r.data_registro] = (porDia[r.data_registro]||0) + q;
-  }
-
-  if(r.tipo === "Reaproveitamento"){
-    porItem[r.nome].reap += q;
-    reap += q;
-  }
-
-  if(r.tipo === "Desperdício"){
-    porItem[r.nome].desp += q;
-    desp += q;
-  }
-
-});
-
-// ===== KPIS =====
-
-document.getElementById("prod").innerText = prod.toFixed(2);
-document.getElementById("reap").innerText = reap.toFixed(2);
-document.getElementById("desp").innerText = desp.toFixed(2);
-
-const erro = prod > 0 ? (desp / prod * 100) : 0;
-document.getElementById("erro").innerText = erro.toFixed(1)+"%";
-
-// ===== TABELA =====
-
-tbody.innerHTML = Object.entries(porItem)
-.sort((a,b)=>b[1].prod - a[1].prod)
-.map(([nome,v])=>{
-
-  const total = v.prod;
-  const perc = total > 0 ? (v.desp/total*100) : 0;
-
-  return `
-  <tr>
-    <td><b>${nome}</b></td>
-    <td>${v.prod.toFixed(2)}</td>
-    <td>${v.reap.toFixed(2)}</td>
-    <td style="color:red">${v.desp.toFixed(2)}</td>
-    <td style="font-weight:900;color:${perc>30?'#dc2626':'#16a34a'}">
-      ${perc.toFixed(1)}%
-    </td>
-  </tr>
-  `;
-}).join("");
-
-// ===== GRÁFICO =====
-
-const dias=[];
-const valores=[];
-const cores=[];
-
-let d = new Date(rangeSelecionado[0]);
-const fim = new Date(rangeSelecionado[1]);
-
-const dias = Object.keys(porDia).sort();
-const valores = dias.map(d => porDia[d]);
-const cores = valores.map(v => v === 0 ? "#dc2626" : "#2563eb");
-  d = new Date(d.getTime()+86400000);
-}
-
-if(chart) chart.destroy();
-
-chart = new Chart(document.getElementById("chart"),{
-  type:"line",
-  data:{
-    labels:dias,
-    datasets:[{
-      data:valores,
-      pointBackgroundColor:cores,
-      borderColor:"#2563eb",
-      tension:.3
-    }]
-  },
-  options:{
-    plugins:{legend:{display:false}},
-    responsive:true
-  }
-});
+  chart = new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{
+      labels:dias,
+      datasets:[{
+        data:valores,
+        pointBackgroundColor:cores,
+        borderColor:"#2563eb",
+        tension:.3
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      responsive:true
+    }
+  });
 
 }
 
+// ===== INIT =====
 carregar();
-
 document.getElementById("busca").oninput = carregar;
 
 </script>
