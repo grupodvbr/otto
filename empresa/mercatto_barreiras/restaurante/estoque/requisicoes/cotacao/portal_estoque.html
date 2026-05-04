@@ -324,7 +324,7 @@ setTimeout(() => {
   <div class="sidebar-title">ESTOQUE</div>
 
   <div class="nav-item" onclick="loadPage()">
-    🏠 <span class="nav-text">Página Inicial</span>
+    🏠 <span class="nav-text">Dashboard</span>
   </div>
 
   <div class="nav-item" onclick="loadIframe('../requisicoes_de_uso_e_consumo_e_venda.html')">
@@ -348,61 +348,61 @@ setTimeout(() => {
 <div id="content">
 
   <div id="homeSection">
-    <h1>Sistema de Licitações</h1>
+    <h1>Dashboard</h1>
 
     <!-- =======================
-          4 DASHBOARDS
-    ======================== -->
-    <div class="dashboard-wrapper">
+      DASHBOARDS DE COTAÇÃO
+======================== -->
+<div class="dashboard-wrapper">
 
-      <div class="dash" onclick="loadIframe('cotacao.html')">
-        <div class="dash-icon">📦</div>
-        <div>
-          <h3>Resposta de fornecedores</h3>
-          <p>Analise preços das cotações recebidas via link</p>
-        </div>
-      </div>
-
-      <div class="dash" onclick="loadIframe('estoque.html')">
-        <div class="dash-icon">📦</div>
-        <div>
-          <h3>Estoque para Envio</h3>
-          <p>Produtos disponíveis para licitações</p>
-        </div>
-      </div>
-
-      <div class="dash" onclick="loadIframe('agenda.html')">
-        <div class="dash-icon">📅</div>
-        <div>
-          <h3>Agenda de Envios</h3>
-          <p>Programações e calendário de entregas</p>
-        </div>
-      </div>
-
-      <div class="dash" onclick="loadIframe('andamento.html')">
-        <div class="dash-icon">📊</div>
-        <div>
-          <h3>Licitações e Itens</h3>
-          <p>Andamento, itens requisitados e vendidos</p>
-        </div>
-      </div>
-
+  <div class="dash" onclick="loadIframe('pre_cotacao.html')">
+    <div class="dash-icon">🧾</div>
+    <div>
+      <h3>Pré-Cotação</h3>
+      <p>Monte e gerencie itens antes de enviar para cotação</p>
     </div>
+  </div>
 
-    <!-- CARDS DE LINKS -->
-    <div class="cards">
-
-      <div class="card" onclick="window.open('https://www.gov.br/compras/pt-br', '_blank')">
-        <img src="https://raw.githubusercontent.com/grupodvbr/cotacao/main/paste/Design%20sem%20nome%20(28).png">
-        <p>Compras.gov</p>
-      </div>
-
-      <div class="card" onclick="window.open('https://minha.effecti.com.br/#/', '_blank')">
-        <img src="https://raw.githubusercontent.com/grupodvbr/cotacao/main/paste/Design%20sem%20nome%20(29).png">
-        <p>Effecti</p>
-      </div>
-
+  <div class="dash" onclick="loadIframe('cotacao.html')">
+    <div class="dash-icon">📨</div>
+    <div>
+      <h3>Enviar Cotação</h3>
+      <p>Dispare solicitações de preço para fornecedores</p>
     </div>
+  </div>
+
+  <div class="dash" onclick="loadIframe('respostas.html')">
+    <div class="dash-icon">💰</div>
+    <div>
+      <h3>Respostas de Fornecedores</h3>
+      <p>Compare preços e escolha os melhores fornecedores</p>
+    </div>
+  </div>
+
+  <div class="dash" onclick="loadIframe('historico_cotacoes.html')">
+    <div class="dash-icon">📊</div>
+    <div>
+      <h3>Histórico de Cotações</h3>
+      <p>Visualize cotações anteriores e evolução de preços</p>
+    </div>
+  </div>
+
+</div>
+
+   <!-- CARDS DE LINKS -->
+<div class="cards">
+
+  <div class="card" onclick="window.open('https://www.gov.br/compras/pt-br', '_blank')">
+    <img src="https://raw.githubusercontent.com/grupodvbr/cotacao/main/paste/Design%20sem%20nome%20(28).png">
+    <p>Portal de Compras</p>
+  </div>
+
+  <div class="card" onclick="window.open('https://minha.effecti.com.br/#/', '_blank')">
+    <img src="https://raw.githubusercontent.com/grupodvbr/cotacao/main/paste/Design%20sem%20nome%20(29).png">
+    <p>Gestão de Cotações</p>
+  </div>
+
+</div>
   </div>
 
   <iframe id="iframePage"></iframe>
