@@ -383,6 +383,34 @@ label{
   display:none;
 }
 
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.clear-btn{
+  height:46px;
+  padding:0 14px;
+  border-radius:16px;
+  border:none;
+  background:#fff7ed;
+  color:#ff6a00;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+
+
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -429,9 +457,25 @@ label{
       <div class="top-company" id="empresaUsuario">EMPRESA</div>
     </div>
 
-    <button class="logout" onclick="sair()">
-      <i class="ri-logout-box-r-line"></i>
-    </button>
+
+
+    
+<div class="top-actions">
+
+  <button class="clear-btn" onclick="limparContagem()">
+    <i class="ri-delete-bin-6-line"></i>
+    LIMPAR
+  </button>
+
+  <button class="logout" onclick="sair()">
+    <i class="ri-logout-box-r-line"></i>
+  </button>
+
+</div>
+
+
+
+    
 
   </header>
 
@@ -498,6 +542,48 @@ const TABELA_ESTOQUE = "mercatto_estoque";
 let usuarioLogado = null;
 let itens = [];
 
+
+
+
+
+function chaveStorageContagem(){
+  const empresa = usuarioLogado?.empresa || "geral";
+  const usuario = usuarioLogado?.usuario || "usuario";
+  return `contagem_estoque_${empresa}_${usuario}`;
+}
+
+function salvarContagemLocal(){
+  if(!usuarioLogado || !itens.length) return;
+
+  const dados = {};
+
+  itens.forEach(item=>{
+    dados[item.id] = Number(item.quantidade_temp || 0);
+  });
+
+  localStorage.setItem(
+    chaveStorageContagem(),
+    JSON.stringify(dados)
+  );
+}
+
+function carregarContagemLocal(){
+  if(!usuarioLogado) return {};
+
+  try{
+    return JSON.parse(
+      localStorage.getItem(chaveStorageContagem()) || "{}"
+    );
+  }catch(e){
+    return {};
+  }
+}
+
+
+
+
+
+  
 /* INIT */
 
 window.addEventListener("load", ()=>{
@@ -659,10 +745,23 @@ async function carregarEstoque(){
       return;
     }
 
-    itens = (data || []).map(item=>({
-      ...item,
-      quantidade_temp:Number(item.quantidade || item.saldo || 0)
-    }));
+
+
+
+
+
+
+    
+const contagemSalva = carregarContagemLocal();
+
+itens = (data || []).map(item=>({
+  ...item,
+  quantidade_temp: contagemSalva[item.id] !== undefined
+    ? Number(contagemSalva[item.id])
+    : Number(item.quantidade || item.saldo || 0)
+}));
+
+    
 
     renderizar();
 
@@ -797,7 +896,7 @@ function alterarQtd(id,delta){
   }
 
   item.quantidade_temp = atual;
-
+salvarContagemLocal();
   renderizar();
 
 }
@@ -817,7 +916,7 @@ function digitarQtd(id,valor){
   }
 
   item.quantidade_temp = qtd;
-
+salvarContagemLocal();
   renderizar();
 
 }
@@ -859,12 +958,27 @@ async function salvarTudo(){
 
     loading(false);
 
-    if(erros > 0){
-      alert(`⚠️ Contagem salva, mas teve ${erros} erro(s).`);
-    }else{
-      alert("✅ Contagem salva com sucesso!");
-    }
+if(erros > 0){
 
+  alert(`⚠️ Contagem salva, mas teve ${erros} erro(s).`);
+
+}else{
+
+  localStorage.removeItem(
+    chaveStorageContagem()
+  );
+
+  alert("✅ Contagem salva com sucesso!");
+
+}
+
+
+
+
+
+
+
+    
     await carregarEstoque();
 
   }catch(err){
@@ -880,6 +994,44 @@ async function salvarTudo(){
   }
 
 }
+
+
+
+function limparContagem(){
+
+  if(!confirm("Deseja limpar toda a contagem local?")){
+    return;
+  }
+
+  localStorage.removeItem(
+    chaveStorageContagem()
+  );
+
+  itens = itens.map(item=>({
+    ...item,
+    quantidade_temp:0
+  }));
+
+  renderizar();
+
+  aviso("Contagem limpa");
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 /* SAIR */
 
 function sair(){
@@ -911,7 +1063,7 @@ window.renderizar = renderizar;
 window.alterarQtd = alterarQtd;
 window.digitarQtd = digitarQtd;
 window.salvarTudo = salvarTudo;
-
+window.limparContagem = limparContagem;
 </script>
 
 </body>
