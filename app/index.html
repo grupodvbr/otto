@@ -622,6 +622,12 @@ iframe{
   font-weight:900;
 }
 
+.filters-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
 @media(max-width:640px){
 
   .header-inner{
@@ -655,49 +661,97 @@ iframe{
   }
 
   .hero{
-    padding:18px;
-    border-radius:22px;
+    padding:16px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+
+  .hero::after{
+    width:130px;
+    height:130px;
+    right:-50px;
+    top:-45px;
   }
 
   .hero h2{
-    font-size:20px;
+    font-size:18px;
   }
 
   .hero p{
-    font-size:12px;
+    font-size:11px;
+    line-height:1.45;
   }
 
   .filters-card{
-    border-radius:20px;
-    padding:12px;
+    border-radius:18px;
+    padding:10px;
+    margin-bottom:10px;
+  }
+
+  .search{
+    margin-bottom:8px;
+  }
+
+  .search input{
+    height:40px;
+    font-size:12px;
+    border-radius:14px;
+  }
+
+  .filters-grid{
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+
+  .filter-title{
+    font-size:8px;
+    margin:5px 2px 4px;
   }
 
   .filter-row{
-    padding-bottom:5px;
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;
   }
 
   .chip{
-    height:36px;
-    font-size:11px;
-    padding:0 12px;
+    height:30px;
+    font-size:10px;
+    padding:0 10px;
+    flex:0 0 auto;
   }
 
   .summary{
     grid-template-columns:repeat(3,1fr);
     gap:8px;
+    margin-bottom:10px;
   }
 
   .summary-card{
-    padding:11px;
-    border-radius:16px;
+    padding:10px;
+    border-radius:15px;
   }
 
   .summary-card b{
-    font-size:18px;
+    font-size:17px;
   }
 
   .summary-card span{
-    font-size:9px;
+    font-size:8px;
+  }
+
+  .section-title{
+    margin:12px 2px 8px;
+  }
+
+  .section-title h3{
+    font-size:15px;
+  }
+
+  .section-title span{
+    font-size:10px;
   }
 
   .apps-grid{
@@ -706,48 +760,34 @@ iframe{
   }
 
   .app-card{
-    border-radius:20px;
-    padding:14px;
+    border-radius:18px;
+    padding:12px;
   }
 
   .app-icon{
-    width:54px;
-    height:54px;
+    width:50px;
+    height:50px;
+    border-radius:15px;
   }
 
   .app-desc{
     min-height:auto;
+    font-size:11px;
+  }
+
+  .actions{
+    grid-template-columns:1fr 40px;
   }
 
   .modal-box{
     height:94vh;
-    border-radius:20px;
+    border-radius:18px;
   }
 
   .install-main{
     grid-template-columns:1fr;
-
-  
   }
-
-.filters-grid{
-  grid-template-columns:1fr;
-  gap:4px;
 }
-
-
-  
-}
-
-.filters-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-
-
-
-
 
 
 
