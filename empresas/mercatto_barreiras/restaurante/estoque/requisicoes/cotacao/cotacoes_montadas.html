@@ -1,30 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Mercatto • Cotações</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 
 :root{
-  --primary:#111827;
-  --primary2:#1f2937;
-  --bg:#f3f4f6;
+  --bg:#f5f6f8;
   --card:#ffffff;
-  --border:#e5e7eb;
+  --line:#e5e7eb;
+  --text:#111827;
   --muted:#6b7280;
+  --primary:#111827;
   --green:#16a34a;
-  --red:#dc2626;
   --yellow:#ca8a04;
-  --blue:#2563eb;
-  --shadow:0 10px 30px rgba(0,0,0,.08);
-  --radius:22px;
+  --red:#dc2626;
 }
 
 *{
@@ -36,18 +32,18 @@
 
 body{
   background:var(--bg);
-  color:#111827;
+  color:var(--text);
 }
 
-/* ================= TOP ================= */
+/* ================= TOPO ================= */
 
 .top{
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  padding:14px 18px;
   position:sticky;
   top:0;
   z-index:100;
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:18px 24px;
 }
 
 .top-flex{
@@ -59,49 +55,32 @@ body{
 }
 
 .top h1{
-  font-size:28px;
+  font-size:22px;
+  font-weight:800;
 }
 
 .top small{
   color:var(--muted);
 }
 
-.top-actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
 .btn{
   border:none;
-  padding:13px 18px;
-  border-radius:14px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.btn-dark{
   background:#111827;
   color:#fff;
-}
-
-.btn-blue{
-  background:#2563eb;
-  color:#fff;
-}
-
-.btn-red{
-  background:#ef4444;
-  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:700;
 }
 
 /* ================= LAYOUT ================= */
 
 .layout{
   display:grid;
-  grid-template-columns:400px 1fr;
-  gap:20px;
-  padding:24px;
+  grid-template-columns:300px 1fr;
+  gap:16px;
+  padding:16px;
 }
 
 @media(max-width:1100px){
@@ -112,216 +91,273 @@ body{
 
 }
 
-/* ================= CARD ================= */
+/* ================= SIDEBAR ================= */
 
-.card{
+.sidebar{
   background:#fff;
-  border-radius:28px;
-  padding:22px;
-  box-shadow:var(--shadow);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
 }
-
-/* ================= LISTA ================= */
 
 .search{
   width:100%;
+  border:none;
+  border-bottom:1px solid var(--line);
   padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  margin-bottom:18px;
   outline:none;
 }
 
+.lista{
+  max-height:calc(100vh - 150px);
+  overflow:auto;
+}
+
 .cotacao{
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:12px;
+  padding:14px;
+  border-bottom:1px solid var(--line);
   cursor:pointer;
-  transition:.2s;
 }
 
 .cotacao:hover{
-  transform:translateY(-2px);
+  background:#fafafa;
 }
 
 .cotacao.active{
-  border-color:#111827;
-  background:#f9fafb;
+  background:#eef2ff;
 }
 
 .cotacao h3{
-  font-size:16px;
-  margin-bottom:6px;
+  font-size:14px;
+  margin-bottom:4px;
 }
 
 .cotacao small{
-  color:var(--muted);
+  font-size:12px;
+  color:#6b7280;
 }
 
-.badges{
+/* ================= MAIN ================= */
+
+.main{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+/* ================= HEADER ================= */
+
+.main-top{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
   display:flex;
-  gap:8px;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
   flex-wrap:wrap;
-  margin-top:12px;
 }
 
-.badge{
+.main-top h2{
+  font-size:20px;
+}
+
+.main-top small{
+  color:#6b7280;
+}
+
+.status{
   padding:6px 12px;
   border-radius:999px;
   font-size:11px;
-  font-weight:800;
+  font-weight:700;
 }
 
-.badge-ativa{
+.ativa{
   background:#dcfce7;
   color:#166534;
 }
 
-.badge-finalizada{
-  background:#fee2e2;
-  color:#991b1b;
-}
-
-.badge-respondida{
+.respondida{
   background:#fef3c7;
   color:#92400e;
 }
 
-/* ================= ITEM ================= */
-
-.item{
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:20px;
-  margin-bottom:18px;
+.finalizada{
+  background:#fee2e2;
+  color:#991b1b;
 }
 
-.item-top{
-  margin-bottom:18px;
+/* ================= TABELA ================= */
+
+.table-wrap{
+  width:100%;
+  overflow:auto;
 }
 
-.item-top h3{
-  font-size:18px;
-  margin-bottom:6px;
+table{
+  width:100%;
+  min-width:1600px;
+  border-collapse:collapse;
 }
 
-.item-top small{
-  color:var(--muted);
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:
-  repeat(auto-fit,minmax(150px,1fr));
-  gap:12px;
-}
-
-.info{
+thead{
   background:#f9fafb;
-  border-radius:16px;
-  padding:14px;
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 
-.info span{
-  display:block;
+th{
+  border-bottom:1px solid var(--line);
+  border-right:1px solid var(--line);
+  padding:10px;
+  text-align:left;
   font-size:11px;
+  text-transform:uppercase;
   color:#6b7280;
-  margin-bottom:4px;
+  white-space:nowrap;
 }
 
-.info b{
-  font-size:15px;
+td{
+  border-bottom:1px solid #f1f5f9;
+  border-right:1px solid #f1f5f9;
+  padding:8px;
+  vertical-align:top;
+  font-size:13px;
+}
+
+tr:hover{
+  background:#fafafa;
+}
+
+/* ================= INPUT ================= */
+
+.input{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px;
+  font-size:13px;
+  outline:none;
+  background:#fff;
+}
+
+textarea.input{
+  min-height:38px;
+  resize:vertical;
 }
 
 /* ================= FORNECEDORES ================= */
 
+.fornecedor-select{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:320px;
+}
+
 .for-search{
   width:100%;
-  padding:13px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  margin-top:18px;
-  margin-bottom:14px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px;
+  font-size:12px;
 }
 
-.for-wrap{
+.tags{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
+  gap:6px;
 }
 
-.for{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  cursor:pointer;
-  font-size:13px;
-  font-weight:700;
-  transition:.2s;
+.tag{
   display:flex;
   align-items:center;
   gap:8px;
-}
-
-.for.active{
   background:#111827;
   color:#fff;
-  border-color:#111827;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+}
+
+.tag button{
+  border:none;
+  background:none;
+  color:#fff;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:800;
+}
+
+/* ================= DROPDOWN ================= */
+
+.dropdown{
+  border:1px solid var(--line);
+  border-radius:10px;
+  max-height:220px;
+  overflow:auto;
+  background:#fff;
+}
+
+.dropdown-item{
+  padding:10px;
+  border-bottom:1px solid #f3f4f6;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.dropdown-item:hover{
+  background:#f9fafb;
 }
 
 /* ================= RESPOSTAS ================= */
 
-.responses{
-  margin-top:22px;
-  border-top:1px solid #e5e7eb;
-  padding-top:18px;
-}
-
 .response{
-  border:1px solid #e5e7eb;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
   background:#fafafa;
 }
 
-.response-top{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
+.response strong{
+  display:block;
+  margin-bottom:8px;
+  font-size:12px;
 }
 
 .response-grid{
   display:grid;
   grid-template-columns:
-  repeat(auto-fit,minmax(150px,1fr));
-  gap:12px;
+  repeat(auto-fit,minmax(120px,1fr));
+  gap:8px;
 }
 
-.response-status{
-  padding:7px 12px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
+.response-box{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px;
 }
 
-.pending{
-  background:#fef3c7;
-  color:#92400e;
+.response-box span{
+  display:block;
+  font-size:10px;
+  color:#6b7280;
+  margin-bottom:4px;
 }
 
-.done{
-  background:#dcfce7;
-  color:#166534;
+.response-box b{
+  font-size:12px;
 }
 
 /* ================= EMPTY ================= */
 
 .empty{
-  padding:60px 20px;
+  padding:70px;
   text-align:center;
   color:#6b7280;
 }
@@ -331,14 +367,14 @@ body{
 .overlay{
   position:fixed;
   inset:0;
-  background:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.6);
   backdrop-filter:blur(4px);
   display:none;
   justify-content:center;
   align-items:center;
   z-index:9999;
-  font-size:22px;
-  font-weight:900;
+  font-size:20px;
+  font-weight:800;
 }
 
 </style>
@@ -360,17 +396,13 @@ body{
 
     </div>
 
-    <div class="top-actions">
+    <button
+      class="btn"
+      onclick="carregarCotacoes()">
 
-      <button
-        class="btn btn-dark"
-        onclick="carregarCotacoes()">
+      Atualizar
 
-        Atualizar
-
-      </button>
-
-    </div>
+    </button>
 
   </div>
 
@@ -378,9 +410,9 @@ body{
 
 <div class="layout">
 
-  <!-- ================= ESQUERDA ================= -->
+  <!-- ================= SIDEBAR ================= -->
 
-  <div class="card">
+  <div class="sidebar">
 
     <input
       class="search"
@@ -389,13 +421,16 @@ body{
       oninput="filtrarCotacoes()"
     >
 
-    <div id="listaCotacoes"></div>
+    <div
+      class="lista"
+      id="listaCotacoes">
+    </div>
 
   </div>
 
-  <!-- ================= DIREITA ================= -->
+  <!-- ================= MAIN ================= -->
 
-  <div class="card">
+  <div class="main">
 
     <div id="detalhes">
 
@@ -430,9 +465,7 @@ let cotacoes = [];
 let fornecedores = [];
 let cotacaoAtual = null;
 
-/* =========================
-   INIT
-========================= */
+/* ================= INIT ================= */
 
 init();
 
@@ -446,9 +479,7 @@ async function init(){
   overlay(false);
 }
 
-/* =========================
-   OVERLAY
-========================= */
+/* ================= OVERLAY ================= */
 
 function overlay(show){
 
@@ -457,9 +488,7 @@ function overlay(show){
       show ? "flex" : "none";
 }
 
-/* =========================
-   FORNECEDORES
-========================= */
+/* ================= FORNECEDORES ================= */
 
 async function carregarFornecedores(){
 
@@ -476,13 +505,11 @@ async function carregarFornecedores(){
   fornecedores = data || [];
 }
 
-/* =========================
-   COTAÇÕES
-========================= */
+/* ================= COTAÇÕES ================= */
 
 async function carregarCotacoes(){
 
-  const { data, error } = await sb
+  const { data } = await sb
 
     .from("cotacoes")
 
@@ -493,40 +520,29 @@ async function carregarCotacoes(){
       { ascending:false }
     );
 
-  if(error){
-
-    console.log(error);
-
-    return;
-  }
-
   cotacoes = data || [];
 
   renderCotacoes(cotacoes);
 
-  if(
-    cotacaoAtual
-  ){
+  if(cotacaoAtual){
 
-    const atualizada =
+    const nova =
       cotacoes.find(c =>
 
         c.id === cotacaoAtual.id
 
       );
 
-    if(atualizada){
+    if(nova){
 
-      cotacaoAtual = atualizada;
+      cotacaoAtual = nova;
 
-      abrirCotacao(atualizada);
+      abrirCotacao(nova);
     }
   }
 }
 
-/* =========================
-   RENDER LISTA
-========================= */
+/* ================= LISTA ================= */
 
 function renderCotacoes(arr){
 
@@ -537,28 +553,12 @@ function renderCotacoes(arr){
 
   lista.innerHTML = "";
 
-  if(!arr.length){
-
-    lista.innerHTML = `
-
-      <div class="empty">
-
-        Nenhuma cotação encontrada
-
-      </div>
-
-    `;
-
-    return;
-  }
-
   arr.forEach(c => {
 
     lista.innerHTML += `
 
       <div
-        class="cotacao
-        ${
+        class="cotacao ${
           cotacaoAtual &&
           cotacaoAtual.id === c.id
           ? "active"
@@ -577,32 +577,15 @@ function renderCotacoes(arr){
           ${formatarData(c.data_cotacao)}
         </small>
 
-        <div class="badges">
-
-          <div class="badge ${
-            c.status === "finalizada"
-            ? "badge-finalizada"
-            : c.status === "respondida"
-            ? "badge-respondida"
-            : "badge-ativa"
-          }">
-
-            ${(c.status || "ativa")
-              .toUpperCase()}
-
-          </div>
-
-        </div>
-
       </div>
 
     `;
+
   });
+
 }
 
-/* =========================
-   ABRIR
-========================= */
+/* ================= ABRIR ================= */
 
 function abrirCotacao(c){
 
@@ -610,7 +593,7 @@ function abrirCotacao(c){
 
   renderCotacoes(cotacoes);
 
-  const box =
+  const detalhes =
     document.getElementById(
       "detalhes"
     );
@@ -619,416 +602,308 @@ function abrirCotacao(c){
   const itensCotacao =
     c.itens_cotacao || [];
 
-  box.innerHTML = `
+  detalhes.innerHTML = `
 
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      gap:20px;
-      flex-wrap:wrap;
-      margin-bottom:24px;
-    ">
+    <div class="main-top">
 
       <div>
 
-        <h2 style="
-          font-size:28px;
-          margin-bottom:6px;
-        ">
+        <h2>
           ${c.nome}
         </h2>
 
-        <small style="
-          color:#6b7280;
-        ">
+        <small>
           ${formatarData(c.data_cotacao)}
         </small>
 
       </div>
 
-      <div style="
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
+      <div class="
+        status
+
+        ${
+          c.status === "finalizada"
+          ? "finalizada"
+          : c.status === "respondida"
+          ? "respondida"
+          : "ativa"
+        }
       ">
 
-        <button
-          class="btn btn-dark"
-          onclick="finalizarCotacao()">
-
-          Finalizar
-
-        </button>
-
-        <button
-          class="btn btn-blue"
-          onclick="reabrirCotacao()">
-
-          Reabrir
-
-        </button>
+        ${(c.status || "ativa")
+          .toUpperCase()}
 
       </div>
 
     </div>
 
-    ${itens.map((i,index)=>{
+    <div class="table-wrap">
 
-      const itemCotado =
-        itensCotacao.find(x =>
+      <table>
 
-          x.produto === i.produto
+        <thead>
 
-        ) || {
+          <tr>
 
-          produto:i.produto,
-          qtd_solicitada:
-            i.comprar || 0,
-          fornecedores:[]
+            <th>Produto</th>
+            <th>Atual</th>
+            <th>Mínimo</th>
+            <th>Ideal</th>
+            <th>Comprar</th>
+            <th>Fornecedores</th>
+            <th>Respostas</th>
 
-        };
+          </tr>
 
-      return `
+        </thead>
 
-        <div class="item">
+        <tbody>
 
-          <div class="item-top">
+          ${itens.map((i,index)=>{
 
-            <h3>
-              ${i.produto}
-            </h3>
+            const itemCotado =
+              itensCotacao.find(x =>
 
-            <small>
+                x.produto === i.produto
 
-              Comprar:
-              ${i.comprar || 0}
+              ) || {
 
-              •
+                produto:i.produto,
+                qtd_solicitada:
+                  i.comprar || 0,
+                fornecedores:[]
 
-              Resultado:
-              ${i.resultado || 0}
+              };
 
-            </small>
+            return `
 
-          </div>
+              <tr>
 
-          <div class="grid">
+                <!-- PRODUTO -->
 
-            <div class="info">
-              <span>Atual</span>
-              <b>${i.atual || 0}</b>
-            </div>
+                <td>
 
-            <div class="info">
-              <span>Mínimo</span>
-              <b>${i.minimo || 0}</b>
-            </div>
+                  <b>
+                    ${i.produto}
+                  </b>
 
-            <div class="info">
-              <span>Ideal</span>
-              <b>${i.ideal || 0}</b>
-            </div>
+                </td>
 
-            <div class="info">
-              <span>Comprar</span>
-              <b>${i.comprar || 0}</b>
-            </div>
+                <td>${i.atual || 0}</td>
+                <td>${i.minimo || 0}</td>
+                <td>${i.ideal || 0}</td>
+                <td>${i.comprar || 0}</td>
 
-          </div>
+                <!-- ================= FORNECEDORES ================= -->
 
-          <!-- ================= PESQUISA ================= -->
+                <td style="width:380px;">
 
-          <input
-            class="for-search"
-            placeholder="Pesquisar fornecedor..."
-            oninput="
-              filtrarFornecedor(
-                this,
-                'for_${index}'
-              )
-            "
-          >
+                  <div class="fornecedor-select">
 
-          <!-- ================= FORNECEDORES ================= -->
+                    <!-- PESQUISA -->
 
-          <div
-            class="for-wrap"
-            id="for_${index}">
+                    <input
+                      class="for-search"
+                      placeholder="Pesquisar fornecedor..."
+                      oninput="
+                        pesquisarFornecedor(
+                          this,
+                          'drop_${index}'
+                        )
+                      "
+                    >
 
-            ${fornecedores.map(f=>{
+                    <!-- TAGS -->
 
-              const selecionado =
-                itemCotado.fornecedores
-                .some(x =>
+                    <div class="tags">
 
-                  x.fornecedor_id === f.id
+                      ${itemCotado.fornecedores.map(f=>`
 
-                );
+                        <div class="tag">
 
-              return `
+                          ${f.fornecedor_nome}
 
-                <div
+                          <button
+                            onclick="
+                              removerFornecedor(
+                                '${c.id}',
+                                '${i.produto}',
+                                '${f.fornecedor_id}'
+                              )
+                            ">
 
-                  class="for
-                  ${
-                    selecionado
-                    ? "active"
-                    : ""
-                  }"
+                            ✕
 
-                  data-nome="${f.nome}"
+                          </button>
 
-                  onclick="
-                    toggleFornecedor(
-                      this,
-                      '${c.id}',
-                      '${i.produto}',
-                      '${f.id}',
-                      '${f.nome}',
-                      ${i.comprar || 0}
-                    )
-                  ">
+                        </div>
 
-                  ${f.nome}
-
-                </div>
-
-              `;
-
-            }).join("")}
-
-          </div>
-
-          <!-- ================= RESPOSTAS ================= -->
-
-          <div class="responses">
-
-            <h3 style="
-              margin-bottom:14px;
-              font-size:15px;
-            ">
-              Respostas dos fornecedores
-            </h3>
-
-            ${
-              itemCotado.fornecedores.length
-              ? itemCotado.fornecedores.map(f=>`
-
-                <div class="response">
-
-                  <div class="response-top">
-
-                    <div>
-
-                      <b>
-                        ${f.fornecedor_nome}
-                      </b>
-
-                      <div style="
-                        font-size:12px;
-                        color:#6b7280;
-                        margin-top:4px;
-                      ">
-
-                        ${
-                          f.respondido_em
-                          ? "Respondido em " +
-                            formatarData(
-                              f.respondido_em
-                            )
-                          : "Aguardando resposta"
-                        }
-
-                      </div>
+                      `).join("")}
 
                     </div>
 
-                    <div class="
-                      response-status
-                      ${
-                        f.preco_unitario
-                        ? "done"
-                        : "pending"
-                      }
-                    ">
+                    <!-- DROPDOWN -->
 
-                      ${
-                        f.preco_unitario
-                        ? "RESPONDIDO"
-                        : "PENDENTE"
-                      }
+                    <div
+                      class="dropdown"
+                      id="drop_${index}">
+
+                      ${fornecedores
+
+                        .filter(f => {
+
+                          return !itemCotado
+                          .fornecedores
+                          .some(x =>
+
+                            x.fornecedor_id === f.id
+
+                          );
+
+                        })
+
+                        .map(f=>`
+
+                          <div
+                            class="dropdown-item"
+
+                            data-nome="${f.nome}"
+
+                            onclick="
+                              adicionarFornecedor(
+                                '${c.id}',
+                                '${i.produto}',
+                                '${f.id}',
+                                '${f.nome}',
+                                ${i.comprar || 0}
+                              )
+                            ">
+
+                            ${f.nome}
+
+                          </div>
+
+                        `).join("")}
 
                     </div>
 
                   </div>
 
-                  <div class="response-grid">
+                </td>
 
-                    <div class="info">
-                      <span>Marca</span>
-                      <b>${f.marca || "-"}</b>
-                    </div>
+                <!-- ================= RESPOSTAS ================= -->
 
-                    <div class="info">
-                      <span>Preço Unitário</span>
-                      <b>
-                        ${
-                          f.preco_unitario
-                          ? "R$ " +
-                            Number(
-                              f.preco_unitario
-                            ).toFixed(2)
-                          : "-"
-                        }
-                      </b>
-                    </div>
-
-                    <div class="info">
-                      <span>Preço Total</span>
-                      <b>
-                        ${
-                          f.preco_total
-                          ? "R$ " +
-                            Number(
-                              f.preco_total
-                            ).toFixed(2)
-                          : "-"
-                        }
-                      </b>
-                    </div>
-
-                    <div class="info">
-                      <span>Prazo</span>
-                      <b>${f.prazo || "-"}</b>
-                    </div>
-
-                    <div class="info">
-                      <span>Unidade</span>
-                      <b>${f.unidade || "-"}</b>
-                    </div>
-
-                    <div class="info">
-                      <span>Embalagem</span>
-                      <b>
-                        ${
-                          f.quantidade_embalagem
-                          || "-"
-                        }
-                      </b>
-                    </div>
-
-                  </div>
+                <td style="
+                  min-width:650px;
+                ">
 
                   ${
-                    f.observacao
-                    ? `
+                    itemCotado.fornecedores.length
 
-                      <div style="
-                        margin-top:12px;
-                        padding:12px;
-                        border-radius:14px;
-                        background:#fff;
-                        border:1px solid #e5e7eb;
-                      ">
+                    ? itemCotado.fornecedores.map(f=>`
 
-                        <span style="
-                          display:block;
-                          font-size:11px;
-                          color:#6b7280;
-                          margin-bottom:4px;
-                        ">
+                      <div class="response">
 
-                          Observação
+                        <strong>
 
-                        </span>
+                          ${f.fornecedor_nome}
 
-                        <div style="
-                          font-size:14px;
-                        ">
+                        </strong>
 
-                          ${f.observacao}
+                        <div class="response-grid">
+
+                          <div class="response-box">
+                            <span>Marca</span>
+                            <b>${f.marca || "-"}</b>
+                          </div>
+
+                          <div class="response-box">
+                            <span>Preço</span>
+                            <b>
+                              ${
+                                f.preco_unitario
+                                ? "R$ " +
+                                  Number(
+                                    f.preco_unitario
+                                  ).toFixed(2)
+                                : "-"
+                              }
+                            </b>
+                          </div>
+
+                          <div class="response-box">
+                            <span>Total</span>
+                            <b>
+                              ${
+                                f.preco_total
+                                ? "R$ " +
+                                  Number(
+                                    f.preco_total
+                                  ).toFixed(2)
+                                : "-"
+                              }
+                            </b>
+                          </div>
+
+                          <div class="response-box">
+                            <span>Prazo</span>
+                            <b>${f.prazo || "-"}</b>
+                          </div>
+
+                          <div class="response-box">
+                            <span>Unidade</span>
+                            <b>${f.unidade || "-"}</b>
+                          </div>
+
+                          <div class="response-box">
+                            <span>Emb.</span>
+                            <b>
+                              ${
+                                f.quantidade_embalagem
+                                || "-"
+                              }
+                            </b>
+                          </div>
 
                         </div>
 
                       </div>
 
+                    `).join("")
+
+                    : `
+                      <small>
+                        Nenhum fornecedor
+                      </small>
                     `
-                    : ""
                   }
 
-                </div>
+                </td>
 
-              `).join("")
-              : `
-                <div style="
-                  color:#6b7280;
-                  font-size:14px;
-                ">
-                  Nenhum fornecedor selecionado.
-                </div>
-              `
-            }
+              </tr>
 
-          </div>
+            `;
 
-        </div>
+          }).join("")}
 
-      `;
+        </tbody>
 
-    }).join("")}
+      </table>
+
+    </div>
 
   `;
 }
 
-/* =========================
-   FILTRAR FORNECEDOR
-========================= */
+/* ================= ADICIONAR ================= */
 
-function filtrarFornecedor(
-  input,
-  listaId
-){
-
-  const termo =
-    input.value.toLowerCase();
-
-  const lista =
-    document.getElementById(listaId);
-
-  const itens =
-    lista.querySelectorAll(".for");
-
-  itens.forEach(el => {
-
-    const nome =
-      el.dataset.nome.toLowerCase();
-
-    el.style.display =
-      nome.includes(termo)
-      ? "flex"
-      : "none";
-
-  });
-
-}
-
-/* =========================
-   TOGGLE
-========================= */
-
-async function toggleFornecedor(
-  el,
+async function adicionarFornecedor(
   cotacaoId,
   produto,
   fornecedorId,
   fornecedorNome,
   qtd
 ){
-
-  el.classList.toggle("active");
-
-  const ativo =
-    el.classList.contains("active");
 
   const { data } = await sb
 
@@ -1053,48 +928,88 @@ async function toggleFornecedor(
   if(!item){
 
     item = {
-
       produto,
       qtd_solicitada:qtd,
       fornecedores:[]
-
     };
 
     itensCotacao.push(item);
   }
 
-  if(ativo){
+  item.fornecedores.push({
 
-    const existe =
-      item.fornecedores.find(f =>
+    fornecedor_id:
+      fornecedorId,
 
-        f.fornecedor_id === fornecedorId
+    fornecedor_nome:
+      fornecedorNome,
 
-      );
+    preco_unitario:null,
+    preco_total:null,
+    quantidade_embalagem:1,
+    unidade:"UN",
+    prazo:"",
+    marca:"",
+    observacao:""
 
-    if(!existe){
+  });
 
-      item.fornecedores.push({
+  await sb
 
-        fornecedor_id:
-          fornecedorId,
+    .from("cotacoes")
 
-        fornecedor_nome:
-          fornecedorNome,
+    .update({
 
-        preco_unitario:null,
-        preco_total:null,
-        quantidade_embalagem:1,
-        unidade:"UN",
-        prazo:"",
-        marca:"",
-        observacao:""
+      itens_cotacao:itensCotacao,
+      atualizado_em:new Date()
 
-      });
+    })
 
-    }
+    .eq("id", cotacaoId);
 
-  }else{
+  cotacaoAtual.itens_cotacao =
+    itensCotacao;
+
+  abrirCotacao(cotacaoAtual);
+}
+
+/* ================= REMOVER ================= */
+
+async function removerFornecedor(
+  cotacaoId,
+  produto,
+  fornecedorId
+){
+
+  const confirmar =
+    confirm(
+      "Deseja remover este fornecedor?"
+    );
+
+  if(!confirmar)
+    return;
+
+  const { data } = await sb
+
+    .from("cotacoes")
+
+    .select("*")
+
+    .eq("id", cotacaoId)
+
+    .single();
+
+  let itensCotacao =
+    data.itens_cotacao || [];
+
+  let item =
+    itensCotacao.find(i =>
+
+      i.produto === produto
+
+    );
+
+  if(item){
 
     item.fornecedores =
       item.fornecedores.filter(f =>
@@ -1102,7 +1017,6 @@ async function toggleFornecedor(
         f.fornecedor_id !== fornecedorId
 
       );
-
   }
 
   await sb
@@ -1124,47 +1038,41 @@ async function toggleFornecedor(
   abrirCotacao(cotacaoAtual);
 }
 
-/* =========================
-   STATUS
-========================= */
+/* ================= PESQUISA ================= */
 
-async function finalizarCotacao(){
+function pesquisarFornecedor(
+  input,
+  dropdownId
+){
 
-  if(!cotacaoAtual) return;
+  const termo =
+    input.value.toLowerCase();
 
-  await sb
+  const dropdown =
+    document.getElementById(
+      dropdownId
+    );
 
-    .from("cotacoes")
+  const itens =
+    dropdown.querySelectorAll(
+      ".dropdown-item"
+    );
 
-    .update({
-      status:"finalizada"
-    })
+  itens.forEach(el => {
 
-    .eq("id", cotacaoAtual.id);
+    const nome =
+      el.dataset.nome.toLowerCase();
 
-  carregarCotacoes();
+    el.style.display =
+      nome.includes(termo)
+      ? "block"
+      : "none";
+
+  });
+
 }
 
-async function reabrirCotacao(){
-
-  if(!cotacaoAtual) return;
-
-  await sb
-
-    .from("cotacoes")
-
-    .update({
-      status:"ativa"
-    })
-
-    .eq("id", cotacaoAtual.id);
-
-  carregarCotacoes();
-}
-
-/* =========================
-   BUSCA
-========================= */
+/* ================= FILTRO ================= */
 
 function filtrarCotacoes(){
 
@@ -1187,9 +1095,24 @@ function filtrarCotacoes(){
   renderCotacoes(filtradas);
 }
 
-/* =========================
-   REALTIME
-========================= */
+/* ================= HELPERS ================= */
+
+function formatarData(data){
+
+  if(!data) return "-";
+
+  return new Date(data)
+    .toLocaleString("pt-BR");
+}
+
+function overlay(show){
+
+  document.getElementById("overlay")
+    .style.display =
+      show ? "flex" : "none";
+}
+
+/* ================= REALTIME ================= */
 
 sb.channel("cotacoes_realtime")
 
@@ -1222,18 +1145,6 @@ sb.channel("cotacoes_realtime")
 )
 
 .subscribe();
-
-/* =========================
-   HELPERS
-========================= */
-
-function formatarData(data){
-
-  if(!data) return "-";
-
-  return new Date(data)
-    .toLocaleString("pt-BR");
-}
 
 </script>
 
