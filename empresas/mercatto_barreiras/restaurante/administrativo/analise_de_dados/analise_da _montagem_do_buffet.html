@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -308,6 +309,11 @@ html, body {
   <i class="ri-image-line"></i> Imagem
 </button>
 
+<button type="button" onclick="gerarPDF()">
+  <i class="ri-file-pdf-line"></i> PDF
+</button>
+
+  
 <button type="button" id="btnRetirada40">
   🔥 > 40% Ret.
 </button>
@@ -1431,6 +1437,163 @@ async function baixarImagem(){
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
+
+
+
+
+
+
+async function gerarPDF(){
+
+  const { jsPDF } = window.jspdf;
+
+  const empresa = empresaSelect.value;
+  const dataInicio = rangeSelecionado[0];
+  const dataFim = rangeSelecionado[1];
+
+  const dataGeracao = new Date().toLocaleString("pt-BR");
+
+  const pdf = new jsPDF("p","mm","a4");
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // =========================
+  // 🎨 CAPA
+  // =========================
+
+  pdf.setFillColor(15,23,42);
+  pdf.rect(0,0,pageWidth,pageHeight,"F");
+
+  pdf.setTextColor(255,255,255);
+
+  pdf.setFont("helvetica","bold");
+  pdf.setFontSize(26);
+  pdf.text("RELATÓRIO ANALÍTICO", pageWidth/2, 60, {align:"center"});
+
+  pdf.setFontSize(18);
+  pdf.text("BUFFET OPERACIONAL", pageWidth/2, 75, {align:"center"});
+
+  pdf.setFont("helvetica","normal");
+  pdf.setFontSize(12);
+
+  pdf.text(`Empresa: ${empresa}`, pageWidth/2, 110, {align:"center"});
+  pdf.text(`Período: ${dataInicio} até ${dataFim}`, pageWidth/2, 120, {align:"center"});
+  pdf.text(`Gerado em: ${dataGeracao}`, pageWidth/2, 130, {align:"center"});
+
+  pdf.setFontSize(10);
+  pdf.setTextColor(180,180,180);
+  pdf.text("Sistema Mercatto Delícia", pageWidth/2, 280, {align:"center"});
+
+  // =========================
+  // 📊 NOVA PÁGINA
+  // =========================
+
+  pdf.addPage();
+
+  pdf.setTextColor(0,0,0);
+
+  // =========================
+  // 📌 TÍTULO
+  // =========================
+
+  pdf.setFont("helvetica","bold");
+  pdf.setFontSize(16);
+  pdf.text("Resumo Operacional", 14, 15);
+
+  // =========================
+  // 📦 CAPTURA DO PAINEL
+  // =========================
+
+  const elemento = document.querySelector(".app");
+
+  const canvas = await html2canvas(elemento,{
+    scale:2,
+    useCORS:true,
+    backgroundColor:"#ffffff"
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+
+  const margin = 10;
+  const usableWidth = pageWidth - (margin * 2);
+
+  let imgWidth = usableWidth;
+  let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  let y = 20;
+
+  // =========================
+  // 📄 PAGINAÇÃO INTELIGENTE
+  // =========================
+
+  let heightLeft = imgHeight;
+
+  pdf.addImage(imgData,"PNG",margin,y,imgWidth,imgHeight);
+
+  heightLeft -= (pageHeight - 30);
+
+  while(heightLeft > 0){
+
+    pdf.addPage();
+
+    pdf.addImage(
+      imgData,
+      "PNG",
+      margin,
+      y - imgHeight + heightLeft,
+      imgWidth,
+      imgHeight
+    );
+
+    heightLeft -= (pageHeight - 30);
+  }
+
+  // =========================
+  // 📌 RODAPÉ EM TODAS AS PÁGINAS
+  // =========================
+
+  const totalPages = pdf.internal.getNumberOfPages();
+
+  for(let i = 1; i <= totalPages; i++){
+
+    pdf.setPage(i);
+
+    pdf.setFontSize(9);
+    pdf.setTextColor(120);
+
+    pdf.text(
+      `Página ${i} de ${totalPages}`,
+      pageWidth - 20,
+      pageHeight - 10,
+      {align:"right"}
+    );
+
+    pdf.text(
+      "Mercatto Delícia • Relatório Analítico",
+      14,
+      pageHeight - 10
+    );
+  }
+
+  // =========================
+  // 💾 SALVAR
+  // =========================
+
+  pdf.save(
+    `Relatorio_${empresa}_${dataInicio}_${dataFim}.pdf`
+  );
+}
+
+
+
+
+
+
+
+
+
+  
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
