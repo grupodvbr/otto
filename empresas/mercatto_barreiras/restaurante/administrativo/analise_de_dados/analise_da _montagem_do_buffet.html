@@ -309,8 +309,8 @@ html, body {
   <i class="ri-image-line"></i> Imagem
 </button>
 
-<button type="button" onclick="gerarPDF()">
-  <i class="ri-file-pdf-line"></i> PDF
+<button type="button" onclick="gerarPDFPremium()">
+  <i class="ri-file-pdf-line"></i> PDF PRO
 </button>
 
   
@@ -1442,8 +1442,7 @@ async function baixarImagem(){
 
 
 
-
-async function gerarPDF(){
+async function gerarPDFPremium(){
 
   const { jsPDF } = window.jspdf;
 
@@ -1459,77 +1458,119 @@ async function gerarPDF(){
   const pageHeight = pdf.internal.pageSize.getHeight();
 
   // =========================
-  // 🎨 CAPA
+  // 🎨 CAPA PREMIUM
   // =========================
 
-  pdf.setFillColor(15,23,42);
+  pdf.setFillColor(10,10,10);
   pdf.rect(0,0,pageWidth,pageHeight,"F");
 
   pdf.setTextColor(255,255,255);
 
   pdf.setFont("helvetica","bold");
-  pdf.setFontSize(26);
-  pdf.text("RELATÓRIO ANALÍTICO", pageWidth/2, 60, {align:"center"});
+  pdf.setFontSize(28);
+  pdf.text("RELATÓRIO ANALÍTICO", pageWidth/2, 70, {align:"center"});
 
-  pdf.setFontSize(18);
-  pdf.text("BUFFET OPERACIONAL", pageWidth/2, 75, {align:"center"});
+  pdf.setFontSize(16);
+  pdf.text("BUFFET OPERACIONAL", pageWidth/2, 85, {align:"center"});
 
   pdf.setFont("helvetica","normal");
   pdf.setFontSize(12);
 
-  pdf.text(`Empresa: ${empresa}`, pageWidth/2, 110, {align:"center"});
-  pdf.text(`Período: ${dataInicio} até ${dataFim}`, pageWidth/2, 120, {align:"center"});
-  pdf.text(`Gerado em: ${dataGeracao}`, pageWidth/2, 130, {align:"center"});
+  pdf.text(`Empresa: ${empresa}`, pageWidth/2, 120, {align:"center"});
+  pdf.text(`Período: ${dataInicio} até ${dataFim}`, pageWidth/2, 130, {align:"center"});
+  pdf.text(`Gerado em: ${dataGeracao}`, pageWidth/2, 140, {align:"center"});
 
   pdf.setFontSize(10);
-  pdf.setTextColor(180,180,180);
-  pdf.text("Sistema Mercatto Delícia", pageWidth/2, 280, {align:"center"});
+  pdf.setTextColor(180);
+  pdf.text("Mercatto Delícia • Sistema Analítico", pageWidth/2, 280, {align:"center"});
 
   // =========================
-  // 📊 NOVA PÁGINA
+  // 📊 PÁGINA RESUMO NUMÉRICO
   // =========================
 
   pdf.addPage();
 
-  pdf.setTextColor(0,0,0);
-
-  // =========================
-  // 📌 TÍTULO
-  // =========================
-
+  pdf.setTextColor(0);
   pdf.setFont("helvetica","bold");
-  pdf.setFontSize(16);
-  pdf.text("Resumo Operacional", 14, 15);
+  pdf.setFontSize(18);
+
+  pdf.text("Resumo Executivo", 14, 20);
+
+  pdf.setFontSize(12);
+  pdf.setFont("helvetica","normal");
+
+  const produzido = document.getElementById("totalProduzido").innerText;
+  const retirado = document.getElementById("totalRetirado").innerText;
+  const desperdicio = document.getElementById("totalDesperdicio").innerText;
+  const vendido = document.getElementById("totalVendido").innerText;
+
+  let y = 40;
+
+  function linha(label, valor, cor=null){
+    if(cor){
+      pdf.setTextColor(...cor);
+    }else{
+      pdf.setTextColor(0);
+    }
+
+    pdf.setFont("helvetica","bold");
+    pdf.text(label, 14, y);
+
+    pdf.setFont("helvetica","normal");
+    pdf.text(valor + " KG", 120, y);
+
+    y += 10;
+  }
+
+  linha("Total Produzido:", produzido);
+  linha("Total Retirado:", retirado, [220,38,38]);
+  linha("Total Desperdício:", desperdicio, [220,38,38]);
+  linha("Total Vendido:", vendido, [22,163,74]);
 
   // =========================
-  // 📦 CAPTURA DO PAINEL
+  // 📈 GRÁFICO
   // =========================
 
-  const elemento = document.querySelector(".app");
+  const canvasGrafico = document.getElementById("chart");
 
-  const canvas = await html2canvas(elemento,{
+  const canvasImg = await html2canvas(canvasGrafico, {
     scale:2,
-    useCORS:true,
     backgroundColor:"#ffffff"
   });
 
-  const imgData = canvas.toDataURL("image/png");
+  const imgGrafico = canvasImg.toDataURL("image/png");
+
+  pdf.addImage(imgGrafico, "PNG", 15, y + 10, 180, 80);
+
+  // =========================
+  // 📄 PÁGINA TABELA COMPLETA
+  // =========================
+
+  pdf.addPage();
+
+  pdf.setFont("helvetica","bold");
+  pdf.setFontSize(16);
+  pdf.text("Detalhamento por Prato", 14, 15);
+
+  const elemento = document.querySelector(".table");
+
+  const canvasTabela = await html2canvas(elemento,{
+    scale:2,
+    backgroundColor:"#ffffff"
+  });
+
+  const imgTabela = canvasTabela.toDataURL("image/png");
 
   const margin = 10;
   const usableWidth = pageWidth - (margin * 2);
 
   let imgWidth = usableWidth;
-  let imgHeight = (canvas.height * imgWidth) / canvas.width;
+  let imgHeight = (canvasTabela.height * imgWidth) / canvasTabela.width;
 
-  let y = 20;
-
-  // =========================
-  // 📄 PAGINAÇÃO INTELIGENTE
-  // =========================
-
+  let posY = 20;
   let heightLeft = imgHeight;
 
-  pdf.addImage(imgData,"PNG",margin,y,imgWidth,imgHeight);
+  pdf.addImage(imgTabela,"PNG",margin,posY,imgWidth,imgHeight);
 
   heightLeft -= (pageHeight - 30);
 
@@ -1538,10 +1579,10 @@ async function gerarPDF(){
     pdf.addPage();
 
     pdf.addImage(
-      imgData,
+      imgTabela,
       "PNG",
       margin,
-      y - imgHeight + heightLeft,
+      posY - imgHeight + heightLeft,
       imgWidth,
       imgHeight
     );
@@ -1550,12 +1591,12 @@ async function gerarPDF(){
   }
 
   // =========================
-  // 📌 RODAPÉ EM TODAS AS PÁGINAS
+  // 📌 RODAPÉ PROFISSIONAL
   // =========================
 
   const totalPages = pdf.internal.getNumberOfPages();
 
-  for(let i = 1; i <= totalPages; i++){
+  for(let i=1;i<=totalPages;i++){
 
     pdf.setPage(i);
 
@@ -1570,7 +1611,7 @@ async function gerarPDF(){
     );
 
     pdf.text(
-      "Mercatto Delícia • Relatório Analítico",
+      "Relatório Analítico • Mercatto Delícia",
       14,
       pageHeight - 10
     );
@@ -1580,11 +1621,8 @@ async function gerarPDF(){
   // 💾 SALVAR
   // =========================
 
-  pdf.save(
-    `Relatorio_${empresa}_${dataInicio}_${dataFim}.pdf`
-  );
+  pdf.save(`Relatorio_PRO_${empresa}_${dataInicio}_${dataFim}.pdf`);
 }
-
 
 
 
