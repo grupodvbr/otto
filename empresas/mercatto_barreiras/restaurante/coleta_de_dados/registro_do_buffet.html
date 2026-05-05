@@ -243,6 +243,7 @@ button.ghost{
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
 .CONSUMO{background:#ede9fe;color:#5b21b6}
+.EMPORIO{background:#ccfbf1;color:#065f46} /* 🔥 verde água premium */
 
 /* ================= ICON BUTTON ================= */
 
@@ -438,11 +439,12 @@ button.ghost{
 <div class="field">
   <label>Tipo</label>
   <select id="tipo">
-    <option value="MONTAGEM">Montagem</option>
-    <option value="REPOSICAO">Reposição</option>
-    <option value="RETIRADA">Retirada</option>
-    <option value="DEVOLUCAO">Desperdício</option>
-    <option value="MONTAGEM">Consumo Funcionários</option>
+<option value="MONTAGEM">Montagem</option>
+<option value="EMPORIO">Vindo do Empório</option> <!-- 🔥 NOVO -->
+<option value="REPOSICAO">Reposição</option>
+<option value="RETIRADA">Retirada</option>
+<option value="DEVOLUCAO">Desperdício</option>
+<option value="MONTAGEM">Consumo Funcionários</option>
   </select>
 </div>
 
@@ -504,10 +506,11 @@ button.ghost{
 
 
         
-        <option value="MONTAGEM">Montagem</option>
-        <option value="REPOSICAO">Reposição</option>
-        <option value="RETIRADA">Retirada</option>
-        <option value="DEVOLUCAO">Desperdício</option>
+<option value="MONTAGEM">Montagem</option>
+<option value="EMPORIO">Vindo do Empório</option> <!-- 🔥 NOVO -->
+<option value="REPOSICAO">Reposição</option>
+<option value="RETIRADA">Retirada</option>
+<option value="DEVOLUCAO">Desperdício</option>
       </select>
     </div>
     <div class="actions">
@@ -915,7 +918,9 @@ async function salvar(consumoPara){
       let totalRetirada = 0;
 
       historico?.forEach(l => {
-        if (l.tipo === "MONTAGEM") totalMontagem += Number(l.quantidade || 0);
+if (l.tipo === "MONTAGEM" || l.tipo === "EMPORIO") {
+  totalMontagem += Number(l.quantidade || 0);
+}
         if (l.tipo === "REPOSICAO") totalReposicao += Number(l.quantidade || 0);
         if (l.tipo === "RETIRADA") totalRetirada += Number(l.quantidade || 0);
       });
