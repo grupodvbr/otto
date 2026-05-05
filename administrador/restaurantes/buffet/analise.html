@@ -507,7 +507,16 @@ let totalRetirado = 0;
 let totalDesperdicio = 0;
   
 (data || []).forEach(r=>{
-  porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
+porPrato[r.produto_nome] ||= {
+  MONTAGEM:0,
+  EMPORIO:0, // 🔥 ESSA LINHA FALTAVA
+  REPOSICAO:0,
+  RETIRADA:0,
+  DEVOLUCAO:0,
+  UNIDADE:r.unidade
+};
+  
+  
   porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
   const q = Number(r.quantidade || 0);
@@ -548,8 +557,7 @@ const pratosFiltrados = Object.entries(porPrato)
     // filtro retirada > 40%
     if(filtroRetirada40){
 
-      const total = v.MONTAGEM + v.REPOSICAO;
-
+const total = v.MONTAGEM + v.EMPORIO + v.REPOSICAO;
       const percentual =
         total > 0
           ? (v.RETIRADA / total * 100)
@@ -563,7 +571,7 @@ const pratosFiltrados = Object.entries(porPrato)
   .sort((a,b)=> (a[0] || "").localeCompare(b[0] || "", 'pt-BR'));
 
 list.innerHTML = pratosFiltrados.map(([nome,v])=>{
-  const total = v.MONTAGEM + v.REPOSICAO;
+const total = v.MONTAGEM + v.EMPORIO + v.REPOSICAO;
   return `
     <div class="item">
       <div class="name">${nome}</div>
@@ -578,8 +586,7 @@ list.innerHTML = pratosFiltrados.map(([nome,v])=>{
 
 tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
 
-  const total = v.MONTAGEM + v.REPOSICAO;
-
+const total = v.MONTAGEM + v.EMPORIO + v.REPOSICAO;
   // 🔥 cálculo percentual retirada
   const percentualRetirada =
     total > 0
@@ -871,8 +878,7 @@ porPrato[r.produto_nome] ||= {
     .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
     .map(([nome,v])=>{
 
-      const total = v.MONTAGEM + v.REPOSICAO;
-
+const total = v.MONTAGEM + v.EMPORIO + v.REPOSICAO;
       const percentualRetirada =
         total > 0
           ? (v.RETIRADA / total * 100)
