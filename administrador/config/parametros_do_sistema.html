@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Parâmetros • Sistema</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#f6f7fb;
+  --bg:#f3f4f6;
   --card:#ffffff;
   --primary:#2563eb;
   --border:#e5e7eb;
   --text:#111827;
-  --muted:#64748b;
-  --success:#22c55e;
+  --muted:#6b7280;
 }
 
 *{box-sizing:border-box;font-family:Inter}
@@ -24,84 +24,96 @@ body{margin:0;background:var(--bg)}
 
 /* HEADER */
 .header{
-  padding:20px;
-  font-size:22px;
+  padding:20px 24px;
+  font-size:20px;
   font-weight:800;
 }
 
-/* FILTROS */
+/* TOPBAR */
 .topbar{
   display:flex;
   gap:10px;
-  padding:0 20px 20px;
+  padding:0 24px 20px;
 }
 
 input{
+  flex:1;
   padding:12px;
   border-radius:10px;
   border:1px solid var(--border);
-  flex:1;
 }
 
 /* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-  gap:20px;
-  padding:0 20px 20px;
+  gap:18px;
+  padding:0 24px 24px;
 }
 
 /* CARD */
 .card{
   background:var(--card);
-  border-radius:16px;
-  padding:16px;
+  border-radius:14px;
   border:1px solid var(--border);
+  padding:14px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:8px;
   transition:.2s;
 }
 
 .card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 15px 30px rgba(0,0,0,.08);
+  transform:translateY(-3px);
+  box-shadow:0 10px 25px rgba(0,0,0,.05);
 }
 
-.nome{font-weight:700;font-size:16px;}
-.mini{font-size:13px;color:var(--muted);}
+.nome{
+  font-weight:700;
+  font-size:15px;
+}
+
+.mini{
+  font-size:12px;
+  color:var(--muted);
+}
 
 /* JSON */
-.jsonBox{
+.json{
   background:#0f172a;
   color:#e5e7eb;
   border-radius:10px;
-  padding:12px;
+  padding:10px;
+  font-size:11px;
   font-family:monospace;
-  font-size:12px;
-  max-height:140px;
+  max-height:120px;
   overflow:auto;
 }
 
-.key{color:#38bdf8}
-.string{color:#34d399}
-.number{color:#fbbf24}
-.boolean{color:#f87171}
-
 /* STATUS */
-.status{font-size:12px;font-weight:600;}
-.ativo{color:var(--success)}
-.inativo{color:#ef4444}
+.status{
+  font-size:12px;
+  font-weight:600;
+}
 
-/* BOTÕES */
-.actions{display:flex;gap:8px;}
+.ativo{color:#16a34a}
+.inativo{color:#dc2626}
+
+/* BUTTONS */
+.actions{
+  display:flex;
+  gap:6px;
+}
+
 button{
   flex:1;
+  padding:8px;
   border:none;
-  padding:10px;
-  border-radius:10px;
+  border-radius:8px;
+  font-size:12px;
   cursor:pointer;
 }
+
 .edit{background:#3b82f6;color:#fff}
 .toggle{background:#22c55e;color:#fff}
 
@@ -109,7 +121,7 @@ button{
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.4);
   display:none;
   align-items:center;
   justify-content:center;
@@ -118,31 +130,18 @@ button{
 .modalBox{
   background:#fff;
   width:95%;
-  max-width:800px;
-  padding:20px;
-  border-radius:16px;
+  max-width:700px;
+  border-radius:14px;
+  padding:18px;
 }
 
 textarea{
   width:100%;
-  height:200px;
-  background:#0f172a;
-  color:#fff;
+  height:180px;
   border-radius:10px;
+  border:1px solid var(--border);
   padding:10px;
   font-family:monospace;
-}
-
-/* TOAST */
-.toast{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:var(--success);
-  color:#fff;
-  padding:12px;
-  border-radius:10px;
-  display:none;
 }
 </style>
 </head>
@@ -163,21 +162,19 @@ textarea{
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modalBox">
-    <h3>Editar Parâmetro</h3>
 
-    <input id="nome"><br><br>
-    <input id="empresa"><br><br>
-    <input id="tipo"><br><br>
+    <input id="nome" placeholder="Nome"><br><br>
+    <input id="empresa" placeholder="Empresa"><br><br>
+    <input id="tipo" placeholder="Tipo"><br><br>
 
     <textarea id="json"></textarea>
 
     <br><br>
     <button onclick="salvar()">Salvar</button>
     <button onclick="fechar()">Cancelar</button>
+
   </div>
 </div>
-
-<div class="toast" id="toast">Salvo com sucesso</div>
 
 <script>
 const sb = window.supabase.createClient(
@@ -188,32 +185,18 @@ const sb = window.supabase.createClient(
 let dados=[]
 let editando=null
 
-function showToast(){
-  toast.style.display="block"
-  setTimeout(()=>toast.style.display="none",2000)
-}
-
-function colorJSON(obj){
-  let json=JSON.stringify(obj,null,2)
-  return json
-  .replace(/"(.*?)":/g,'<span class="key">"$1"</span>:')
-  .replace(/: "(.*?)"/g,': <span class="string">"$1"</span>')
-  .replace(/: (\d+)/g,': <span class="number">$1</span>')
-  .replace(/: (true|false)/g,': <span class="boolean">$1</span>')
-}
-
 /* LOAD */
 async function carregar(){
   const {data} = await sb.from("parametros_sistema").select("*")
-  dados=data||[]
+  dados = data || []
   render()
 }
 
 /* RENDER */
 function render(){
-  let b=busca.value.toLowerCase()
-  let e=empresaFiltro.value.toLowerCase()
-  let t=tipoFiltro.value.toLowerCase()
+  let b = busca.value.toLowerCase()
+  let e = empresaFiltro.value.toLowerCase()
+  let t = tipoFiltro.value.toLowerCase()
 
   lista.innerHTML=""
 
@@ -226,11 +209,12 @@ function render(){
   .forEach(p=>{
     lista.innerHTML+=`
       <div class="card">
-        <div class="nome">${p.nome_parametro}</div>
-        <div class="mini">${p.empresa||'-'}</div>
-        <div class="mini">${p.tipo||'-'}</div>
 
-        <div class="jsonBox">${colorJSON(p.dados)}</div>
+        <div class="nome">${p.nome_parametro}</div>
+
+        <div class="mini">${p.empresa||'-'} • ${p.tipo||'-'}</div>
+
+        <div class="json">${JSON.stringify(p.dados,null,2)}</div>
 
         <div class="status ${p.ativo?'ativo':'inativo'}">
           ${p.ativo?'● Ativo':'● Inativo'}
@@ -240,6 +224,7 @@ function render(){
           <button class="edit" onclick='editar(${JSON.stringify(p)})'>Editar</button>
           <button class="toggle" onclick='toggle("${p.id}",${p.ativo})'>Status</button>
         </div>
+
       </div>
     `
   })
@@ -256,11 +241,6 @@ function novo(){
   json.value="{}"
 }
 
-/* FECHAR */
-function fechar(){
-  modal.style.display="none"
-}
-
 /* EDITAR */
 function editar(p){
   editando=p.id
@@ -272,7 +252,12 @@ function editar(p){
   json.value=JSON.stringify(p.dados,null,2)
 }
 
-/* SALVAR (TEMPO REAL) */
+/* FECHAR */
+function fechar(){
+  modal.style.display="none"
+}
+
+/* SALVAR (SILENCIOSO E DIRETO) */
 async function salvar(){
 
   let dadosJSON
@@ -280,15 +265,14 @@ async function salvar(){
   try{
     dadosJSON = JSON.parse(json.value)
   }catch{
-    alert("JSON inválido")
     return
   }
 
-  const payload={
-    nome_parametro:nome.value,
-    empresa:empresa.value,
-    tipo:tipo.value,
-    dados:dadosJSON
+  const payload = {
+    nome_parametro: nome.value,
+    empresa: empresa.value,
+    tipo: tipo.value,
+    dados: dadosJSON
   }
 
   let res
@@ -297,27 +281,19 @@ async function salvar(){
     res = await sb.from("parametros_sistema")
       .update(payload)
       .eq("id",editando)
+
+    dados = dados.map(d => d.id === editando ? {...d, ...payload} : d)
+
   }else{
     res = await sb.from("parametros_sistema")
       .insert(payload)
       .select()
-  }
 
-  if(res.error){
-    alert(res.error.message)
-    return
-  }
-
-  /* 🔥 ATUALIZA EM TEMPO REAL */
-  if(editando){
-    dados = dados.map(d => d.id === editando ? {...d, ...payload} : d)
-  }else{
     dados.unshift(res.data[0])
   }
 
   fechar()
   render()
-  showToast()
 }
 
 /* STATUS */
@@ -330,7 +306,6 @@ async function toggle(id,status){
   render()
 }
 
-/* EVENTOS */
 busca.oninput=render
 empresaFiltro.oninput=render
 tipoFiltro.oninput=render
