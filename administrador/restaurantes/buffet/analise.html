@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
@@ -320,6 +321,12 @@ html, body {
 <button type="button" onclick="baixarImagem()">
   <i class="ri-image-line"></i> Imagem
 </button>
+
+<button type="button" onclick="gerarPDFResumo()">
+  <i class="ri-file-pdf-2-line"></i> PDF
+</button>
+
+  
 
 <button type="button" id="btnRetirada40">
   🔥 > 40% Ret.
@@ -1665,6 +1672,168 @@ async function baixarImagem(){
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
+
+
+async function gerarPDFResumo(){
+
+  const { jsPDF } = window.jspdf;
+
+  const empresa = empresaSelect.value;
+  const inicio = rangeSelecionado[0];
+  const fim = rangeSelecionado[1];
+
+  const PRECO_KG = 104.90;
+
+  let query = sb
+    .from("buffet_lancamentos")
+    .select("produto_nome, consumo_para_nome, quantidade, tipo")
+    .eq("empresa", empresa);
+
+  if(rangeSelecionado.length === 2){
+    query = query.gte("data", inicio);
+    query = query.lte("data", fim);
+  }
+
+  const { data, error } = await query;
+
+  if(error){
+    alert("Erro ao gerar PDF.");
+    console.error(error);
+    return;
+  }
+
+  const porDestino = {};
+
+  (data || []).forEach(r=>{
+    if(r.tipo !== "RETIRADA") return;
+
+    const destino = r.consumo_para_nome || "SEM DESTINO";
+    const prato = r.produto_nome || "SEM NOME";
+    const qtd = Number(r.quantidade || 0);
+
+    if(!porDestino[destino]){
+      porDestino[destino] = {
+        totalKg: 0,
+        itens: {}
+      };
+    }
+
+    porDestino[destino].totalKg += qtd;
+    porDestino[destino].itens[prato] =
+      (porDestino[destino].itens[prato] || 0) + qtd;
+  });
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  let y = 16;
+
+  pdf.setFillColor(255, 106, 0);
+  pdf.rect(0, 0, 210, 26, "F");
+
+  pdf.setTextColor(255,255,255);
+  pdf.setFontSize(16);
+  pdf.setFont(undefined, "bold");
+  pdf.text("Relatório de Retiradas do Buffet", 12, 12);
+
+  pdf.setFontSize(9);
+  pdf.setFont(undefined, "normal");
+  pdf.text(`${empresa} • ${formatBR(inicio)} até ${formatBR(fim)}`, 12, 20);
+
+  y = 36;
+
+  let totalGeralKg = 0;
+
+  Object.values(porDestino).forEach(d=>{
+    totalGeralKg += d.totalKg;
+  });
+
+  const totalGeralValor = totalGeralKg * PRECO_KG;
+
+  pdf.setTextColor(17,24,39);
+  pdf.setFontSize(12);
+  pdf.setFont(undefined, "bold");
+  pdf.text("Resumo Geral", 12, y);
+
+  y += 8;
+
+  pdf.setFontSize(10);
+  pdf.setFont(undefined, "normal");
+  pdf.text(`Total retirado: ${totalGeralKg.toFixed(3)} KG`, 12, y);
+  pdf.text(
+    `Valor total: ${totalGeralValor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}`,
+    115,
+    y
+  );
+
+  y += 12;
+
+  Object.entries(porDestino)
+    .sort((a,b)=>b[1].totalKg - a[1].totalKg)
+    .forEach(([destino,info])=>{
+
+      if(y > 270){
+        pdf.addPage();
+        y = 16;
+      }
+
+      const valorDestino = info.totalKg * PRECO_KG;
+
+      pdf.setFillColor(248,250,252);
+      pdf.roundedRect(10, y - 5, 190, 12, 3, 3, "F");
+
+      pdf.setFontSize(11);
+      pdf.setFont(undefined, "bold");
+      pdf.setTextColor(17,24,39);
+      pdf.text(destino, 14, y + 2);
+
+      pdf.setFontSize(9);
+      pdf.setTextColor(22,163,74);
+      pdf.text(
+        `${info.totalKg.toFixed(3)} KG • ${valorDestino.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}`,
+        130,
+        y + 2
+      );
+
+      y += 12;
+
+      Object.entries(info.itens)
+        .sort((a,b)=>b[1]-a[1])
+        .forEach(([prato,kg])=>{
+
+          if(y > 280){
+            pdf.addPage();
+            y = 16;
+          }
+
+          const valorItem = kg * PRECO_KG;
+
+          pdf.setFontSize(8);
+          pdf.setTextColor(55,65,81);
+          pdf.text(prato.substring(0, 58), 16, y);
+
+          pdf.setTextColor(17,24,39);
+          pdf.text(`${kg.toFixed(3)} KG`, 130, y);
+
+          pdf.setTextColor(100,116,139);
+          pdf.text(
+            valorItem.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),
+            160,
+            y
+          );
+
+          y += 5;
+        });
+
+      y += 6;
+    });
+
+  pdf.save(`Relatorio_Retiradas_${empresa}_${inicio}_${fim}.pdf`);
+}
+
+
+
+
+  
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
