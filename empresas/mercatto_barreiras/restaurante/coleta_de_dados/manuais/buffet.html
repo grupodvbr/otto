@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Como funciona • Buffet</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+<style>
+
+:root{
+  --primary:#ff6a00;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --sub:#6b7280;
+  --radius:16px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box;font-family:Inter}
+
+body{
+  margin:0;
+  background:var(--bg);
+}
+
+/* ===== CONTAINER ===== */
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:24px;
+}
+
+/* ===== HEADER ===== */
+
+.header{
+  margin-bottom:20px;
+}
+
+.title{
+  font-size:26px;
+  font-weight:900;
+}
+
+.sub{
+  color:var(--sub);
+  font-size:14px;
+}
+
+/* ===== CARD ===== */
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:14px;
+}
+
+/* ===== TITLES ===== */
+
+.section-title{
+  font-weight:900;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* ===== GRID ===== */
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+@media(max-width:700px){
+  .grid{grid-template-columns:1fr;}
+}
+
+/* ===== ITEM ===== */
+
+.item{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  color:#fff;
+}
+
+/* cores iguais seu sistema */
+.montagem{background:#16a34a}
+.emporio{background:#0d9488}
+.reposicao{background:#2563eb}
+.retirada{background:#dc2626}
+.desperdicio{background:#f59e0b}
+
+/* ===== FLOW ===== */
+
+.flow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.step{
+  padding:10px 14px;
+  border-radius:10px;
+  background:#f9fafb;
+  border:1px solid var(--border);
+  font-size:13px;
+  font-weight:600;
+}
+
+/* ===== ALERT ===== */
+
+.alert{
+  padding:12px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.alert.red{background:#fee2e2;color:#991b1b}
+.alert.green{background:#dcfce7;color:#166534}
+.alert.yellow{background:#fef3c7;color:#92400e}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+  <div class="title">🍽️ Como funciona o Buffet</div>
+  <div class="sub">Controle completo de produção, saída e perdas</div>
+</div>
+
+<!-- TIPOS -->
+<div class="card">
+<div class="section-title">📊 Tipos de lançamento</div>
+
+<div class="grid">
+
+<div class="item">
+<div class="icon montagem"><i class="ri-restaurant-line"></i></div>
+<div>
+<b>Montagem</b><br>
+Produção feita na cozinha
+</div>
+</div>
+
+<div class="item">
+<div class="icon emporio"><i class="ri-store-2-line"></i></div>
+<div>
+<b>Empório</b><br>
+Produto pronto que veio de fora
+</div>
+</div>
+
+<div class="item">
+<div class="icon reposicao"><i class="ri-refresh-line"></i></div>
+<div>
+<b>Reposição</b><br>
+Reforço do buffet durante o serviço
+</div>
+</div>
+
+<div class="item">
+<div class="icon retirada"><i class="ri-arrow-right-line"></i></div>
+<div>
+<b>Retirada</b><br>
+Saída para cliente, setor ou consumo
+</div>
+</div>
+
+<div class="item">
+<div class="icon desperdicio"><i class="ri-delete-bin-line"></i></div>
+<div>
+<b>Desperdício</b><br>
+Perda ou descarte do alimento
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- FLUXO -->
+<div class="card">
+<div class="section-title">🔄 Fluxo do sistema</div>
+
+<div class="flow">
+<div class="step">Montagem</div>
+<div class="step">Empório</div>
+<div class="step">Reposição</div>
+<div class="step">➡</div>
+<div class="step">Saldo disponível</div>
+<div class="step">➡</div>
+<div class="step">Retirada</div>
+<div class="step">ou</div>
+<div class="step">Desperdício</div>
+</div>
+
+</div>
+
+<!-- REGRAS -->
+<div class="card">
+<div class="section-title">🧠 Regras automáticas</div>
+
+<div class="item">
+<i class="ri-scales-3-line"></i>
+<div>Peso líquido = Bruto - Tara</div>
+</div>
+
+<div class="item">
+<i class="ri-shield-check-line"></i>
+<div>Não permite retirar mais do que foi produzido</div>
+</div>
+
+<div class="item">
+<i class="ri-time-line"></i>
+<div>Data e hora são automáticas</div>
+</div>
+
+<div class="item">
+<i class="ri-user-line"></i>
+<div>Retirada fica vinculada a pessoa ou setor</div>
+</div>
+
+</div>
+
+<!-- BLOQUEIOS -->
+<div class="card">
+<div class="section-title">🚫 Bloqueios do sistema</div>
+
+<div class="alert red">
+❌ Não existe montagem → não pode retirar
+</div>
+
+<div class="alert red">
+❌ Retirada maior que saldo → bloqueado
+</div>
+
+<div class="alert red">
+❌ Saldo zerado → bloqueado
+</div>
+
+</div>
+
+<!-- EXEMPLO -->
+<div class="card">
+<div class="section-title">📈 Exemplo real</div>
+
+<div class="flow">
+<div class="step">Montagem: 10kg</div>
+<div class="step">Reposição: 5kg</div>
+<div class="step">➡</div>
+<div class="step">Total: 15kg</div>
+<div class="step">➡</div>
+<div class="step">Retirada: 8kg</div>
+<div class="step">➡</div>
+<div class="step">Saldo: 7kg</div>
+</div>
+
+</div>
+
+</div>
+
+</body>
+</html>
