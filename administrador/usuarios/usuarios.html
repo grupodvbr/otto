@@ -638,7 +638,7 @@ await sb.from("usuarios_do_sistema")
   status_funcionario: status_funcionario.value,
   observacoes: obs.value,
 
-  atualizado_em: new Date()
+atualizado_em: new Date().toISOString()
 })
 .eq("id", atual.id)
 
