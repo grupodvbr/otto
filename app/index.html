@@ -157,16 +157,21 @@ body{
 .filters-card{
   background:#fff;
   border:1px solid var(--border);
-  border-radius:24px;
-  padding:14px;
+  border-radius:20px;
+  padding:10px;
   box-shadow:var(--shadow);
-  margin-bottom:16px;
+  margin-bottom:12px;
 }
+
+
+  
 
 .search{
   position:relative;
-  margin-bottom:12px;
+  margin-bottom:8px;
 }
+
+  
 
 .search i{
   position:absolute;
@@ -178,7 +183,7 @@ body{
 
 .search input{
   width:100%;
-  height:48px;
+  height:42px;
   border-radius:16px;
   border:1px solid var(--border);
   padding:0 14px 0 42px;
@@ -192,10 +197,10 @@ body{
 }
 
 .filter-title{
-  font-size:11px;
+  font-size:9px;
   font-weight:900;
   color:#374151;
-  margin:10px 2px 7px;
+  margin:6px 2px 5px;
   text-transform:uppercase;
 }
 
@@ -207,8 +212,8 @@ body{
 }
 
 .chip{
-  height:38px;
-  padding:0 14px;
+  height:30px;
+  padding:0 11px;
   border-radius:999px;
   border:1px solid var(--border);
   background:#fff;
@@ -721,8 +726,32 @@ iframe{
 
   .install-main{
     grid-template-columns:1fr;
+
+  
   }
+
+.filters-grid{
+  grid-template-columns:1fr;
+  gap:4px;
 }
+
+
+  
+}
+
+.filters-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -766,14 +795,24 @@ iframe{
       <input id="busca" placeholder="Buscar aplicativo, loja, setor ou modalidade..." oninput="renderizarApps()">
     </div>
 
+<div class="filters-grid">
+
+  <div>
     <div class="filter-title">Lojas</div>
     <div class="filter-row" id="filtroLojas"></div>
+  </div>
 
+  <div>
     <div class="filter-title">Setores</div>
     <div class="filter-row" id="filtroSetores"></div>
+  </div>
 
+  <div>
     <div class="filter-title">Modalidades</div>
     <div class="filter-row" id="filtroModalidades"></div>
+  </div>
+
+</div>
 
   </section>
 
