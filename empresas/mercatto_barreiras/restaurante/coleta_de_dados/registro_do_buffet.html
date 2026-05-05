@@ -329,6 +329,37 @@ button.ghost{
   }
 
 }
+.alerta-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ef4444;
+  box-shadow:0 0 0 rgba(239,68,68,0.7);
+  animation:pulseRed 1.2s infinite;
+}
+
+@keyframes pulseRed{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(239,68,68,0.7);
+  }
+  70%{
+    transform:scale(1.4);
+    box-shadow:0 0 0 10px rgba(239,68,68,0);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(239,68,68,0);
+  }
+}
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
@@ -722,8 +753,36 @@ lista.innerHTML += `
     <div>
 
       <!-- TÍTULO -->
-      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
-        <span>${l.produto_nome}</span>
+<div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+
+  <span>${l.produto_nome}</span>
+
+  ${
+    l.tipo === "MONTAGEM" && Number(l.quantidade) < 0.05
+      ? `<span class="alerta-dot"></span>`
+      : ``
+  }
+
+  ${
+    (l.consumo_para_nome && l.tipo === "RETIRADA") ||
+    (l.consumo_autorizado && l.consumo_para_nome)
+      ? `<span style="
+            background:#ede9fe;
+            color:#5b21b6;
+            padding:6px 12px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            line-height:1;
+          ">
+            👤 ${l.consumo_para_nome}
+          </span>`
+      : ``
+  }
+</div>
 
         ${
 (l.consumo_para_nome && l.tipo === "RETIRADA") ||
