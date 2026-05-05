@@ -15,88 +15,114 @@
   --primary:#2563eb;
   --border:#e5e7eb;
   --text:#111827;
-  --muted:#6b7280;
+  --muted:#64748b;
 }
 
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg)}
 
+/* HEADER */
 .header{
   padding:20px;
   font-size:22px;
   font-weight:800;
 }
 
-.container{
-  padding:20px;
-}
-
+/* FILTROS */
 .topbar{
   display:flex;
   gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:20px;
+  padding:0 20px 20px;
 }
 
 input{
-  padding:12px;
+  padding:10px;
   border-radius:10px;
   border:1px solid var(--border);
 }
 
-button{
-  background:var(--primary);
-  color:#fff;
-  border:none;
-  padding:10px 14px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* TABLE */
-.table{
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden;
-}
-
-.row{
+/* GRID */
+.grid{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr 120px 160px;
-  padding:14px;
-  border-bottom:1px solid var(--border);
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:20px;
+  padding:0 20px 20px;
 }
 
-.row.header{
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transition:.2s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 15px 30px rgba(0,0,0,.08);
+}
+
+.nome{
   font-weight:700;
-  background:#f9fafb;
+  font-size:16px;
 }
 
-.badge{
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:12px;
+.mini{
+  font-size:13px;
+  color:var(--muted);
 }
-
-.on{background:#dcfce7;color:#166534;}
-.off{background:#fee2e2;color:#991b1b}
 
 /* JSON */
-.code{
+.jsonBox{
   background:#0f172a;
-  padding:12px;
+  color:#e5e7eb;
   border-radius:10px;
+  padding:12px;
   font-family:monospace;
   font-size:12px;
+
   max-height:140px;
-  overflow:auto;
+  overflow:auto; /* 🔥 scroll interno */
+
+  line-height:1.5;
 }
 
+/* CORES JSON */
 .key{color:#38bdf8}
 .string{color:#34d399}
 .number{color:#fbbf24}
 .boolean{color:#f87171}
-.null{color:#a78bfa}
+
+/* STATUS */
+.status{
+  font-size:12px;
+  font-weight:600;
+}
+
+.ativo{color:#22c55e}
+.inativo{color:#ef4444}
+
+/* BOTÕES */
+.actions{
+  display:flex;
+  gap:8px;
+}
+
+button{
+  flex:1;
+  border:none;
+  padding:8px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.edit{background:#3b82f6;color:#fff}
+.toggle{background:#22c55e;color:#fff}
 
 /* MODAL */
 .modal{
@@ -111,14 +137,14 @@ button{
 .modalBox{
   background:#fff;
   width:95%;
-  max-width:900px;
+  max-width:800px;
   padding:20px;
   border-radius:16px;
 }
 
 textarea{
   width:100%;
-  height:180px;
+  height:200px;
   background:#0f172a;
   color:#fff;
   border-radius:10px;
@@ -126,27 +152,12 @@ textarea{
   font-family:monospace;
 }
 
-/* TOAST */
-.toast{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#111;
-  color:#fff;
-  padding:12px;
-  border-radius:8px;
-  opacity:0;
-  transition:.3s;
-}
-.toast.show{opacity:1;}
 </style>
 </head>
 
 <body>
 
 <div class="header">⚙️ Parâmetros do Sistema</div>
-
-<div class="container">
 
 <div class="topbar">
 <input id="busca" placeholder="Buscar">
@@ -155,18 +166,16 @@ textarea{
 <button onclick="novo()">+ Novo</button>
 </div>
 
-<div class="table" id="tabela"></div>
-
-</div>
+<div class="grid" id="lista"></div>
 
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modalBox">
-    <h3>Editar Parâmetro</h3>
+    <h3>Editar</h3>
 
-    <input id="nome" placeholder="Nome"><br><br>
-    <input id="empresa" placeholder="Empresa"><br><br>
-    <input id="tipo" placeholder="Tipo"><br><br>
+    <input id="nome"><br><br>
+    <input id="empresa"><br><br>
+    <input id="tipo"><br><br>
 
     <textarea id="json"></textarea>
 
@@ -176,11 +185,7 @@ textarea{
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-
-// 🔥 SUPABASE (SEM DUPLICAÇÃO)
 const sb = window.supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
@@ -189,15 +194,6 @@ const sb = window.supabase.createClient(
 let dados=[]
 let editando=null
 
-const toastEl=document.getElementById("toast")
-
-function msg(t){
-  toastEl.innerText=t
-  toastEl.classList.add("show")
-  setTimeout(()=>toastEl.classList.remove("show"),2000)
-}
-
-/* JSON COLOR */
 function colorJSON(obj){
   let json=JSON.stringify(obj,null,2)
   return json
@@ -205,41 +201,20 @@ function colorJSON(obj){
   .replace(/: "(.*?)"/g,': <span class="string">"$1"</span>')
   .replace(/: (\d+)/g,': <span class="number">$1</span>')
   .replace(/: (true|false)/g,': <span class="boolean">$1</span>')
-  .replace(/: null/g,': <span class="null">null</span>')
 }
 
-/* LOAD */
 async function carregar(){
-  const {data,error}=await sb
-  .from("parametros_sistema")
-  .select("*")
-  .order("criado_em",{ascending:false})
-
-  if(error){
-    console.error(error)
-    msg("Erro ao carregar")
-    return
-  }
-
+  const {data}=await sb.from("parametros_sistema").select("*")
   dados=data||[]
   render()
 }
 
-/* RENDER */
 function render(){
-  let b=document.getElementById("busca").value.toLowerCase()
-  let e=document.getElementById("empresaFiltro").value.toLowerCase()
-  let t=document.getElementById("tipoFiltro").value.toLowerCase()
+  let b=busca.value.toLowerCase()
+  let e=empresaFiltro.value.toLowerCase()
+  let t=tipoFiltro.value.toLowerCase()
 
-  tabela.innerHTML=`
-    <div class="row header">
-      <div>Nome</div>
-      <div>Empresa</div>
-      <div>Tipo</div>
-      <div>Status</div>
-      <div>Ações</div>
-    </div>
-  `
+  lista.innerHTML=""
 
   dados
   .filter(p=>
@@ -248,26 +223,23 @@ function render(){
     (!t || (p.tipo||'').toLowerCase().includes(t))
   )
   .forEach(p=>{
-    tabela.innerHTML+=`
-      <div class="row">
+    lista.innerHTML+=`
+      <div class="card">
 
-        <div>
-          <b>${p.nome_parametro}</b>
-          <div class="code">${colorJSON(p.dados)}</div>
+        <div class="nome">${p.nome_parametro}</div>
+
+        <div class="mini">${p.empresa || '-'}</div>
+        <div class="mini">${p.tipo || '-'}</div>
+
+        <div class="jsonBox">${colorJSON(p.dados)}</div>
+
+        <div class="status ${p.ativo?'ativo':'inativo'}">
+          ${p.ativo?'● Ativo':'● Inativo'}
         </div>
 
-        <div>${p.empresa||'-'}</div>
-        <div>${p.tipo||'-'}</div>
-
-        <div>
-          <span class="badge ${p.ativo?'on':'off'}">
-            ${p.ativo?'Ativo':'Inativo'}
-          </span>
-        </div>
-
-        <div>
-          <button onclick='editar(${JSON.stringify(p)})'>Editar</button>
-          <button onclick='toggle("${p.id}",${p.ativo})'>Status</button>
+        <div class="actions">
+          <button class="edit" onclick='editar(${JSON.stringify(p)})'>Editar</button>
+          <button class="toggle" onclick='toggle("${p.id}",${p.ativo})'>Status</button>
         </div>
 
       </div>
@@ -275,7 +247,6 @@ function render(){
   })
 }
 
-/* MODAL */
 function novo(){
   editando=null
   modal.style.display="flex"
@@ -296,14 +267,13 @@ function editar(p){
   json.value=JSON.stringify(p.dados,null,2)
 }
 
-/* SALVAR */
 async function salvar(){
   let dadosJSON
 
   try{
     dadosJSON=JSON.parse(json.value)
   }catch{
-    msg("JSON inválido")
+    alert("JSON inválido")
     return
   }
 
@@ -314,45 +284,32 @@ async function salvar(){
     dados:dadosJSON
   }
 
-  let res
-
   if(editando){
-    res=await sb.from("parametros_sistema")
+    await sb.from("parametros_sistema")
       .update(payload)
       .eq("id",editando)
   }else{
-    res=await sb.from("parametros_sistema")
+    await sb.from("parametros_sistema")
       .insert(payload)
   }
 
-  if(res.error){
-    console.error(res.error)
-    msg("Erro: "+res.error.message)
-    return
-  }
-
-  msg("Salvo")
   fechar()
   carregar()
 }
 
-/* STATUS */
 async function toggle(id,status){
   await sb.from("parametros_sistema")
     .update({ativo:!status})
     .eq("id",id)
 
-  msg("Atualizado")
   carregar()
 }
 
-/* EVENTOS */
-document.getElementById("busca").oninput=render
-document.getElementById("empresaFiltro").oninput=render
-document.getElementById("tipoFiltro").oninput=render
+busca.oninput=render
+empresaFiltro.oninput=render
+tipoFiltro.oninput=render
 
 carregar()
-
 </script>
 
 </body>
