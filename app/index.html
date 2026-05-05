@@ -206,24 +206,27 @@ body{
 
 .filter-row{
   display:flex;
-  gap:8px;
-  overflow:auto;
-  padding-bottom:2px;
+  flex-wrap:wrap;
+  gap:6px;
+  overflow:visible;
+  padding-bottom:0;
 }
 
 .chip{
-  height:30px;
-  padding:0 11px;
+  height:28px;
+  padding:0 9px;
   border-radius:999px;
   border:1px solid var(--border);
   background:#fff;
   color:#374151;
-  font-size:12px;
+  font-size:10px;
   font-weight:900;
   white-space:nowrap;
   cursor:pointer;
 }
 
+
+  
 .chip.active{
   background:#111827;
   color:#fff;
@@ -708,20 +711,20 @@ iframe{
     margin:5px 2px 4px;
   }
 
-  .filter-row{
-    display:flex;
-    gap:6px;
-    overflow-x:auto;
-    padding-bottom:4px;
-    -webkit-overflow-scrolling:touch;
-  }
+.filter-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  overflow:visible;
+  padding-bottom:0;
+}
 
-  .chip{
-    height:30px;
-    font-size:10px;
-    padding:0 10px;
-    flex:0 0 auto;
-  }
+.chip{
+  height:27px;
+  font-size:9px;
+  padding:0 8px;
+  flex:0 0 auto;
+}
 
   .summary{
     grid-template-columns:repeat(3,1fr);
@@ -1013,12 +1016,12 @@ const APPS = [
 ];
 
 const LOJAS = [
-  "Todas",
-  "Mercatto Delícia",
-  "Villa Gourmet",
-  "M.Kids",
-  "Padaria Delícia",
-  "Delícia Gourmet"
+  { label:"Todas", value:"Todas" },
+  { label:"Mercatto", value:"Mercatto Delícia" },
+  { label:"Villa", value:"Villa Gourmet" },
+  { label:"M.Kids", value:"M.Kids" },
+  { label:"Padaria", value:"Padaria Delícia" },
+  { label:"Delícia", value:"Delícia Gourmet" }
 ];
 
 const SETORES = [
@@ -1062,12 +1065,13 @@ function normalizar(txt){
 
 function criarChips(){
 
-  document.getElementById("filtroLojas").innerHTML = LOJAS.map(loja=>`
-    <button class="chip ${filtroLoja === loja ? "active" : ""}" onclick="setLoja('${loja}')">
-      ${loja}
-    </button>
-  `).join("");
+document.getElementById("filtroLojas").innerHTML = LOJAS.map(loja=>`
+  <button class="chip ${filtroLoja === loja.value ? "active" : ""}" onclick="setLoja('${loja.value}')">
+    ${loja.label}
+  </button>
+`).join("");
 
+  
   document.getElementById("filtroSetores").innerHTML = SETORES.map(setor=>`
     <button class="chip ${filtroSetor === setor ? "active" : ""}" onclick="setSetor('${setor}')">
       ${setor}
