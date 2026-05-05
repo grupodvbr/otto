@@ -316,13 +316,65 @@ setTimeout(() => {
 }, 2600);
 </script>
 
+
+
+
+<script>
+
+/* =========================
+   PROTEÇÃO LOGIN
+========================= */
+
+const usuarioLogado = JSON.parse(
+  localStorage.getItem("usuarioLogado") || "null"
+);
+
+if(!usuarioLogado){
+
+  const paginaAtual = encodeURIComponent(
+    location.pathname.split("/").pop()
+  );
+
+  location.href = `../login.html?redirect=${paginaAtual}`;
+
+}
+
+/* somente nível 0 */
+
+if(usuarioLogado && usuarioLogado.nivel_acesso != 0){
+
+  alert("Sem permissão.");
+
+  localStorage.removeItem("usuarioLogado");
+
+  location.href = "../login.html";
+
+}
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+     
 <!-- SIDEBAR -->
 <div id="sidebar">
 
   <div id="toggleSidebar" onclick="toggleMenu()">☰</div>
 
-  <div class="sidebar-title">ESTOQUE</div>
+<div class="sidebar-title" id="nomeEmpresa">
+  ESTOQUE
+</div>
 
+     
   <div class="nav-item" onclick="loadPage()">
     <span class="nav-text">Dashboard</span>
   </div>
@@ -414,6 +466,45 @@ function loadPage(){
   homeSection.style.display="block";
   iframePage.style.display="none";
 }
+
+
+
+/* =========================
+   MOSTRA EMPRESA
+========================= */
+
+if(usuarioLogado?.empresa){
+
+  document.getElementById("nomeEmpresa").innerText =
+    usuarioLogado.empresa;
+
+}
+
+/* =========================
+   SAIR
+========================= */
+
+function sairSistema(){
+
+  localStorage.removeItem("usuarioLogado");
+
+  location.href = "../login.html";
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
 </script>
 
 <!-- ============================
