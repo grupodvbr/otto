@@ -4,502 +4,725 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Execução de Cotação PRO</title>
+<title>Cotações • Mercatto</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-/* ================= BASE ================= */
-body{
-  margin:0;
-  font-family:Inter;
-  background:#eef2f7;
-  color:#0f172a;
+
+:root{
+  --primary:#111827;
+  --primary2:#1f2937;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --green:#16a34a;
+  --red:#dc2626;
+  --yellow:#ca8a04;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+  --radius:18px;
 }
 
-/* ================= HEADER ================= */
-.header{
-  background:#020617;
-  color:#fff;
-  padding:16px 20px;
-  font-size:16px;
-  font-weight:600;
-  box-shadow:0 4px 20px rgba(0,0,0,.15);
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
 }
 
 /* ================= TOPO ================= */
+
 .top{
-  display:flex;
-  gap:10px;
-  padding:15px 20px;
   background:#fff;
-  border-bottom:1px solid #e5e7eb;
-}
-
-select{
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #d1d5db;
-  min-width:220px;
-  background:#fff;
-}
-
-button{
-  padding:10px 16px;
-  border-radius:10px;
-  border:none;
-  background:#2563eb;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-  transition:.2s;
-}
-
-button:hover{
-  background:#1d4ed8;
-}
-
-/* ================= TABELA ================= */
-.table-wrap{
-  overflow:auto;
-}
-
-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  background:#fff;
-  table-layout:fixed;
-}
-
-/* HEADER FIXO */
-thead{
+  padding:20px;
+  border-bottom:1px solid var(--border);
   position:sticky;
   top:0;
-  z-index:2;
+  z-index:100;
 }
 
-th{
-  background:#020617;
-  color:#fff;
+.top-flex{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.top input{
+  flex:1;
+  min-width:220px;
   padding:12px;
-  font-size:12px;
-  font-weight:600;
-  border-right:1px solid #111;
-  text-align:center;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
 }
 
-td{
-  padding:8px 10px;
-  border-bottom:1px solid #f1f5f9;
-  border-right:1px solid #f1f5f9;
-  text-align:center;
-  height:60px;
+.top button{
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
 }
 
+/* ================= LAYOUT ================= */
 
-
-/* ================= PRODUTO ================= */
-.prod{
-  text-align:left;
-  width:300px;
-  padding-left:16px;
+.layout{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:18px;
+  padding:18px;
 }
 
-.prod strong{
-  font-size:14px;
-  display:block;
+@media(max-width:1000px){
+  .layout{
+    grid-template-columns:1fr;
+  }
 }
 
-.prod span{
+/* ================= CARD ================= */
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+
+.card-header{
+  padding:16px 18px;
+  border-bottom:1px solid var(--border);
+  font-size:15px;
+  font-weight:800;
+}
+
+.card-body{
+  padding:16px;
+}
+
+/* ================= COTAÇÕES ================= */
+
+.cotacao{
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.2s;
+  background:#fff;
+}
+
+.cotacao:hover{
+  transform:translateY(-2px);
+  border-color:#cbd5e1;
+}
+
+.cotacao h3{
+  font-size:15px;
+  margin-bottom:4px;
+}
+
+.cotacao small{
+  color:var(--muted);
+}
+
+.badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.badge{
+  padding:5px 10px;
+  border-radius:999px;
   font-size:11px;
-  color:#64748b;
+  font-weight:700;
 }
 
-/* ================= BOX FORNECEDOR ================= */
-.box{
+.ativa{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.finalizada{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.total{
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+
+/* ================= ITENS ================= */
+
+.itens{
   display:flex;
   flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  width:100%;
+  gap:12px;
 }
 
-.row{
+.item{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+}
+
+.item-top{
   display:flex;
-  justify-content:center;
-  width:100%;
+  justify-content:space-between;
+  gap:10px;
 }
 
-input{
-  width:90px;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid #d1d5db;
-  text-align:center;
-  font-weight:600;
-  font-size:13px;
-}
-
-/* ================= INPUT ================= */
-input{
-  width:100px;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-  text-align:center;
-  font-weight:600;
-  font-size:13px;
-  outline:none;
-}
-
-input:focus{
-  border-color:#2563eb;
-  box-shadow:0 0 0 2px rgba(37,99,235,.15);
-}
-
-/* ================= RESULTADO ================= */
-.result{
+.item h4{
   font-size:14px;
-  font-weight:700;
-  color:#0f172a;
 }
 
-/* ================= CORES (SUAVE) ================= */
-.verde{
-  background:#ecfdf5;
+.item small{
+  color:var(--muted);
 }
 
-.vermelho{
-  background:#fef2f2;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;
+  margin-top:12px;
 }
 
-.laranja{
-  background:#fffbeb;
+.info{
+  background:#f9fafb;
+  border-radius:10px;
+  padding:10px;
 }
 
-/* ================= HOVER ================= */
-tr:hover td{
-  background:#f8fafc;
+.info span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:4px;
 }
 
-/* ================= SCROLL ================= */
-::-webkit-scrollbar{
-  height:8px;
-  width:8px;
+.info b{
+  font-size:14px;
 }
 
-::-webkit-scrollbar-thumb{
-  background:#cbd5e1;
-  border-radius:6px;
+/* ================= FORNECEDORES ================= */
+
+.fornecedores{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:14px;
 }
+
+.for{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:.2s;
+  font-size:12px;
+  font-weight:600;
+}
+
+.for:hover{
+  background:#f3f4f6;
+}
+
+.for.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+/* ================= OVERLAY ================= */
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,.7);
+  backdrop-filter:blur(4px);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  font-size:18px;
+  font-weight:800;
+}
+
+/* ================= EMPTY ================= */
+
+.empty{
+  padding:30px;
+  text-align:center;
+  color:var(--muted);
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h2 id="titulo"></h2>
-</div>
-
 <div class="top">
-<input id="buscaFornecedor" placeholder="🔍 Buscar fornecedor..." oninput="filtrarFornecedor()">
-<div id="listaFornecedores" style="
-  position:absolute;
-  background:#fff;
-  border:1px solid #ddd;
-  width:260px;
-  max-height:200px;
-  overflow:auto;
-  border-radius:10px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
-  display:none;
-  z-index:10;
-"></div>  
+
+  <div class="top-flex">
+
+    <input
+      id="busca"
+      placeholder="🔍 Buscar cotação..."
+      oninput="filtrarCotacoes()"
+    >
+
+    <button onclick="recarregar()">
+      Atualizar
+    </button>
+
   </div>
 
-<div class="table-wrap">
-<table>
-<thead id="thead"></thead>
-<tbody id="tbody"></tbody>
-</table>
+</div>
+
+<div class="layout">
+
+  <!-- ================= ESQUERDA ================= -->
+
+  <div class="card">
+
+    <div class="card-header">
+      📦 Cotações Salvas
+    </div>
+
+    <div class="card-body">
+
+      <div id="listaCotacoes"></div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= DIREITA ================= -->
+
+  <div class="card">
+
+    <div class="card-header">
+      📋 Detalhes da Cotação
+    </div>
+
+    <div class="card-body">
+
+      <div id="detalhes">
+
+        <div class="empty">
+          Selecione uma cotação
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  Carregando...
 </div>
 
 <script>
 
 const sb = supabase.createClient(
- "https://dxkszikemntfusfyrzos.supabase.co",
- "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const id = new URLSearchParams(location.search).get("id");
-
-let cotacao;
+let cotacoes = [];
 let fornecedores = [];
-let selecionados = [];
-let estoque = [];
-let memoriaInputs = {};
-/* INIT */
+let cotacaoAtual = null;
+
+/* =========================
+   INIT
+========================= */
+
+init();
+
 async function init(){
+
+  overlay.style.display = "flex";
+
+  await carregarFornecedores();
+  await carregarCotacoes();
+
+  overlay.style.display = "none";
+}
+
+/* =========================
+   FORNECEDORES
+========================= */
+
+async function carregarFornecedores(){
+
+  const { data } = await sb
+    .from("fornecedores_mercatto")
+    .select("*")
+    .eq("ativo", true)
+    .order("nome");
+
+  fornecedores = data || [];
+}
+
+/* =========================
+   COTAÇÕES
+========================= */
+
+async function carregarCotacoes(){
 
   const { data } = await sb
     .from("cotacoes")
     .select("*")
-    .eq("id", id)
-    .single();
+    .order("data_cotacao", { ascending:false });
 
-  cotacao = data;
-  titulo.innerText = cotacao.nome;
+  cotacoes = data || [];
 
-  const { data: forn } = await sb
-    .from("fornecedores_mercatto")
-    .select("*");
-
-  fornecedores = forn;
-
-
-  const { data: est } = await sb
-    .from("mercatto_estoque")
-    .select("*");
-
-  estoque = est;
-
-  render();
+  renderCotacoes(cotacoes);
 }
 
-/* ADD FORNECEDOR */
-function addFornecedor(id){
+/* =========================
+   RENDER COTAÇÕES
+========================= */
 
-  if(!id) return;
+function renderCotacoes(arr){
 
-  if(selecionados.includes(id)){
-    alert("Fornecedor já adicionado");
+  const lista = document.getElementById("listaCotacoes");
+
+  if(!arr.length){
+    lista.innerHTML = `
+      <div class="empty">
+        Nenhuma cotação encontrada
+      </div>
+    `;
     return;
   }
 
-  selecionados.push(id);
+  lista.innerHTML = "";
 
-  listaFornecedores.style.display = "none";
-  buscaFornecedor.value = "";
+  arr.forEach(c => {
 
-  render();
-}
-/* RENDER */
-function render(){
+    const totalItens = c.itens?.length || 0;
 
-  const itens = cotacao.itens;
+    lista.innerHTML += `
 
-  thead.innerHTML = `
-    <tr>
-      <th>Produto</th>
-      <th>Qtd</th>
-      ${selecionados.map(f=>`<th>${getNome(f)}</th>`).join("")}
-    </tr>
-  `;
+      <div class="cotacao"
+        onclick='abrirCotacao(${JSON.stringify(c)})'>
 
-  tbody.innerHTML = itens.map((i,index)=>{
+        <h3>${c.nome || "Sem nome"}</h3>
 
-    const prod = estoque.find(p=>p.produto === i.produto);
+        <small>
+          ${formatarData(c.data_cotacao)}
+        </small>
 
-    const und = prod?.und_compra || "UN";
-    const qtdUni = prod?.qtd_unidades || 1;
+        <div class="badges">
 
-    let linha = `
-      <tr>
-        <td class="prod">
-          <strong>${i.produto}</strong><br>
-          <span>${qtdUni} UN por ${und}</span>
-        </td>
-        <td>${i.comprar}</td>
-    `;
+          <div class="badge total">
+            ${totalItens} itens
+          </div>
 
-    selecionados.forEach(f=>{
-      linha += `
-        <td id="cell_${index}_${f}">
-          <div class="box">
+          <div class="badge ${c.status === "finalizada"
+            ? "finalizada"
+            : "ativa"}">
 
-            <div class="row">
-<input 
-  value="${memoriaInputs[`p_${index}_${f}`] || ''}"
-  placeholder="R$"
-  oninput="calc(${index})"
-  id="p_${index}_${f}"
->            </div>
-
-            <div id="r_${index}_${f}" class="result"></div>
+            ${(c.status || "ativa").toUpperCase()}
 
           </div>
-        </td>
-      `;
-    });
 
-    linha += `</tr>`;
-    return linha;
+        </div>
 
-  }).join("");
+      </div>
+
+    `;
+  });
 }
 
-/* CALCULO */
-function calc(index){
+/* =========================
+   ABRIR
+========================= */
 
-  const item = cotacao.itens[index];
-  const prod = estoque.find(p=>p.produto === item.produto);
+function abrirCotacao(c){
 
-  const qtdUni = prod?.qtd_unidades || 1;
+  cotacaoAtual = c;
 
-  let valores = [];
+  const box = document.getElementById("detalhes");
 
-  selecionados.forEach(f=>{
+  const itens = c.itens || [];
 
-    let elInput = document.getElementById(`p_${index}_${f}`);
-    memoriaInputs[`p_${index}_${f}`] = elInput.value;
+  const total = itens.reduce((acc,i)=>{
+    return acc + (
+      (Number(i.comprar)||0) *
+      (Number(i.preco)||0)
+    );
+  },0);
 
-    let valor = elInput.value.replace(",", ".");
+  box.innerHTML = `
 
-    if(valor){
+    <div style="margin-bottom:18px;">
 
-      let preco = Number(valor);
+      <h2 style="font-size:22px;">
+        ${c.nome}
+      </h2>
 
-      if(!isNaN(preco)){
+      <small style="color:#6b7280;">
+        ${formatarData(c.data_cotacao)}
+      </small>
 
-        const custo = preco / qtdUni;
+      <div class="badges" style="margin-top:12px;">
 
-        document.getElementById(`r_${index}_${f}`).innerText =
-          "R$ " + custo.toFixed(2);
+        <div class="badge total">
+          Total R$ ${total.toFixed(2)}
+        </div>
 
-        valores.push({f, custo});
-      }
-    }
+        <div class="badge ${c.status === "finalizada"
+          ? "finalizada"
+          : "ativa"}">
 
-  });
+          ${(c.status || "ativa").toUpperCase()}
 
-  // 🔥 SALVA SEMPRE (MESMO SEM COMPARAÇÃO)
-  salvar();
+        </div>
 
-  if(valores.length < 2) return;
+      </div>
 
-  const menor = Math.min(...valores.map(v=>v.custo));
-  const maior = Math.max(...valores.map(v=>v.custo));
+    </div>
 
-  valores.forEach(v=>{
+    <div class="fornecedores">
 
-    const el = document.getElementById(`cell_${index}_${v.f}`);
+      ${fornecedores.map(f=>`
 
-    el.classList.remove("verde","vermelho","laranja");
+        <div
+          class="for"
+          onclick="toggleFornecedor(this,'${f.id}')">
 
-    if(v.custo === menor){
-      el.classList.add("verde");
-    } else if(v.custo === maior){
-      el.classList.add("vermelho");
-    } else {
-      el.classList.add("laranja");
-    }
+          ${f.nome}
 
-  });
+        </div>
 
+      `).join("")}
+
+    </div>
+
+    <br>
+
+    <div class="itens">
+
+      ${itens.map(i=>`
+
+        <div class="item">
+
+          <div class="item-top">
+
+            <div>
+
+              <h4>${i.produto}</h4>
+
+              <small>
+                Resultado Final:
+                ${i.resultado}
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="grid">
+
+            <div class="info">
+              <span>Atual</span>
+              <b>${i.atual}</b>
+            </div>
+
+            <div class="info">
+              <span>Mínimo</span>
+              <b>${i.minimo}</b>
+            </div>
+
+            <div class="info">
+              <span>Ideal</span>
+              <b>${i.ideal}</b>
+            </div>
+
+            <div class="info">
+              <span>Comprar</span>
+              <b>${i.comprar}</b>
+            </div>
+
+            <div class="info">
+              <span>Preço</span>
+              <b>
+                ${
+                  i.preco
+                  ? `R$ ${Number(i.preco).toFixed(2)}`
+                  : "Sem preço"
+                }
+              </b>
+            </div>
+
+            <div class="info">
+              <span>Subtotal</span>
+              <b>
+                R$
+                ${(
+                  (Number(i.comprar)||0) *
+                  (Number(i.preco)||0)
+                ).toFixed(2)}
+              </b>
+            </div>
+
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+    <br>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+
+      <button onclick="finalizarCotacao()"
+        style="
+          background:#111827;
+          color:#fff;
+          border:none;
+          padding:14px 18px;
+          border-radius:12px;
+          font-weight:700;
+          cursor:pointer;
+        ">
+
+        Finalizar Cotação
+
+      </button>
+
+      <button onclick="reabrirCotacao()"
+        style="
+          background:#2563eb;
+          color:#fff;
+          border:none;
+          padding:14px 18px;
+          border-radius:12px;
+          font-weight:700;
+          cursor:pointer;
+        ">
+
+        Reabrir
+
+      </button>
+
+    </div>
+
+  `;
 }
 
-  
+/* =========================
+   FORNECEDOR
+========================= */
 
-/* SALVAR */
-async function salvar(){
+function toggleFornecedor(el,id){
 
-  const dados = [];
+  el.classList.toggle("active");
+}
 
-  cotacao.itens.forEach((item, index)=>{
+/* =========================
+   STATUS
+========================= */
 
-    const prod = estoque.find(p=>p.produto === item.produto);
+async function finalizarCotacao(){
 
-    const qtdUni = prod?.qtd_unidades || 1;
-    const und = prod?.und_compra || "UN";
+  if(!cotacaoAtual) return;
 
-    const linha = {
-      produto: item.produto,
-      qtd_solicitada: item.comprar,
-      fornecedores: []
-    };
+  overlay.style.display = "flex";
 
-    selecionados.forEach(f=>{
-
-const valorInput = document.getElementById(`p_${index}_${f}`)?.value;
-
-if(!valorInput) return;
-
-const precoTotal = Number(valorInput.replace(",", "."));
-
-if(!isNaN(precoTotal) && precoTotal > 0){
-  linha.fornecedores.push({
-          fornecedor_id: f,
-          fornecedor_nome: getNome(f),
-          preco_total: precoTotal,
-          quantidade_embalagem: qtdUni,
-          unidade: und,
-          preco_unitario: precoTotal / qtdUni
-        });
-
-      }
-
-    });
-
-    dados.push(linha);
-  });
-
-  const { error } = await sb
+  await sb
     .from("cotacoes")
     .update({
-      itens_cotacao: dados,
-      atualizado_em: new Date()
+      status:"finalizada"
     })
-    .eq("id", cotacao.id);
+    .eq("id", cotacaoAtual.id);
 
-  if(error){
-    console.error("ERRO AO SALVAR:", error);
-    alert("Erro ao salvar no banco");
-  } else {
-    console.log("SALVO COM SUCESSO:", dados);
-  }
+  await carregarCotacoes();
 
-}
-  
+  overlay.style.display = "none";
 
-/* AUX */
-function getNome(id){
-  return fornecedores.find(f=>f.id===id)?.nome || "";
+  alert("Cotação finalizada");
 }
 
-init();
+async function reabrirCotacao(){
 
+  if(!cotacaoAtual) return;
 
-function filtrarFornecedor(){
+  overlay.style.display = "flex";
 
-  const termo = buscaFornecedor.value.toLowerCase();
+  await sb
+    .from("cotacoes")
+    .update({
+      status:"ativa"
+    })
+    .eq("id", cotacaoAtual.id);
 
-  if(!termo){
-    listaFornecedores.style.display = "none";
-    return;
-  }
+  await carregarCotacoes();
 
-  const filtrados = fornecedores.filter(f =>
-    f.nome.toLowerCase().includes(termo)
+  overlay.style.display = "none";
+
+  alert("Cotação reaberta");
+}
+
+/* =========================
+   BUSCA
+========================= */
+
+function filtrarCotacoes(){
+
+  const termo =
+    document.getElementById("busca")
+    .value
+    .toLowerCase();
+
+  const filtradas = cotacoes.filter(c =>
+
+    (c.nome || "")
+    .toLowerCase()
+    .includes(termo)
+
   );
 
-  listaFornecedores.style.display = "block";
-
-  listaFornecedores.innerHTML = filtrados.map(f=>`
-    <div style="
-      padding:10px;
-      cursor:pointer;
-      border-bottom:1px solid #eee;
-    "
-    onclick="addFornecedor('${f.id}')">
-      ${f.nome}
-    </div>
-  `).join("");
+  renderCotacoes(filtradas);
 }
 
+/* =========================
+   HELPERS
+========================= */
 
-  
+function recarregar(){
+  init();
+}
+
+function formatarData(data){
+
+  if(!data) return "-";
+
+  return new Date(data)
+    .toLocaleString("pt-BR");
+}
+
 </script>
 
 </body>
