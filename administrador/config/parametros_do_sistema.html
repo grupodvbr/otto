@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parâmetros do Sistema</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --primary:#2563eb;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box;font-family:Inter;}
+
+body{
+  margin:0;
+  background:var(--bg);
+}
+
+header{
+  padding:20px;
+  font-size:20px;
+  font-weight:800;
+}
+
+.container{
+  padding:20px;
+}
+
+.topbar{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+input, select{
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+button{
+  background:var(--primary);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.table{
+  background:var(--card);
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.row{
+  display:grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 100px;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  align-items:center;
+}
+
+.row.header{
+  font-weight:700;
+  background:#f9fafb;
+}
+
+.badge{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+}
+
+.on{background:#dcfce7;color:#166534;}
+.off{background:#fee2e2;color:#991b1b;}
+
+.actions{
+  display:flex;
+  gap:6px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  width:600px;
+  max-width:95%;
+}
+
+textarea{
+  width:100%;
+  height:140px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>⚙️ Controle de Parâmetros</header>
+
+<div class="container">
+
+<div class="topbar">
+<input id="busca" placeholder="Buscar...">
+<select id="empresaFiltro"><option value="">Empresa</option></select>
+<select id="tipoFiltro"><option value="">Tipo</option></select>
+<button onclick="abrirModal()">+ Novo</button>
+</div>
+
+<div class="table" id="tabela"></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3 id="tituloModal">Novo Parâmetro</h3>
+
+    <input id="nome" placeholder="Nome do parâmetro"><br><br>
+    <input id="empresa" placeholder="Empresa"><br><br>
+    <input id="tipo" placeholder="Tipo"><br><br>
+
+    <textarea id="json" placeholder='JSON'></textarea>
+
+    <br><br>
+    <button onclick="salvar()">Salvar</button>
+    <button onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+)
+
+let editando = null
+
+async function carregar(){
+  let { data } = await supabase
+    .from("parametros_sistema")
+    .select("*")
+    .order("criado_em", {ascending:false})
+
+  render(data)
+}
+
+function render(data){
+  let tabela = document.getElementById("tabela")
+  tabela.innerHTML = `
+    <div class="row header">
+      <div>Nome</div>
+      <div>Empresa</div>
+      <div>Tipo</div>
+      <div>Status</div>
+      <div></div>
+    </div>
+  `
+
+  data.forEach(p=>{
+    tabela.innerHTML += `
+      <div class="row">
+        <div>${p.nome_parametro}</div>
+        <div>${p.empresa || '-'}</div>
+        <div>${p.tipo || '-'}</div>
+        <div>
+          <span class="badge ${p.ativo?'on':'off'}">
+            ${p.ativo?'Ativo':'Inativo'}
+          </span>
+        </div>
+        <div class="actions">
+          <button onclick='editar(${JSON.stringify(p)})'>✏️</button>
+          <button onclick='toggle("${p.id}",${p.ativo})'>🔄</button>
+          <button onclick='remover("${p.id}")'>🗑️</button>
+        </div>
+      </div>
+    `
+  })
+}
+
+function abrirModal(){
+  editando = null
+  modal.style.display="flex"
+}
+
+function fecharModal(){
+  modal.style.display="none"
+}
+
+function editar(p){
+  editando = p.id
+  modal.style.display="flex"
+
+  nome.value = p.nome_parametro
+  empresa.value = p.empresa || ''
+  tipo.value = p.tipo || ''
+  json.value = JSON.stringify(p.dados, null, 2)
+}
+
+async function salvar(){
+  let dados
+
+  try{
+    dados = JSON.parse(json.value)
+  }catch(e){
+    alert("JSON inválido")
+    return
+  }
+
+  if(editando){
+    await supabase.from("parametros_sistema")
+    .update({
+      nome_parametro: nome.value,
+      empresa: empresa.value,
+      tipo: tipo.value,
+      dados
+    })
+    .eq("id", editando)
+  }else{
+    await supabase.from("parametros_sistema")
+    .insert({
+      nome_parametro: nome.value,
+      empresa: empresa.value,
+      tipo: tipo.value,
+      dados
+    })
+  }
+
+  fecharModal()
+  carregar()
+}
+
+async function remover(id){
+  if(confirm("Excluir?")){
+    await supabase.from("parametros_sistema").delete().eq("id", id)
+    carregar()
+  }
+}
+
+async function toggle(id, status){
+  await supabase.from("parametros_sistema")
+  .update({ativo: !status})
+  .eq("id", id)
+
+  carregar()
+}
+
+carregar()
+</script>
+
+</body>
+</html>
