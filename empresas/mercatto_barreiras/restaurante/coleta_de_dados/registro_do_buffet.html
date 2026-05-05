@@ -852,12 +852,36 @@ const termo = (buscaInput.value || "").toLowerCase();
 
 
       <!-- META -->
-      <div class="meta" style="line-height:1.5; margin-bottom:8px">
-        Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
-        • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
-        • Líquido: <b>${formatPeso(l.quantidade)} kg</b><br>
-        <span style="color:#6b7280">⏱ ${l.hora}</span>
-      </div>
+${(() => {
+
+  const unidade = l.unidade === "UN" ? "un" : "kg";
+
+  const bruto = Number(l.quantidade) + Number(l.tara || 0);
+
+  const brutoFormatado = l.unidade === "UN"
+    ? bruto
+    : formatPeso(bruto);
+
+  const taraFormatado = l.unidade === "UN"
+    ? Number(l.tara || 0)
+    : formatPeso(l.tara || 0);
+
+  const liquidoFormatado = l.unidade === "UN"
+    ? Number(l.quantidade)
+    : formatPeso(l.quantidade);
+
+  return `
+    <div class="meta" style="line-height:1.5; margin-bottom:8px">
+      Bruto: <b>${brutoFormatado} ${unidade}</b>
+      • Tara: <b>${taraFormatado} ${unidade}</b>
+      • Líquido: <b>${liquidoFormatado} ${unidade}</b><br>
+      <span style="color:#6b7280">⏱ ${l.hora}</span>
+    </div>
+  `;
+
+})()}
+
+
 
       <!-- TAG -->
       ${
