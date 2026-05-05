@@ -1068,10 +1068,12 @@ const { data: dadosPrato } = await q2;
   if(r.tipo === "DEVOLUCAO") desperdicio += qtd;
 });
 
-// 🔥 VALOR REAL (CORRETO)
-const vendido = produzido - retirado - desperdicio;
-const totalValor = vendido * PRECO_KG;
 
+
+  
+// 🔥 VALOR REAL (CORRETO)
+const vendido = Math.max(0, produzido - retirado - desperdicio);
+const totalValor = vendido * PRECO_KG;
 
 // 🔥 LISTA POR DESTINO (continua igual)
 let totalKg = 0;
