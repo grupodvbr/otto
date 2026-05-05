@@ -687,8 +687,7 @@ const diaISO = d.toLocaleDateString('en-CA', {
 const totalProduzido = totalMontado + totalReposto;
 
 // Vendido real do buffet
-let totalVendido = totalProduzido - totalRetirado - totalDesperdicio;
-// 🔥 Buscar vendas do varejo no período
+let totalVendido = Math.max(0, totalProduzido - totalRetirado - totalDesperdicio);// 🔥 Buscar vendas do varejo no período
 let totalVarejo = 0;
 
 let queryVarejo = sb
