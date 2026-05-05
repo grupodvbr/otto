@@ -746,8 +746,8 @@ function abrirCotacao(c){
           <tr>
 
             <th>Produto</th>
-            <th>Quantidade</th>
-            <th>Último preço</th>
+<th>Qtd / Und</th>
+<th>Último preço</th>
 
             ${fornecedoresSelecionados.map(f=>`
 
@@ -763,8 +763,9 @@ function abrirCotacao(c){
                 ">
 
                   <div>Valor</div>
-                  <div>Und</div>
-                  <div>Emb</div>
+<div>
+  ${item.unidade || "UN"}
+</div>                  <div>Emb</div>
                   <div>Prazo</div>
 
                 </div>
@@ -788,11 +789,15 @@ function abrirCotacao(c){
 
               ) || {
 
-                produto:item.produto,
-                qtd_solicitada:
-                  item.comprar || 0,
-                fornecedores:[]
+              produto:item.produto,
 
+qtd_solicitada:
+  item.comprar || 0,
+
+unidade:
+  item.unidade || "UN",
+
+fornecedores:[]
               };
 
             return `
@@ -809,11 +814,11 @@ function abrirCotacao(c){
 
                 <!-- QTD -->
 
-                <td>
+<td>
 
-                  ${item.comprar || 0}
+  ${item.comprar || 0}
 
-                </td>
+</td>
 
                 <!-- ULTIMO -->
 
@@ -1002,10 +1007,7 @@ async function adicionarFornecedorGeral(
 
       itemCotado = {
 
-        produto:item.produto,
-        qtd_solicitada:
-          item.comprar || 0,
-        fornecedores:[]
+  fornecedores:[]
 
       };
 
