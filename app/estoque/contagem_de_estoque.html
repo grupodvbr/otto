@@ -1,463 +1,563 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
+
 <title>Contagem de Estoque</title>
 
 <meta name="theme-color" content="#ff6a00">
 <link rel="manifest" href="manifest.json">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
 :root{
   --primary:#ff6a00;
-  --dark:#111827;
+  --primary2:#fb923c;
   --bg:#f3f4f6;
-  --card:#fff;
-  --border:#e5e7eb;
+  --card:#ffffff;
+  --text:#111827;
   --muted:#6b7280;
-  --success:#16a34a;
+  --border:#e5e7eb;
   --danger:#dc2626;
-  --warning:#f59e0b;
+  --success:#16a34a;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+  --radius:18px;
 }
 
 *{
+  margin:0;
+  padding:0;
   box-sizing:border-box;
-  font-family:Inter,system-ui;
+  font-family:Inter,sans-serif;
+  -webkit-tap-highlight-color:transparent;
 }
 
 body{
-  margin:0;
   background:var(--bg);
-  color:var(--dark);
+  color:var(--text);
 }
 
-.hidden{display:none!important;}
+.hidden{
+  display:none!important;
+}
+
+/* LOGIN */
 
 .login{
   min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:22px;
-  background:linear-gradient(145deg,#111827,#1f2937);
+  padding:24px;
+  background:
+  radial-gradient(circle at top,#fb923c 0%,#ff6a00 35%,#111827 100%);
 }
 
 .login-card{
   width:100%;
-  max-width:390px;
-  background:#fff;
-  border-radius:24px;
-  padding:26px;
-  box-shadow:0 25px 70px rgba(0,0,0,.3);
+  max-width:400px;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(14px);
+  border-radius:30px;
+  padding:28px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
 }
 
 .logo{
-  width:64px;
-  height:64px;
-  border-radius:20px;
+  width:84px;
+  height:84px;
+  border-radius:28px;
   background:linear-gradient(135deg,#ff6a00,#fb923c);
   display:flex;
   align-items:center;
   justify-content:center;
   color:#fff;
-  font-size:32px;
-  margin-bottom:18px;
+  font-size:42px;
+  margin:auto;
+  margin-bottom:20px;
+  box-shadow:0 15px 30px rgba(255,106,0,.35);
 }
 
 h1{
-  margin:0;
-  font-size:24px;
+  text-align:center;
+  font-size:28px;
   font-weight:900;
 }
 
 .sub{
-  margin:8px 0 22px;
+  text-align:center;
+  margin-top:8px;
   color:var(--muted);
   font-size:14px;
+  margin-bottom:24px;
 }
 
 label{
   display:block;
+  margin-bottom:8px;
+  margin-top:16px;
   font-size:13px;
   font-weight:800;
-  margin:14px 0 6px;
 }
 
-input{
+.input{
   width:100%;
-  height:48px;
+  height:54px;
+  border-radius:16px;
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:0 14px;
+  padding:0 16px;
   font-size:16px;
   outline:none;
 }
 
-input:focus{
+.input:focus{
   border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(255,106,0,.15);
-}
-
-button{
-  border:0;
-  cursor:pointer;
-  font-weight:900;
+  box-shadow:0 0 0 4px rgba(255,106,0,.15);
 }
 
 .btn{
   width:100%;
-  height:50px;
-  border-radius:15px;
-  background:var(--primary);
+  height:56px;
+  border:none;
+  border-radius:18px;
+  background:linear-gradient(135deg,#ff6a00,#fb923c);
   color:#fff;
-  margin-top:20px;
-  font-size:15px;
+  font-weight:900;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:22px;
+  box-shadow:0 15px 30px rgba(255,106,0,.25);
 }
+
+/* APP */
 
 .app{
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
 }
 
 .topbar{
   position:sticky;
   top:0;
   z-index:20;
-  background:#fff;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
   padding:14px 16px;
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  gap:10px;
+  align-items:center;
 }
 
-.top-title{
-  font-size:16px;
+.top-info{
+  display:flex;
+  flex-direction:column;
+}
+
+.top-name{
   font-weight:900;
+  font-size:16px;
 }
 
-.top-sub{
-  font-size:12px;
+.top-company{
   color:var(--muted);
+  font-size:12px;
   margin-top:2px;
 }
 
-.exit{
-  width:42px;
-  height:42px;
-  border-radius:14px;
+.logout{
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  border:none;
   background:#fee2e2;
-  color:var(--danger);
+  color:#dc2626;
   font-size:20px;
+  cursor:pointer;
 }
 
 .content{
-  padding:14px;
-  padding-bottom:90px;
+  padding:16px;
+  padding-bottom:110px;
 }
 
-.filters{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:12px;
-  display:grid;
-  gap:10px;
-  margin-bottom:14px;
-}
-
-.search-box{
+.search{
   position:relative;
+  margin-bottom:16px;
 }
 
-.search-box i{
+.search i{
   position:absolute;
-  left:13px;
+  left:15px;
   top:50%;
   transform:translateY(-50%);
   color:var(--muted);
 }
 
-.search-box input{
-  padding-left:40px;
+.search input{
+  width:100%;
+  height:52px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  padding-left:45px;
+  padding-right:16px;
+  font-size:15px;
+  outline:none;
 }
 
 .stats{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:8px;
+  gap:10px;
+  margin-bottom:18px;
 }
 
 .stat{
-  background:#f9fafb;
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
+  box-shadow:var(--shadow);
 }
 
-.stat b{
-  display:block;
-  font-size:18px;
+.stat h3{
+  font-size:22px;
+  font-weight:900;
 }
 
-.stat span{
+.stat p{
+  margin-top:4px;
   color:var(--muted);
   font-size:11px;
   font-weight:700;
 }
 
-.list{
-  display:grid;
-  gap:10px;
+.lista{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
-.item{
+.card{
   background:#fff;
+  border-radius:22px;
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,.04);
+  padding:16px;
+  box-shadow:var(--shadow);
 }
 
-.item-head{
+.card-top{
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
   gap:10px;
-  margin-bottom:10px;
+  margin-bottom:14px;
 }
 
 .produto{
-  font-size:15px;
+  font-size:16px;
   font-weight:900;
   text-transform:uppercase;
 }
 
 .empresa{
+  margin-top:4px;
   font-size:11px;
   color:var(--muted);
-  font-weight:800;
+  font-weight:700;
 }
 
-.badge{
-  height:26px;
-  padding:0 10px;
+.unidade{
+  background:#fff7ed;
+  color:#ff6a00;
+  padding:8px 12px;
   border-radius:999px;
-  background:#f3f4f6;
   font-size:11px;
   font-weight:900;
-  display:flex;
-  align-items:center;
-  white-space:nowrap;
 }
 
-.count-row{
+.contador{
   display:grid;
-  grid-template-columns:46px 1fr 46px;
+  grid-template-columns:52px 1fr 52px;
   gap:8px;
-  align-items:center;
+  margin-top:12px;
 }
 
-.count-row button{
-  height:46px;
-  border-radius:14px;
-  font-size:22px;
+.contador button{
+  border:none;
+  border-radius:16px;
   background:#111827;
   color:#fff;
-}
-
-.count-row input{
-  text-align:center;
+  font-size:24px;
   font-weight:900;
-  font-size:20px;
+  cursor:pointer;
 }
 
-.details{
+.contador input{
+  width:100%;
+  height:54px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  text-align:center;
+  font-size:22px;
+  font-weight:900;
+  outline:none;
+}
+
+.info{
+  margin-top:12px;
   display:flex;
   justify-content:space-between;
-  margin-top:10px;
-  font-size:12px;
+  gap:8px;
+  font-size:11px;
   color:var(--muted);
+  font-weight:700;
 }
 
-.footer-save{
+.bottom{
   position:fixed;
   left:0;
   right:0;
   bottom:0;
   background:#fff;
   border-top:1px solid var(--border);
-  padding:12px 14px calc(12px + env(safe-area-inset-bottom));
-  z-index:30;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
 }
 
-.save-btn{
+.save{
   width:100%;
-  height:54px;
-  border-radius:17px;
+  height:58px;
+  border:none;
+  border-radius:20px;
   background:linear-gradient(135deg,#ff6a00,#fb923c);
   color:#fff;
   font-size:16px;
-  box-shadow:0 14px 35px rgba(255,106,0,.35);
-}
-
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:88px;
-  transform:translateX(-50%);
-  background:#111827;
-  color:#fff;
-  padding:12px 16px;
-  border-radius:14px;
-  font-size:13px;
-  font-weight:800;
-  z-index:99;
-  display:none;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 20px 40px rgba(255,106,0,.3);
 }
 
 .loader{
   position:fixed;
   inset:0;
-  background:rgba(255,255,255,.75);
-  backdrop-filter:blur(6px);
+  background:rgba(255,255,255,.7);
+  backdrop-filter:blur(5px);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:100;
+  z-index:999;
 }
 
 .spinner{
-  width:46px;
-  height:46px;
-  border:5px solid #fed7aa;
-  border-top-color:var(--primary);
+  width:52px;
+  height:52px;
   border-radius:50%;
+  border:5px solid #fed7aa;
+  border-top-color:#ff6a00;
   animation:spin .8s linear infinite;
 }
 
 @keyframes spin{
-  to{transform:rotate(360deg);}
+  to{
+    transform:rotate(360deg);
+  }
 }
+
+.toast{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:90px;
+  background:#111827;
+  color:#fff;
+  padding:14px 18px;
+  border-radius:16px;
+  font-size:13px;
+  font-weight:800;
+  z-index:999;
+  display:none;
+}
+
 </style>
 </head>
 
 <body>
 
-<section id="loginTela" class="login">
+<!-- LOGIN -->
+
+<section class="login" id="loginTela">
+
   <div class="login-card">
-    <div class="logo"><i class="ri-store-2-fill"></i></div>
+
+    <div class="logo">
+      <i class="ri-box-3-fill"></i>
+    </div>
+
     <h1>Contagem de Estoque</h1>
-    <p class="sub">Acesse com usuário e senha cadastrados no sistema.</p>
+
+    <div class="sub">
+      Acesse utilizando seu usuário e senha
+    </div>
 
     <label>Usuário</label>
-    <input id="usuario" placeholder="Ex: ROMIA" autocomplete="username">
+    <input id="usuario" class="input" placeholder="Digite seu usuário">
 
     <label>Senha</label>
-    <input id="senha" type="password" placeholder="Digite sua senha" autocomplete="current-password">
+    <input id="senha" type="password" class="input" placeholder="Digite sua senha">
 
-    <button class="btn" onclick="login()">ENTRAR</button>
+    <button class="btn" onclick="login()">
+      ENTRAR
+    </button>
+
   </div>
+
 </section>
 
-<section id="appTela" class="app hidden">
+<!-- APP -->
+
+<section class="app hidden" id="appTela">
+
   <header class="topbar">
-    <div>
-      <div class="top-title" id="nomeUsuario">Usuário</div>
-      <div class="top-sub" id="empresaUsuario">Empresa</div>
+
+    <div class="top-info">
+      <div class="top-name" id="nomeUsuario">USUÁRIO</div>
+      <div class="top-company" id="empresaUsuario">EMPRESA</div>
     </div>
-    <button class="exit" onclick="sair()"><i class="ri-logout-box-r-line"></i></button>
+
+    <button class="logout" onclick="sair()">
+      <i class="ri-logout-box-r-line"></i>
+    </button>
+
   </header>
 
   <main class="content">
-    <div class="filters">
-      <div class="search-box">
-        <i class="ri-search-line"></i>
-        <input id="busca" placeholder="Buscar produto..." oninput="renderizar()">
-      </div>
 
-      <div class="stats">
-        <div class="stat">
-          <b id="totalProdutos">0</b>
-          <span>PRODUTOS</span>
-        </div>
-        <div class="stat">
-          <b id="contados">0</b>
-          <span>CONTADOS</span>
-        </div>
-        <div class="stat">
-          <b id="zerados">0</b>
-          <span>ZERADOS</span>
-        </div>
-      </div>
+    <div class="search">
+      <i class="ri-search-line"></i>
+      <input id="busca" placeholder="Buscar produto..." oninput="renderizar()">
     </div>
 
-    <div id="lista" class="list"></div>
+    <div class="stats">
+
+      <div class="stat">
+        <h3 id="totalProdutos">0</h3>
+        <p>PRODUTOS</p>
+      </div>
+
+      <div class="stat">
+        <h3 id="contados">0</h3>
+        <p>CONTADOS</p>
+      </div>
+
+      <div class="stat">
+        <h3 id="zerados">0</h3>
+        <p>ZERADOS</p>
+      </div>
+
+    </div>
+
+    <div class="lista" id="lista"></div>
+
   </main>
 
-  <div class="footer-save">
-    <button class="save-btn" onclick="salvarTudo()">
-      <i class="ri-save-3-line"></i> SALVAR CONTAGEM
+  <div class="bottom">
+
+    <button class="save" onclick="salvarTudo()">
+      <i class="ri-save-3-line"></i>
+      SALVAR CONTAGEM
     </button>
+
   </div>
+
 </section>
 
-<div id="toast" class="toast"></div>
-<div id="loader" class="loader"><div class="spinner"></div></div>
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
+
 const SUPABASE_URL = "https://dxkszikemntfusfyrzos.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed";
+const SUPABASE_ANON_KEY = "SUA_CHAVE";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 const TABELA_USUARIOS = "usuarios_do_sistema";
-const TABELA_ESTOQUE = "estoque_mercatto"; // TROQUE PELO NOME REAL DA SUA TABELA
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const TABELA_ESTOQUE = "estoque_mercatto";
 
 let usuarioLogado = null;
 let itens = [];
 
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
-}
+/* INIT */
 
-window.addEventListener("load", () => {
+window.addEventListener("load", ()=>{
+
   const salvo = localStorage.getItem("usuario_estoque");
+
   if(salvo){
     usuarioLogado = JSON.parse(salvo);
     abrirApp();
   }
+
 });
 
+/* LOADING */
+
 function loading(status){
-  document.getElementById("loader").style.display = status ? "flex" : "none";
+  document.getElementById("loader").style.display =
+  status ? "flex" : "none";
 }
+
+/* TOAST */
 
 function aviso(msg){
-  const t = document.getElementById("toast");
-  t.innerText = msg;
-  t.style.display = "block";
-  setTimeout(() => t.style.display = "none", 2400);
+
+  const toast = document.getElementById("toast");
+
+  toast.innerText = msg;
+  toast.style.display = "block";
+
+  setTimeout(()=>{
+    toast.style.display = "none";
+  },2500);
+
 }
 
+/* LOGIN */
+
 async function login(){
-  const usuario = document.getElementById("usuario").value.trim().toUpperCase();
-  const senha = document.getElementById("senha").value.trim();
 
-  if(!usuario || !senha){
-    aviso("Informe usuário e senha.");
-    return;
-  }
+  try{
 
-  loading(true);
+    const usuario = document
+    .getElementById("usuario")
+    .value
+    .trim()
+    .toUpperCase();
 
-  const { data, error } = await supabase
+    const senha = document
+    .getElementById("senha")
+    .value
+    .trim();
+
+    if(!usuario || !senha){
+      aviso("Informe usuário e senha");
+      return;
+    }
+
+    loading(true);
+
+    const { data, error } = await db
     .from(TABELA_USUARIOS)
     .select("*")
     .eq("usuario", usuario)
@@ -466,149 +566,257 @@ async function login(){
     .limit(1)
     .maybeSingle();
 
-  if(error){
-    loading(false);
-    aviso("Erro ao acessar.");
-    console.error(error);
-    return;
-  }
+    if(error){
+      console.error(error);
+      aviso("Erro ao acessar");
+      loading(false);
+      return;
+    }
 
-  if(!data){
-    loading(false);
-    aviso("Usuário, senha ou acesso inválido.");
-    return;
-  }
+    if(!data){
+      aviso("Usuário inválido");
+      loading(false);
+      return;
+    }
 
-  usuarioLogado = data;
-  localStorage.setItem("usuario_estoque", JSON.stringify(data));
+    usuarioLogado = data;
 
-  await supabase
+    localStorage.setItem(
+      "usuario_estoque",
+      JSON.stringify(data)
+    );
+
+    await db
     .from(TABELA_USUARIOS)
     .update({
       ultimo_login:new Date().toISOString()
     })
     .eq("id", data.id);
 
-  loading(false);
-  abrirApp();
+    loading(false);
+
+    abrirApp();
+
+  }catch(err){
+
+    console.error(err);
+    aviso("Erro inesperado");
+    loading(false);
+
+  }
+
 }
+
+/* ABRIR APP */
 
 async function abrirApp(){
-  document.getElementById("loginTela").classList.add("hidden");
-  document.getElementById("appTela").classList.remove("hidden");
 
-  document.getElementById("nomeUsuario").innerText = usuarioLogado.nome || usuarioLogado.usuario;
-  document.getElementById("empresaUsuario").innerText = usuarioLogado.empresa || "Sem empresa";
+  document
+  .getElementById("loginTela")
+  .classList
+  .add("hidden");
 
-  await carregarEstoque();
+  document
+  .getElementById("appTela")
+  .classList
+  .remove("hidden");
+
+  document.getElementById("nomeUsuario").innerText =
+  usuarioLogado.nome || usuarioLogado.usuario;
+
+  document.getElementById("empresaUsuario").innerText =
+  usuarioLogado.empresa || "";
+
+  carregarEstoque();
+
 }
 
+/* ESTOQUE */
+
 async function carregarEstoque(){
+
   loading(true);
 
-  const { data, error } = await supabase
-    .from(TABELA_ESTOQUE)
-    .select("*")
-    .eq("empresa", usuarioLogado.empresa)
-    .eq("ativo", true)
-    .order("produto", { ascending:true });
+  const { data, error } = await db
+  .from(TABELA_ESTOQUE)
+  .select("*")
+  .eq("empresa", usuarioLogado.empresa)
+  .eq("ativo", true)
+  .order("produto",{ascending:true});
 
   loading(false);
 
   if(error){
-    aviso("Erro ao carregar estoque.");
     console.error(error);
+    aviso("Erro ao carregar estoque");
     return;
   }
 
-  itens = (data || []).map(i => ({
-    ...i,
-    quantidade_temp: Number(i.quantidade || i.saldo || 0)
+  itens = (data || []).map(item=>({
+    ...item,
+    quantidade_temp:Number(
+      item.quantidade || item.saldo || 0
+    )
   }));
 
   renderizar();
+
 }
 
-function renderizar(){
-  const busca = document.getElementById("busca").value.trim().toUpperCase();
+/* RENDER */
 
-  const filtrados = itens.filter(i =>
-    String(i.produto || "").toUpperCase().includes(busca)
+function renderizar(){
+
+  const busca = document
+  .getElementById("busca")
+  .value
+  .trim()
+  .toUpperCase();
+
+  const filtrados = itens.filter(item=>
+    String(item.produto || "")
+    .toUpperCase()
+    .includes(busca)
   );
 
-  document.getElementById("totalProdutos").innerText = itens.length;
-  document.getElementById("contados").innerText = itens.filter(i => Number(i.quantidade_temp) > 0).length;
-  document.getElementById("zerados").innerText = itens.filter(i => Number(i.quantidade_temp) === 0).length;
+  document.getElementById("totalProdutos").innerText =
+  itens.length;
+
+  document.getElementById("contados").innerText =
+  itens.filter(i=>Number(i.quantidade_temp)>0).length;
+
+  document.getElementById("zerados").innerText =
+  itens.filter(i=>Number(i.quantidade_temp)===0).length;
 
   const lista = document.getElementById("lista");
 
   if(!filtrados.length){
+
     lista.innerHTML = `
-      <div class="item">
-        <div class="produto">Nenhum produto encontrado</div>
-        <div class="empresa">Verifique a busca ou a empresa do usuário.</div>
+      <div class="card">
+        <div class="produto">
+          Nenhum produto encontrado
+        </div>
       </div>
     `;
+
     return;
+
   }
 
-  lista.innerHTML = filtrados.map(i => `
-    <div class="item">
-      <div class="item-head">
+  lista.innerHTML = filtrados.map(item=>`
+
+    <div class="card">
+
+      <div class="card-top">
+
         <div>
-          <div class="produto">${i.produto || "-"}</div>
-          <div class="empresa">${i.empresa || ""}</div>
+
+          <div class="produto">
+            ${item.produto || "-"}
+          </div>
+
+          <div class="empresa">
+            ${item.empresa || ""}
+          </div>
+
         </div>
-        <div class="badge">${i.unidade || i.und_compra || "UN"}</div>
+
+        <div class="unidade">
+          ${item.unidade || item.und_compra || "UN"}
+        </div>
+
       </div>
 
-      <div class="count-row">
-        <button onclick="alterarQtd('${i.id}', -1)">−</button>
-        <input 
-          type="number" 
-          min="0" 
-          value="${Number(i.quantidade_temp || 0)}"
-          onchange="digitarQtd('${i.id}', this.value)"
+      <div class="contador">
+
+        <button onclick="alterarQtd('${item.id}',-1)">
+          -
+        </button>
+
+        <input
+          type="number"
+          min="0"
+          value="${Number(item.quantidade_temp || 0)}"
+          onchange="digitarQtd('${item.id}',this.value)"
         >
-        <button onclick="alterarQtd('${i.id}', 1)">+</button>
+
+        <button onclick="alterarQtd('${item.id}',1)">
+          +
+        </button>
+
       </div>
 
-      <div class="details">
-        <span>Mín: ${i.estoque_minimo || 0}</span>
-        <span>Ideal: ${i.estoque_ideal || 0}</span>
-        <span>Compra: ${i.und_compra || "-"}</span>
+      <div class="info">
+
+        <span>
+          Mín: ${item.estoque_minimo || 0}
+        </span>
+
+        <span>
+          Ideal: ${item.estoque_ideal || 0}
+        </span>
+
+        <span>
+          ${item.unidade || ""}
+        </span>
+
       </div>
+
     </div>
+
   `).join("");
+
 }
 
-function alterarQtd(id, delta){
-  const item = itens.find(i => i.id === id);
+/* ALTERAR */
+
+function alterarQtd(id,delta){
+
+  const item = itens.find(i=>i.id===id);
+
   if(!item) return;
 
   let atual = Number(item.quantidade_temp || 0);
+
   atual += delta;
 
-  if(atual < 0) atual = 0;
+  if(atual < 0){
+    atual = 0;
+  }
 
   item.quantidade_temp = atual;
+
   renderizar();
+
 }
 
-function digitarQtd(id, valor){
-  const item = itens.find(i => i.id === id);
+/* DIGITAR */
+
+function digitarQtd(id,valor){
+
+  const item = itens.find(i=>i.id===id);
+
   if(!item) return;
 
   let qtd = Number(valor || 0);
-  if(qtd < 0) qtd = 0;
+
+  if(qtd < 0){
+    qtd = 0;
+  }
 
   item.quantidade_temp = qtd;
+
   renderizar();
+
 }
 
+/* SALVAR */
+
 async function salvarTudo(){
+
   if(!itens.length){
-    aviso("Nenhum item para salvar.");
+    aviso("Nenhum item");
     return;
   }
 
@@ -617,40 +825,83 @@ async function salvarTudo(){
   let erros = 0;
 
   for(const item of itens){
+
     const qtd = Number(item.quantidade_temp || 0);
 
-    const { error } = await supabase
-      .from(TABELA_ESTOQUE)
-      .update({
-        quantidade:qtd,
-        saldo:qtd,
-        atualizado_em:new Date().toISOString()
-      })
-      .eq("id", item.id);
+    const { error } = await db
+    .from(TABELA_ESTOQUE)
+    .update({
+      quantidade:qtd,
+      saldo:qtd,
+      atualizado_em:new Date().toISOString()
+    })
+    .eq("id", item.id);
 
     if(error){
+
       erros++;
-      console.error("Erro ao salvar", item.produto, error);
+
+      console.error(
+        item.produto,
+        error
+      );
+
     }
+
   }
 
   loading(false);
 
-  if(erros){
-    aviso(`Salvo com ${erros} erro(s).`);
+  if(erros > 0){
+
+    aviso(
+      `Salvo com ${erros} erro(s)`
+    );
+
   }else{
-    aviso("Contagem salva com sucesso.");
-    await carregarEstoque();
+
+    aviso(
+      "Contagem salva com sucesso"
+    );
+
+    carregarEstoque();
+
   }
+
 }
 
+/* SAIR */
+
 function sair(){
-  localStorage.removeItem("usuario_estoque");
+
+  localStorage.removeItem(
+    "usuario_estoque"
+  );
+
   usuarioLogado = null;
   itens = [];
-  document.getElementById("appTela").classList.add("hidden");
-  document.getElementById("loginTela").classList.remove("hidden");
+
+  document
+  .getElementById("appTela")
+  .classList
+  .add("hidden");
+
+  document
+  .getElementById("loginTela")
+  .classList
+  .remove("hidden");
+
 }
+
+/* GLOBAL */
+
+window.login = login;
+window.sair = sair;
+window.renderizar = renderizar;
+window.alterarQtd = alterarQtd;
+window.digitarQtd = digitarQtd;
+window.salvarTudo = salvarTudo;
+
 </script>
 
 </body>
