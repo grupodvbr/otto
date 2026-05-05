@@ -169,19 +169,21 @@ body{
 
 .toolbar-top{
   display:flex;
-  gap:10px;
+  gap:12px;
   align-items:center;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
+  justify-content:space-between;
 }
 
 .for-search{
-  width:320px;
-  max-width:100%;
+  width:240px;
+  min-width:240px;
   border:1px solid var(--line);
   border-radius:8px;
   padding:10px;
   outline:none;
   font-size:13px;
+  background:#fff;
 }
 
 .dropdown{
@@ -215,9 +217,11 @@ body{
 
 .tags{
   display:flex;
-  flex-wrap:wrap;
+  align-items:center;
   gap:8px;
-  margin-top:10px;
+  overflow-x:auto;
+  flex:1;
+  min-height:42px;
 }
 
 .tag{
@@ -601,12 +605,54 @@ function abrirCotacao(c){
 
     <div class="toolbar">
 
-      <div class="toolbar-top">
+    <div class="toolbar-top">
 
-        <div class="dropdown">
+  <!-- FORNECEDORES SELECIONADOS -->
 
-          <input
-            class="for-search"
+  <div class="tags">
+
+    ${fornecedoresSelecionados.map(f=>`
+
+      <div class="tag">
+
+        ${f.fornecedor_nome}
+
+        <button
+          onclick="
+            removerFornecedorGeral(
+              '${f.fornecedor_id}'
+            )
+          ">
+
+          ✕
+
+        </button>
+
+      </div>
+
+    `).join("")}
+
+  </div>
+
+  <!-- PESQUISA -->
+
+  <div class="dropdown">
+
+    <input
+      class="for-search"
+
+
+      
+
+
+
+
+
+
+
+
+
+            
             placeholder="Pesquisar fornecedor..."
             onfocus="
               abrirDropdown()
@@ -646,33 +692,7 @@ function abrirCotacao(c){
 
       </div>
 
-      <!-- TAGS -->
-
-      <div class="tags">
-
-        ${fornecedoresSelecionados.map(f=>`
-
-          <div class="tag">
-
-            ${f.fornecedor_nome}
-
-            <button
-              onclick="
-                removerFornecedorGeral(
-                  '${f.fornecedor_id}'
-                )
-              ">
-
-              ✕
-
-            </button>
-
-          </div>
-
-        `).join("")}
-
-      </div>
-
+    
     </div>
 
     <!-- TABELA -->
