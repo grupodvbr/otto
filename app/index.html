@@ -51,10 +51,13 @@ body{
 }
 
 .header-inner{
-  max-width:1180px;
-  margin:auto;
-  padding:15px 16px;
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:15px 22px;
 }
+
+  
 
 .brand{
   display:flex;
@@ -105,11 +108,13 @@ body{
 }
 
 .container{
-  max-width:1180px;
-  margin:auto;
-  padding:16px;
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:22px;
 }
 
+  
 .hero{
   background:linear-gradient(135deg,#111827,#1f2937);
   border-radius:26px;
@@ -269,8 +274,8 @@ body{
 
 .apps-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
 }
 
 .app-card{
@@ -613,12 +618,27 @@ iframe{
 }
 
 @media(max-width:640px){
+
   .header-inner{
-    padding:14px;
+    padding:12px;
+  }
+
+  .brand{
+    align-items:flex-start;
+  }
+
+  .brand-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
   }
 
   .brand h1{
-    font-size:18px;
+    font-size:17px;
+  }
+
+  .brand p{
+    font-size:11px;
   }
 
   .header-btn{
@@ -626,7 +646,7 @@ iframe{
   }
 
   .container{
-    padding:12px;
+    padding:10px;
   }
 
   .hero{
@@ -635,15 +655,36 @@ iframe{
   }
 
   .hero h2{
-    font-size:21px;
+    font-size:20px;
+  }
+
+  .hero p{
+    font-size:12px;
+  }
+
+  .filters-card{
+    border-radius:20px;
+    padding:12px;
+  }
+
+  .filter-row{
+    padding-bottom:5px;
+  }
+
+  .chip{
+    height:36px;
+    font-size:11px;
+    padding:0 12px;
   }
 
   .summary{
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
   }
 
   .summary-card{
-    padding:12px;
+    padding:11px;
+    border-radius:16px;
   }
 
   .summary-card b{
@@ -651,11 +692,26 @@ iframe{
   }
 
   .summary-card span{
-    font-size:10px;
+    font-size:9px;
   }
 
   .apps-grid{
     grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  .app-card{
+    border-radius:20px;
+    padding:14px;
+  }
+
+  .app-icon{
+    width:54px;
+    height:54px;
+  }
+
+  .app-desc{
+    min-height:auto;
   }
 
   .modal-box{
