@@ -55,14 +55,14 @@ html,body{margin:0;background:var(--bg)}
 
 .filters{
   display:grid;
-grid-template-columns:repeat(7, minmax(0,1fr));
+grid-template-columns:repeat(12, minmax(0,1fr));
   gap:8px;
   align-items:stretch;
 }
 
 .filters input,
 .filters select{
-  grid-column:span 2;
+  grid-column:span 3;
   padding:10px 12px;
   border-radius:12px;
   border:1px solid var(--border);
@@ -70,7 +70,7 @@ grid-template-columns:repeat(7, minmax(0,1fr));
 }
 
 .filters button{
-  grid-column:span 1;
+  grid-column:span 2;
   padding:10px 12px;
   border-radius:12px;
   border:none;
