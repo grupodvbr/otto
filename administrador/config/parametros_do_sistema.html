@@ -19,7 +19,6 @@
 }
 
 *{box-sizing:border-box;font-family:Inter;}
-
 body{margin:0;background:var(--bg);}
 
 header{
@@ -37,7 +36,7 @@ header{
   margin-bottom:20px;
 }
 
-input,select{
+input{
   padding:10px;
   border-radius:10px;
   border:1px solid var(--border);
@@ -52,6 +51,7 @@ button{
   cursor:pointer;
 }
 
+/* TABLE */
 .table{
   background:var(--card);
   border-radius:14px;
@@ -60,7 +60,7 @@ button{
 
 .row{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr 120px 140px;
+  grid-template-columns: 2fr 1fr 1fr 120px 160px;
   padding:14px;
   border-bottom:1px solid var(--border);
   align-items:center;
@@ -71,6 +71,7 @@ button{
   background:#f9fafb;
 }
 
+/* BADGE */
 .badge{
   padding:6px 10px;
   border-radius:6px;
@@ -80,11 +81,25 @@ button{
 .on{background:#dcfce7;color:#166534;}
 .off{background:#fee2e2;color:#991b1b;}
 
-.actions button{
-  padding:6px 8px;
+/* JSON BONITO */
+.code-json{
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:10px;
+  border-radius:10px;
+  font-family:monospace;
   font-size:12px;
+  max-height:120px;
+  overflow:auto;
 }
 
+.key{color:#38bdf8;}
+.string{color:#34d399;}
+.number{color:#fbbf24;}
+.boolean{color:#f87171;}
+.null{color:#a78bfa;}
+
+/* MODAL */
 .modal{
   position:fixed;
   inset:0;
@@ -96,37 +111,30 @@ button{
 
 .modal-box{
   background:white;
-  width:600px;
-  max-width:95%;
+  width:95%;
+  max-width:900px;
   padding:20px;
-  border-radius:14px;
+  border-radius:16px;
 }
 
 textarea{
   width:100%;
-  height:160px;
-  padding:10px;
+  height:180px;
+  background:#0f172a;
+  color:#fff;
   border-radius:10px;
-  border:1px solid var(--border);
+  padding:10px;
+  font-family:monospace;
 }
 
-.loader{
-  position:fixed;
-  inset:0;
-  background:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-}
-
+/* TOAST */
 .toast{
   position:fixed;
   bottom:20px;
   right:20px;
   background:#111;
   color:white;
-  padding:12px 16px;
+  padding:12px;
   border-radius:8px;
   opacity:0;
   transition:.3s;
@@ -136,8 +144,6 @@ textarea{
 </head>
 
 <body>
-
-<div class="loader" id="loader">Carregando...</div>
 
 <header>⚙️ Controle de Parâmetros</header>
 
@@ -154,9 +160,10 @@ textarea{
 
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3 id="titulo">Novo Parâmetro</h3>
+    <h3>Editar Parâmetro</h3>
 
     <input id="nome" placeholder="Nome"><br><br>
     <input id="empresa" placeholder="Empresa"><br><br>
@@ -173,58 +180,48 @@ textarea{
 <div class="toast" id="toast"></div>
 
 <script>
-const supabaseClient = window.supabase.createClient(
+const supabase = window.supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
 
-let dados = []
-let editando = null
+let dados=[]
+let editando=null
 
 function toast(msg){
-  let t = document.getElementById("toast")
-  t.innerText = msg
-  t.classList.add("show")
-  setTimeout(()=>t.classList.remove("show"),2000)
+  toastEl.innerText=msg
+  toastEl.classList.add("show")
+  setTimeout(()=>toastEl.classList.remove("show"),2000)
 }
 
-function showLoader(v){
-  loader.style.display = v ? "flex" : "none"
-}
+const toastEl=document.getElementById("toast")
 
 async function carregar(){
-  showLoader(true)
+  let {data}=await supabase
+  .from("parametros_sistema")
+  .select("*")
+  .order("criado_em",{ascending:false})
 
-  let { data, error } = await supabaseClient
-    .from("parametros_sistema")
-    .select("*")
-    .order("criado_em",{ascending:false})
-
-  if(error){
-    toast("Erro ao carregar")
-    console.error(error)
-  }
-
-  dados = data || []
+  dados=data||[]
   render()
+}
 
-  showLoader(false)
+function colorJSON(obj){
+  let json=JSON.stringify(obj,null,2)
+  return json
+  .replace(/"(.*?)":/g,'<span class="key">"$1"</span>:')
+  .replace(/: "(.*?)"/g,': <span class="string">"$1"</span>')
+  .replace(/: (\d+)/g,': <span class="number">$1</span>')
+  .replace(/: (true|false)/g,': <span class="boolean">$1</span>')
+  .replace(/: null/g,': <span class="null">null</span>')
 }
 
 function render(){
-  let busca = document.getElementById("busca").value.toLowerCase()
-  let emp = empresaFiltro.value.toLowerCase()
-  let tipo = tipoFiltro.value.toLowerCase()
+  let busca=busca.value.toLowerCase()
+  let emp=empresaFiltro.value.toLowerCase()
+  let tipo=tipoFiltro.value.toLowerCase()
 
-  let filtrado = dados.filter(p=>{
-    return (
-      (!busca || p.nome_parametro.toLowerCase().includes(busca)) &&
-      (!emp || (p.empresa||'').toLowerCase().includes(emp)) &&
-      (!tipo || (p.tipo||'').toLowerCase().includes(tipo))
-    )
-  })
-
-  tabela.innerHTML = `
+  tabela.innerHTML=`
     <div class="row header">
       <div>Nome</div>
       <div>Empresa</div>
@@ -234,21 +231,32 @@ function render(){
     </div>
   `
 
-  filtrado.forEach(p=>{
-    tabela.innerHTML += `
+  dados
+  .filter(p=>
+    (!busca || p.nome_parametro.toLowerCase().includes(busca)) &&
+    (!emp || (p.empresa||'').toLowerCase().includes(emp)) &&
+    (!tipo || (p.tipo||'').toLowerCase().includes(tipo))
+  )
+  .forEach(p=>{
+    tabela.innerHTML+=`
       <div class="row">
-        <div>${p.nome_parametro}</div>
+        <div>
+          <b>${p.nome_parametro}</b>
+          <div class="code-json">${colorJSON(p.dados)}</div>
+        </div>
+
         <div>${p.empresa||'-'}</div>
         <div>${p.tipo||'-'}</div>
+
         <div>
           <span class="badge ${p.ativo?'on':'off'}">
             ${p.ativo?'Ativo':'Inativo'}
           </span>
         </div>
-        <div class="actions">
+
+        <div>
           <button onclick='editar(${JSON.stringify(p)})'>Editar</button>
           <button onclick='toggle("${p.id}",${p.ativo})'>Status</button>
-          <button onclick='remover("${p.id}")'>Excluir</button>
         </div>
       </div>
     `
@@ -279,68 +287,45 @@ async function salvar(){
   let dadosJSON
 
   try{
-    dadosJSON = JSON.parse(json.value)
+    dadosJSON=JSON.parse(json.value)
   }catch{
     toast("JSON inválido")
     return
   }
 
-  showLoader(true)
-
-  let res
+  let payload={
+    nome_parametro:nome.value,
+    empresa:empresa.value,
+    tipo:tipo.value,
+    dados:dadosJSON
+  }
 
   if(editando){
-    res = await supabaseClient.from("parametros_sistema")
-      .update({
-        nome_parametro:nome.value,
-        empresa:empresa.value,
-        tipo:tipo.value,
-        dados:dadosJSON
-      })
-      .eq("id",editando)
+    await supabase.from("parametros_sistema")
+    .update(payload)
+    .eq("id",editando)
   }else{
-    res = await supabaseClient.from("parametros_sistema")
-      .insert({
-        nome_parametro:nome.value,
-        empresa:empresa.value,
-        tipo:tipo.value,
-        dados:dadosJSON
-      })
+    await supabase.from("parametros_sistema")
+    .insert(payload)
   }
 
-  showLoader(false)
-
-  if(res.error){
-    toast("Erro ao salvar")
-    console.error(res.error)
-    return
-  }
-
-  toast("Salvo com sucesso")
+  toast("Salvo")
   fecharModal()
   carregar()
 }
 
-async function remover(id){
-  if(!confirm("Excluir?")) return
-
-  await supabaseClient.from("parametros_sistema").delete().eq("id",id)
-  toast("Excluído")
-  carregar()
-}
-
 async function toggle(id,status){
-  await supabaseClient.from("parametros_sistema")
-    .update({ativo:!status})
-    .eq("id",id)
+  await supabase.from("parametros_sistema")
+  .update({ativo:!status})
+  .eq("id",id)
 
   toast("Atualizado")
   carregar()
 }
 
-busca.oninput = render
-empresaFiltro.oninput = render
-tipoFiltro.oninput = render
+busca.oninput=render
+empresaFiltro.oninput=render
+tipoFiltro.oninput=render
 
 carregar()
 </script>
