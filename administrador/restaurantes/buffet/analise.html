@@ -512,8 +512,8 @@ let totalDesperdicio = 0;
 
   const q = Number(r.quantidade || 0);
 
-  if(r.tipo === "MONTAGEM") totalMontado += q;
-  if(r.tipo === "REPOSICAO") totalReposto += q;
+if(r.tipo === "MONTAGEM" || r.tipo === "EMPORIO") totalMontado += q;
+if(r.tipo === "REPOSICAO") totalReposto += q;
   if(r.tipo === "RETIRADA") totalRetirado += q;
   if(r.tipo === "DEVOLUCAO") totalDesperdicio += q;
 
@@ -523,8 +523,8 @@ const termo = (searchPrato.value || "").toLowerCase();
 
 
 // 📊 gráfico só soma se passou no filtro
-if(r.tipo === 'MONTAGEM' || r.tipo === 'REPOSICAO'){
-const diaKey = (r.data || "").slice(0,10);
+if(r.tipo === 'MONTAGEM' || r.tipo === 'EMPORIO' || r.tipo === 'REPOSICAO'){
+  const diaKey = (r.data || "").slice(0,10);
 
 porDia[diaKey] = (porDia[diaKey] || 0) + q;
 
@@ -854,13 +854,14 @@ const data = todosDados;
   const porPrato = {};
 
   (data || []).forEach(r=>{
-    porPrato[r.produto_nome] ||= {
-      MONTAGEM:0,
-      REPOSICAO:0,
-      RETIRADA:0,
-      DEVOLUCAO:0,
-      UNIDADE:r.unidade
-    };
+porPrato[r.produto_nome] ||= {
+  MONTAGEM:0,
+  EMPORIO:0,   // 🔥 NOVO
+  REPOSICAO:0,
+  RETIRADA:0,
+  DEVOLUCAO:0,
+  UNIDADE:r.unidade
+};
 
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade || 0);
   });
