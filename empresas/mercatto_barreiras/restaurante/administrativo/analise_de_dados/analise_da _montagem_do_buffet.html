@@ -78,11 +78,10 @@ grid-template-columns:repeat(12, minmax(0,1fr));
   font-weight:800;
   background:var(--primary);
   color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  transition:.2s;
+
+  white-space: nowrap;      /* 🔥 NÃO QUEBRA TEXTO */
+  overflow: hidden;         /* 🔥 ESCONDE EXCESSO */
+  text-overflow: ellipsis;  /* 🔥 "..." */
 }
 
 .filters button:active{
@@ -314,10 +313,9 @@ grid-template-columns:repeat(4, 1fr);
 </button>
 
   
-<button type="button" id="btnRetirada40">
-  🔥 > 40% Ret.
+<button id="btnRetirada40">
+  🔥 40%
 </button>
-
 </div>
   </div>
 
