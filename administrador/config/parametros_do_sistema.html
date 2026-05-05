@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parâmetros do Sistema</title>
+<title>Parâmetros • Controle</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,31 +20,27 @@
 
 *{box-sizing:border-box;font-family:Inter;}
 
-body{
-  margin:0;
-  background:var(--bg);
-}
+body{margin:0;background:var(--bg);}
 
 header{
   padding:20px;
-  font-size:20px;
   font-weight:800;
+  font-size:22px;
 }
 
-.container{
-  padding:20px;
-}
+.container{padding:20px;}
 
 .topbar{
   display:flex;
   gap:10px;
+  flex-wrap:wrap;
   margin-bottom:20px;
 }
 
-input, select{
+input,select{
   padding:10px;
+  border-radius:10px;
   border:1px solid var(--border);
-  border-radius:8px;
 }
 
 button{
@@ -52,20 +48,20 @@ button{
   color:white;
   border:none;
   padding:10px 14px;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
 }
 
 .table{
   background:var(--card);
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
 }
 
 .row{
   display:grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 100px;
-  padding:12px;
+  grid-template-columns: 2fr 1fr 1fr 120px 140px;
+  padding:14px;
   border-bottom:1px solid var(--border);
   align-items:center;
 }
@@ -76,7 +72,7 @@ button{
 }
 
 .badge{
-  padding:4px 8px;
+  padding:6px 10px;
   border-radius:6px;
   font-size:12px;
 }
@@ -84,15 +80,15 @@ button{
 .on{background:#dcfce7;color:#166534;}
 .off{background:#fee2e2;color:#991b1b;}
 
-.actions{
-  display:flex;
-  gap:6px;
+.actions button{
+  padding:6px 8px;
+  font-size:12px;
 }
 
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.4);
+  background:rgba(0,0,0,.5);
   display:none;
   align-items:center;
   justify-content:center;
@@ -100,23 +96,48 @@ button{
 
 .modal-box{
   background:white;
-  padding:20px;
-  border-radius:12px;
   width:600px;
   max-width:95%;
+  padding:20px;
+  border-radius:14px;
 }
 
 textarea{
   width:100%;
-  height:140px;
-  border:1px solid var(--border);
-  border-radius:8px;
+  height:160px;
   padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
 }
+
+.loader{
+  position:fixed;
+  inset:0;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+}
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#111;
+  color:white;
+  padding:12px 16px;
+  border-radius:8px;
+  opacity:0;
+  transition:.3s;
+}
+.toast.show{opacity:1;}
 </style>
 </head>
 
 <body>
+
+<div class="loader" id="loader">Carregando...</div>
 
 <header>⚙️ Controle de Parâmetros</header>
 
@@ -124,8 +145,8 @@ textarea{
 
 <div class="topbar">
 <input id="busca" placeholder="Buscar...">
-<select id="empresaFiltro"><option value="">Empresa</option></select>
-<select id="tipoFiltro"><option value="">Tipo</option></select>
+<input id="empresaFiltro" placeholder="Empresa">
+<input id="tipoFiltro" placeholder="Tipo">
 <button onclick="abrirModal()">+ Novo</button>
 </div>
 
@@ -133,16 +154,15 @@ textarea{
 
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3 id="tituloModal">Novo Parâmetro</h3>
+    <h3 id="titulo">Novo Parâmetro</h3>
 
-    <input id="nome" placeholder="Nome do parâmetro"><br><br>
+    <input id="nome" placeholder="Nome"><br><br>
     <input id="empresa" placeholder="Empresa"><br><br>
     <input id="tipo" placeholder="Tipo"><br><br>
 
-    <textarea id="json" placeholder='JSON'></textarea>
+    <textarea id="json"></textarea>
 
     <br><br>
     <button onclick="salvar()">Salvar</button>
@@ -150,50 +170,85 @@ textarea{
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 )
 
+let dados = []
 let editando = null
 
-async function carregar(){
-  let { data } = await supabase
-    .from("parametros_sistema")
-    .select("*")
-    .order("criado_em", {ascending:false})
-
-  render(data)
+function toast(msg){
+  let t = document.getElementById("toast")
+  t.innerText = msg
+  t.classList.add("show")
+  setTimeout(()=>t.classList.remove("show"),2000)
 }
 
-function render(data){
-  let tabela = document.getElementById("tabela")
+function showLoader(v){
+  loader.style.display = v ? "flex" : "none"
+}
+
+async function carregar(){
+  showLoader(true)
+
+  let { data, error } = await supabaseClient
+    .from("parametros_sistema")
+    .select("*")
+    .order("criado_em",{ascending:false})
+
+  if(error){
+    toast("Erro ao carregar")
+    console.error(error)
+  }
+
+  dados = data || []
+  render()
+
+  showLoader(false)
+}
+
+function render(){
+  let busca = document.getElementById("busca").value.toLowerCase()
+  let emp = empresaFiltro.value.toLowerCase()
+  let tipo = tipoFiltro.value.toLowerCase()
+
+  let filtrado = dados.filter(p=>{
+    return (
+      (!busca || p.nome_parametro.toLowerCase().includes(busca)) &&
+      (!emp || (p.empresa||'').toLowerCase().includes(emp)) &&
+      (!tipo || (p.tipo||'').toLowerCase().includes(tipo))
+    )
+  })
+
   tabela.innerHTML = `
     <div class="row header">
       <div>Nome</div>
       <div>Empresa</div>
       <div>Tipo</div>
       <div>Status</div>
-      <div></div>
+      <div>Ações</div>
     </div>
   `
 
-  data.forEach(p=>{
+  filtrado.forEach(p=>{
     tabela.innerHTML += `
       <div class="row">
         <div>${p.nome_parametro}</div>
-        <div>${p.empresa || '-'}</div>
-        <div>${p.tipo || '-'}</div>
+        <div>${p.empresa||'-'}</div>
+        <div>${p.tipo||'-'}</div>
         <div>
           <span class="badge ${p.ativo?'on':'off'}">
             ${p.ativo?'Ativo':'Inativo'}
           </span>
         </div>
         <div class="actions">
-          <button onclick='editar(${JSON.stringify(p)})'>✏️</button>
-          <button onclick='toggle("${p.id}",${p.ativo})'>🔄</button>
-          <button onclick='remover("${p.id}")'>🗑️</button>
+          <button onclick='editar(${JSON.stringify(p)})'>Editar</button>
+          <button onclick='toggle("${p.id}",${p.ativo})'>Status</button>
+          <button onclick='remover("${p.id}")'>Excluir</button>
         </div>
       </div>
     `
@@ -201,8 +256,9 @@ function render(data){
 }
 
 function abrirModal(){
-  editando = null
+  editando=null
   modal.style.display="flex"
+  json.value="{}"
 }
 
 function fecharModal(){
@@ -210,62 +266,81 @@ function fecharModal(){
 }
 
 function editar(p){
-  editando = p.id
+  editando=p.id
   modal.style.display="flex"
 
-  nome.value = p.nome_parametro
-  empresa.value = p.empresa || ''
-  tipo.value = p.tipo || ''
-  json.value = JSON.stringify(p.dados, null, 2)
+  nome.value=p.nome_parametro
+  empresa.value=p.empresa||''
+  tipo.value=p.tipo||''
+  json.value=JSON.stringify(p.dados,null,2)
 }
 
 async function salvar(){
-  let dados
+  let dadosJSON
 
   try{
-    dados = JSON.parse(json.value)
-  }catch(e){
-    alert("JSON inválido")
+    dadosJSON = JSON.parse(json.value)
+  }catch{
+    toast("JSON inválido")
     return
   }
 
+  showLoader(true)
+
+  let res
+
   if(editando){
-    await supabase.from("parametros_sistema")
-    .update({
-      nome_parametro: nome.value,
-      empresa: empresa.value,
-      tipo: tipo.value,
-      dados
-    })
-    .eq("id", editando)
+    res = await supabaseClient.from("parametros_sistema")
+      .update({
+        nome_parametro:nome.value,
+        empresa:empresa.value,
+        tipo:tipo.value,
+        dados:dadosJSON
+      })
+      .eq("id",editando)
   }else{
-    await supabase.from("parametros_sistema")
-    .insert({
-      nome_parametro: nome.value,
-      empresa: empresa.value,
-      tipo: tipo.value,
-      dados
-    })
+    res = await supabaseClient.from("parametros_sistema")
+      .insert({
+        nome_parametro:nome.value,
+        empresa:empresa.value,
+        tipo:tipo.value,
+        dados:dadosJSON
+      })
   }
 
+  showLoader(false)
+
+  if(res.error){
+    toast("Erro ao salvar")
+    console.error(res.error)
+    return
+  }
+
+  toast("Salvo com sucesso")
   fecharModal()
   carregar()
 }
 
 async function remover(id){
-  if(confirm("Excluir?")){
-    await supabase.from("parametros_sistema").delete().eq("id", id)
-    carregar()
-  }
-}
+  if(!confirm("Excluir?")) return
 
-async function toggle(id, status){
-  await supabase.from("parametros_sistema")
-  .update({ativo: !status})
-  .eq("id", id)
-
+  await supabaseClient.from("parametros_sistema").delete().eq("id",id)
+  toast("Excluído")
   carregar()
 }
+
+async function toggle(id,status){
+  await supabaseClient.from("parametros_sistema")
+    .update({ativo:!status})
+    .eq("id",id)
+
+  toast("Atualizado")
+  carregar()
+}
+
+busca.oninput = render
+empresaFiltro.oninput = render
+tipoFiltro.oninput = render
 
 carregar()
 </script>
