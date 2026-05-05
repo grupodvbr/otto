@@ -388,12 +388,13 @@ button.ghost{
     ⚡ Lançamento Automático
   </button>
 
-<div style="width:100%;margin-top:10px">
+<div style="width:100%;margin-top:10px;display:flex;gap:10px">
+
   <input 
     id="buscaLancamentos"
     placeholder="🔍 Buscar lançamento..."
     style="
-      width:100%;
+      flex:1;
       height:44px;
       border-radius:10px;
       border:1px solid var(--border);
@@ -401,6 +402,24 @@ button.ghost{
       font-size:14px;
     "
   >
+
+  <!-- 🔥 AJUDA -->
+  <button onclick="abrirManual()" style="
+    height:44px;
+    padding:0 16px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:#fff;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:700;
+    cursor:pointer;
+  ">
+    <i class="ri-question-line"></i>
+    Ajuda
+  </button>
+
 </div>
 
 
