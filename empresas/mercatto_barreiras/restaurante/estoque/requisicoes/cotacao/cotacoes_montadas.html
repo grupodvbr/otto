@@ -868,47 +868,55 @@ fornecedores:[]
 
     <!-- CONVERSÃO -->
 
-    ${
-      Number(
+
+
+
+
+
+${
+  Number(
+    itemCotado.qtd_unidades ||
+    item.qtd_unidades ||
+    item.quantidade_embalagem ||
+    1
+  ) > 1
+
+  ? `
+
+  <small style="
+    color:#6b7280;
+    font-size:10px;
+    line-height:1.4;
+  ">
+
+    Caixa com
+    <b>
+      ${
+        itemCotado.qtd_unidades ||
         item.qtd_unidades ||
         item.quantidade_embalagem ||
         1
-      ) > 1
+      }
+    </b>
+    unidades
 
-      ? `
+  </small>
 
-      <small style="
-        color:#6b7280;
-        font-size:10px;
-        line-height:1.4;
-      ">
+  `
 
-        Caixa com
-        <b>
-          ${
-            item.qtd_unidades ||
-            item.quantidade_embalagem
-          }
-        </b>
-        unidades
+  : `
 
-      </small>
+  <small style="
+    color:#9ca3af;
+    font-size:10px;
+  ">
 
-      `
+    Unidade individual
 
-      : `
+  </small>
 
-      <small style="
-        color:#9ca3af;
-        font-size:10px;
-      ">
-
-        Unidade individual
-
-      </small>
-
-      `
-    }
+  `
+}
 
   </div>
 
