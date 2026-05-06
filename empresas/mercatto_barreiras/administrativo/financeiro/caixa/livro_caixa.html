@@ -674,9 +674,9 @@ TOPO
 
 <div class="topo">
 
-  <div class="titulo">
-    REGISTRO DE DINHEIRO • MERCATTO DELÍCIA
-  </div>
+<div class="titulo" id="tituloSistema">
+  REGISTRO DE DINHEIRO • MERCATTO DELÍCIA
+</div>
 
   <!-- =====================================================
   RESUMO
@@ -704,9 +704,9 @@ TOPO
       SALDO NA LOJA
     </div>
 
-    <div class="empresa">
-      Mercatto Delícia
-    </div>
+<div class="empresa" id="empresaTitulo">
+  Mercatto Delícia
+</div>
 
     <div class="saldo" id="saldoImplantacao">
       R$ 0,00
@@ -775,14 +775,25 @@ TOPO
       oninput="mascaraDinheiro(this)">
     </div>
 
-    <div class="form-group">
-      <input
-      type="text"
-      id="empresa"
-      value="Mercatto Delícia"
-      readonly
-      class="empresa-fixa">
-    </div>
+<div class="form-group">
+
+  <select
+  id="empresa"
+  onchange="trocarEmpresa()">
+
+    <option value="Mercatto Delícia">
+      Mercatto Delícia
+    </option>
+
+    <option value="M. Kids">
+      M. Kids
+    </option>
+
+  </select>
+
+</div>
+
+    
 
     <button onclick="salvarRegistro()">
       SALVAR
@@ -876,6 +887,21 @@ CONFIG
 
 const PAGE_SIZE = 50;
 
+
+/* =====================================================
+EMPRESA ATUAL
+===================================================== */
+
+let empresaAtual =
+localStorage.getItem('livro_caixa_empresa')
+
+|| 'Mercatto Delícia';
+
+
+
+
+
+  
 let pagina = 0;
 let carregando = false;
 let acabou = false;
@@ -908,6 +934,18 @@ document.getElementById(
 'valor'
 ).value = 'R$ 0,00';
 
+
+
+
+/* =====================================================
+SETA EMPRESA
+===================================================== */
+
+document.getElementById(
+'empresa'
+).value = empresaAtual;
+
+trocarEmpresa();
 /* =====================================================
 FORMATA MOEDA
 ===================================================== */
@@ -993,8 +1031,9 @@ async function carregarResumo(){
 
   const { data, error } =
   await supabaseClient
-  .from('livros_caixa')
-  .select('tipo,valor');
+.from('livros_caixa')
+.select('tipo,valor')
+.eq('empresa',empresaAtual);
 
   if(error){
 
@@ -1028,8 +1067,10 @@ async function carregarResumo(){
   document.getElementById(
     'saldoImplantacao'
   ).innerHTML =
-  moeda(1038.06);
-
+empresaAtual === 'M. Kids'
+? moeda(0)
+: moeda(1038.06);
+  
   document.getElementById(
     'totalEntradas'
   ).innerHTML =
@@ -1072,15 +1113,17 @@ async function carregarRegistros(){
 
   .from('livros_caixa')
 
-  .select('*')
+.select('*')
 
-  .order('created_at',{
+.eq('empresa',empresaAtual)
 
-    ascending:false
+.order('created_at',{
 
-  })
+  ascending:false
 
-  .range(inicio,fim);
+})
+
+.range(inicio,fim);
 
   if(error){
 
@@ -1332,10 +1375,7 @@ async function salvarRegistro(){
 
   );
 
-  const empresa =
-  document.getElementById(
-    'empresa'
-  ).value;
+const empresa = empresaAtual;
 
   if(!historico){
 
@@ -1358,11 +1398,13 @@ async function salvarRegistro(){
   const { data: ultimo } =
   await supabaseClient
 
-  .from('livros_caixa')
+.from('livros_caixa')
 
-  .select('saldo')
+.select('saldo')
 
-  .order('created_at',{
+.eq('empresa',empresaAtual)
+
+.order('created_at',{
 
     ascending:false
 
@@ -1603,7 +1645,46 @@ async function excluirRegistro(id){
 
 }
 
+/* =====================================================
+TROCAR EMPRESA
+===================================================== */
 
+function trocarEmpresa(){
+
+  empresaAtual =
+  document.getElementById(
+    'empresa'
+  ).value;
+
+  localStorage.setItem(
+    'livro_caixa_empresa',
+    empresaAtual
+  );
+
+  document.getElementById(
+    'empresaTitulo'
+  ).innerHTML =
+  empresaAtual;
+
+  document.getElementById(
+    'tituloSistema'
+  ).innerHTML =
+
+  `REGISTRO DE DINHEIRO • ${empresaAtual.toUpperCase()}`;
+
+  tbody.innerHTML = '';
+
+  pagina = 0;
+
+  acabou = false;
+
+  window.ultimaDataRenderizada = '';
+
+  carregarResumo();
+
+  carregarRegistros();
+
+}
 
 
 
