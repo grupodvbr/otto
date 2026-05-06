@@ -818,32 +818,80 @@ fornecedores:[]
 
 <td>
 
+<td>
+
   <div style="
     display:flex;
-    align-items:center;
-    gap:6px;
-    white-space:nowrap;
+    flex-direction:column;
+    gap:4px;
+    min-width:140px;
   ">
 
-    <span>
-      ${item.comprar || 0}
-    </span>
+    <!-- LINHA PRINCIPAL -->
 
-    <small style="
-      color:#6b7280;
-      font-size:11px;
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
       font-weight:700;
-      text-transform:uppercase;
     ">
 
-      ${item.unidade || "UN"}
+      <span>
+        ${item.comprar || 0}
+      </span>
 
-    </small>
+      <span style="
+        color:#2563eb;
+        font-size:11px;
+        text-transform:uppercase;
+        font-weight:800;
+      ">
+
+        ${item.unidade || "UN"}
+
+      </span>
+
+    </div>
+
+    <!-- CONVERSÃO -->
+
+    ${
+      Number(item.qtd_unidades || 1) > 1
+
+      ? `
+
+      <small style="
+        color:#6b7280;
+        font-size:10px;
+        line-height:1.4;
+      ">
+
+        Caixa com
+        <b>${item.qtd_unidades}</b>
+        unidades
+
+      </small>
+
+      `
+
+      : `
+
+      <small style="
+        color:#9ca3af;
+        font-size:10px;
+      ">
+
+        Unidade individual
+
+      </small>
+
+      `
+    }
 
   </div>
 
 </td>
-
                 <!-- ULTIMO -->
 
                 <td>
