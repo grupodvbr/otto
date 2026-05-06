@@ -493,8 +493,21 @@ async function salvar(){
     return;
   }
 
-  const nome = prompt("Nome da cotação:");
-  if(!nome) return;
+const agora = new Date();
+
+const dia = String(
+  agora.getDate()
+).padStart(2,'0');
+
+const mes = String(
+  agora.getMonth() + 1
+).padStart(2,'0');
+
+const ano = agora.getFullYear();
+
+const nome =
+  `${dia}/${mes}/${ano}`;
+
 
 
 
