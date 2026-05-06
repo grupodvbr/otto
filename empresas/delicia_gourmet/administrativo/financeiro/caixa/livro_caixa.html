@@ -788,15 +788,9 @@ TOPO
   id="empresa"
   onchange="trocarEmpresa()">
 
-    <option value="Mercatto Delícia">
-      Mercatto Delícia
-    </option>
-<!-- =====================================================
-
-    <option value="M. Kids">
-      M. Kids
-    </option>
-===================================================== -->
+<option value="Delícia Gourmet">
+  Delícia Gourmet
+</option>
 
   </select>
 
@@ -894,7 +888,7 @@ window.supabase.createClient(
 CONFIG
 ===================================================== */
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 
 
 /* =====================================================
@@ -1073,12 +1067,44 @@ async function carregarResumo(){
   const saldo =
   entradas - saidas;
 
-  document.getElementById(
-    'saldoImplantacao'
-  ).innerHTML =
-empresaAtual === 'M. Kids'
-? moeda(0)
-: moeda(1038.06);
+let saldoImplantacao = 0;
+
+if(
+  empresaAtual === 'Mercatto Delícia'
+){
+
+  saldoImplantacao = 1038.06;
+
+}else if(
+  empresaAtual === 'M. Kids'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Delícia Gourmet'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Villa Gourmet'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Padaria Delícia'
+){
+
+  saldoImplantacao = 0;
+
+}
+
+document.getElementById(
+  'saldoImplantacao'
+).innerHTML =
+moeda(saldoImplantacao);
   
   document.getElementById(
     'totalEntradas'
@@ -1117,28 +1143,37 @@ async function carregarRegistros(){
   const fim =
   inicio + PAGE_SIZE - 1;
 
-  const { data, error } =
-  await supabaseClient
+const { data, error } =
 
-  .from('livros_caixa')
+await supabaseClient
+
+.from('livros_caixa')
 
 .select('*')
 
-.eq('empresa',empresaAtual)
+.eq(
+  'empresa',
+  empresaAtual
+)
 
-.order('data_movimento',{
+.order(
+  'data_movimento',
+  {
+    ascending:false
+  }
+)
 
-  ascending:false
+.order(
+  'created_at',
+  {
+    ascending:false
+  }
+)
 
-})
-
-.order('created_at',{
-
-  ascending:false
-
-})
-
-.range(inicio,fim);
+.range(
+  inicio,
+  fim
+);
 
   if(error){
 
@@ -1161,9 +1196,17 @@ async function carregarRegistros(){
 
   }
 
-  renderizar(data);
+if(pagina === 0){
 
-  pagina++;
+  tbody.innerHTML = '';
+
+  window.ultimaDataRenderizada = '';
+
+}
+
+renderizar(data);
+
+pagina++;
 
   carregando = false;
 
@@ -1621,10 +1664,10 @@ supabaseClient
 
       })
 
-      .limit(
-        pagina * PAGE_SIZE || PAGE_SIZE
-      );
-
+.range(
+  0,
+  ((pagina + 1) * PAGE_SIZE) - 1
+);
       if(error){
 
         console.error(error);
@@ -1680,9 +1723,9 @@ INIT
 
 (async()=>{
 
-  await carregarResumo();
+await carregarResumo();
 
-  await carregarRegistros();
+await carregarRegistros();
 
 })();
 
@@ -1741,7 +1784,7 @@ async function excluirRegistro(id){
 TROCAR EMPRESA
 ===================================================== */
 
-function trocarEmpresa(){
+async function trocarEmpresa(){
 
   empresaAtual =
   document.getElementById(
@@ -1769,18 +1812,20 @@ function trocarEmpresa(){
   pagina = 0;
 
   acabou = false;
-
+carregando = false;
   window.ultimaDataRenderizada = '';
 
-  carregarResumo();
+  loading.innerHTML =
+  'Carregando registros...';
 
-  carregarRegistros();
+  loading.style.display =
+  'block';
+
+  await carregarResumo();
+
+  await carregarRegistros();
 
 }
-
-
-
-
 
 
 
