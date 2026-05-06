@@ -1369,7 +1369,11 @@ ${
 
   <!-- VALOR -->
 
-<!-- VALOR -->
+
+
+
+
+
 
 <input
   class="input ${
@@ -1388,8 +1392,6 @@ ${
     : ''
   }"
 
-  
-
   value="${
     resposta.preco_unitario
 
@@ -1398,8 +1400,8 @@ ${
         ).toLocaleString(
           'pt-BR',
           {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
+            style:'currency',
+            currency:'BRL'
           }
         )
 
@@ -1408,7 +1410,6 @@ ${
 
   readonly
 >
-
 
   <!-- UNIDADE -->
 
