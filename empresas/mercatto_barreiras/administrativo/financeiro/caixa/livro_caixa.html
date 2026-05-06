@@ -1159,28 +1159,37 @@ async function carregarRegistros(){
   const fim =
   inicio + PAGE_SIZE - 1;
 
-  const { data, error } =
-  await supabaseClient
+const { data, error } =
 
-  .from('livros_caixa')
+await supabaseClient
+
+.from('livros_caixa')
 
 .select('*')
 
-.eq('empresa',empresaAtual)
+.eq(
+  'empresa',
+  empresaAtual
+)
 
-.order('data_movimento',{
+.order(
+  'data_movimento',
+  {
+    ascending:false
+  }
+)
 
-  ascending:false
+.order(
+  'created_at',
+  {
+    ascending:false
+  }
+)
 
-})
-
-.order('created_at',{
-
-  ascending:false
-
-})
-
-.range(inicio,fim);
+.range(
+  inicio,
+  fim
+);
 
   if(error){
 
@@ -1819,7 +1828,7 @@ async function trocarEmpresa(){
   pagina = 0;
 
   acabou = false;
-
+carregando = false;
   window.ultimaDataRenderizada = '';
 
   loading.innerHTML =
