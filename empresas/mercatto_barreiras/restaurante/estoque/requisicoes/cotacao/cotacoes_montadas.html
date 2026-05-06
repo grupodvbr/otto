@@ -2048,7 +2048,97 @@ if(error){
 
 
 async function gerarResultadoCotacaoPDF(){
+const itensCotacao =
+  cotacaoAtual.itens_cotacao || [];
 
+const melhoresPrecos =
+  calcularMelhoresPrecos(
+    itensCotacao
+  );
+
+const totaisFornecedor = {};
+
+itensCotacao.forEach(item => {
+
+  const melhorPrecoItem =
+    melhoresPrecos[item.produto];
+
+  if(!melhorPrecoItem)
+    return;
+
+  (item.fornecedores || [])
+  .forEach(f => {
+
+    const preco =
+      Number(f.preco_unitario || 0);
+
+    const emb =
+      Number(
+        f.quantidade_embalagem || 1
+      );
+
+    if(!preco) return;
+
+    const precoConvertido =
+      preco / emb;
+
+    if(
+      precoConvertido ===
+      melhorPrecoItem
+    ){
+
+      const qtd =
+        Number(
+          item.qtd_solicitada || 0
+        );
+
+      const totalItem =
+        precoConvertido * qtd;
+
+      if(
+        !totaisFornecedor[
+          f.fornecedor_id
+        ]
+      ){
+
+        totaisFornecedor[
+          f.fornecedor_id
+        ] = {
+
+          nome:
+            f.fornecedor_nome,
+
+          total:0,
+
+          itens:0
+
+        };
+
+      }
+
+      totaisFornecedor[
+        f.fornecedor_id
+      ].total += totalItem;
+
+      totaisFornecedor[
+        f.fornecedor_id
+      ].itens += 1;
+
+    }
+
+  });
+
+});
+
+
+
+
+  
+
+
+
+
+  
   const win = window.open('', '_blank');
 
   let html = `
