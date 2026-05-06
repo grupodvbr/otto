@@ -1678,9 +1678,9 @@ INIT
 
 (async()=>{
 
-  await carregarResumo();
+await carregarResumo();
 
-  await carregarRegistros();
+await carregarRegistros();
 
 })();
 
@@ -1739,7 +1739,7 @@ async function excluirRegistro(id){
 TROCAR EMPRESA
 ===================================================== */
 
-function trocarEmpresa(){
+async function trocarEmpresa(){
 
   empresaAtual =
   document.getElementById(
@@ -1770,15 +1770,17 @@ function trocarEmpresa(){
 
   window.ultimaDataRenderizada = '';
 
-  carregarResumo();
+  loading.innerHTML =
+  'Carregando registros...';
 
-  carregarRegistros();
+  loading.style.display =
+  'block';
+
+  await carregarResumo();
+
+  await carregarRegistros();
 
 }
-
-
-
-
 
 
 
