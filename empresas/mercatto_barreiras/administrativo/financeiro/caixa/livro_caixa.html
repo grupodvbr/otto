@@ -488,6 +488,13 @@ SALDO DO DIA • LINHA FINA EXTRATO
 LINHAS
 ===================================================== */
 
+tbody{
+
+  transition:
+  opacity .18s ease;
+
+}
+
 tbody tr{
 
   transition:.12s;
@@ -1556,6 +1563,8 @@ scrollContainer
 REALTIME
 ===================================================== */
 
+let atualizandoRealtime = false;
+
 supabaseClient
 
 .channel(
@@ -1568,7 +1577,7 @@ supabaseClient
 
   {
 
-   event:'*',
+    event:'*',
 
     schema:'public',
 
@@ -1578,15 +1587,84 @@ supabaseClient
 
   async ()=>{
 
-    tbody.innerHTML = '';
+    if(atualizandoRealtime) return;
 
-    pagina = 0;
+    atualizandoRealtime = true;
 
-    acabou = false;
+    try{
 
-    await carregarResumo();
+      /* =========================
+      BUSCA NOVOS DADOS
+      ========================= */
 
-    await carregarRegistros();
+      const { data, error } =
+
+      await supabaseClient
+
+      .from('livros_caixa')
+
+      .select('*')
+
+      .eq('empresa',empresaAtual)
+
+      .order('data_movimento',{
+
+        ascending:false
+
+      })
+
+      .order('created_at',{
+
+        ascending:false
+
+      })
+
+      .limit(
+        pagina * PAGE_SIZE || PAGE_SIZE
+      );
+
+      if(error){
+
+        console.error(error);
+        return;
+
+      }
+
+      /* =========================
+      MANTEM SCROLL
+      ========================= */
+
+      const scrollAtual =
+      scrollContainer.scrollTop;
+
+      /* =========================
+      ATUALIZA SUAVEMENTE
+      ========================= */
+
+      tbody.style.opacity = '.65';
+
+      tbody.innerHTML = '';
+
+      window.ultimaDataRenderizada = '';
+
+      renderizar(data);
+
+      await carregarResumo();
+
+      tbody.style.opacity = '1';
+
+      scrollContainer.scrollTop =
+      scrollAtual;
+
+    }catch(err){
+
+      console.error(err);
+
+    }finally{
+
+      atualizandoRealtime = false;
+
+    }
 
   }
 
