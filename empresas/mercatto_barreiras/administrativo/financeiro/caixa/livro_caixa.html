@@ -792,9 +792,21 @@ TOPO
       Mercatto Delícia
     </option>
 
-    <option value="M. Kids">
-      M. Kids
-    </option>
+<option value="M. Kids">
+  M. Kids
+</option>
+
+<option value="Delícia Gourmet">
+  Delícia Gourmet
+</option>
+
+<option value="Villa Gourmet">
+  Villa Gourmet
+</option>
+
+<option value="Padaria Delícia">
+  Padaria Delícia
+</option>
 
   </select>
 
@@ -1071,12 +1083,44 @@ async function carregarResumo(){
   const saldo =
   entradas - saidas;
 
-  document.getElementById(
-    'saldoImplantacao'
-  ).innerHTML =
-empresaAtual === 'M. Kids'
-? moeda(0)
-: moeda(1038.06);
+let saldoImplantacao = 0;
+
+if(
+  empresaAtual === 'Mercatto Delícia'
+){
+
+  saldoImplantacao = 1038.06;
+
+}else if(
+  empresaAtual === 'M. Kids'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Delícia Gourmet'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Villa Gourmet'
+){
+
+  saldoImplantacao = 0;
+
+}else if(
+  empresaAtual === 'Padaria Delícia'
+){
+
+  saldoImplantacao = 0;
+
+}
+
+document.getElementById(
+  'saldoImplantacao'
+).innerHTML =
+moeda(saldoImplantacao);
   
   document.getElementById(
     'totalEntradas'
