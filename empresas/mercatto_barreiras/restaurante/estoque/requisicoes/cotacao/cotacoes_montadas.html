@@ -838,6 +838,12 @@ fornecedores:[]
 
   </div>
 
+
+
+
+
+
+
 </td>
                 <!-- ULTIMO -->
 
@@ -874,54 +880,65 @@ fornecedores:[]
 
                         ? `
 
-                          <div style="
-                            display:grid;
-                            grid-template-columns:
-                            90px 90px 90px 110px;
-                            gap:4px;
-                          ">
+                         <div style="
+  display:grid;
+  grid-template-columns:
+  90px 90px 90px 110px;
+  gap:4px;
+">
 
-                            <input
-                              class="input"
+  <!-- VALOR -->
 
-                              value="${
-                                resposta.preco_unitario || ""
-                              }"
+  <input
+    class="input"
 
-                              readonly
-                            >
+    value="${
+      resposta.preco_unitario || ""
+    }"
 
-                            <input
-                              class="input"
+    readonly
+  >
 
-                              value="${
-                                resposta.unidade || ""
-                              }"
+  <!-- UNIDADE -->
 
-                              readonly
-                            >
+  <input
+    class="input"
 
-                            <input
-                              class="input"
+    value="${
+      resposta.unidade ||
+      item.unidade ||
+      itemCotado.unidade ||
+      'UN'
+    }"
 
-                              value="${
-                                resposta.quantidade_embalagem || ""
-                              }"
+    readonly
+  >
 
-                              readonly
-                            >
+  <!-- EMBALAGEM -->
 
-                            <input
-                              class="input"
+  <input
+    class="input"
 
-                              value="${
-                                resposta.prazo || ""
-                              }"
+    value="${
+      resposta.quantidade_embalagem || 1
+    }"
 
-                              readonly
-                            >
+    readonly
+  >
 
-                          </div>
+  <!-- PRAZO -->
+
+  <input
+    class="input"
+
+    value="${
+      resposta.prazo || ''
+    }"
+
+    readonly
+  >
+
+</div>
 
                         `
 
@@ -1032,10 +1049,17 @@ itemCotado = {
   produto:item.produto,
 
   qtd_solicitada:
-    item.comprar || 0,
+    Number(item.comprar || 0),
 
   unidade:
-    item.unidade || "UN",
+    item.unidade ||
+    item.unidade_uso ||
+    "UN",
+
+  qtd_unidades:
+    Number(
+      item.qtd_unidades || 1
+    ),
 
   fornecedores:[]
 
