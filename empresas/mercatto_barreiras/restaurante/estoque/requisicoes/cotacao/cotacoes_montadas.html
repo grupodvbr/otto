@@ -287,12 +287,14 @@ tr:hover td{
 
 .input{
   width:100%;
-  min-width:90px;
+  min-width:95px;
+  height:34px;
   border:1px solid #d1d5db;
   border-radius:6px;
-  padding:6px;
+  padding:6px 8px;
   font-size:12px;
   outline:none;
+  background:#fff;
 }
 
 textarea.input{
@@ -886,15 +888,30 @@ fornecedores:[]
 
   <!-- VALOR -->
 
-  <input
-    class="input"
+<!-- VALOR -->
 
-    value="${
-      resposta.preco_unitario || ""
-    }"
+<input
+  class="input"
 
-    readonly
-  >
+  value="${
+    resposta.preco_unitario
+
+      ? Number(
+          resposta.preco_unitario
+        ).toLocaleString(
+          'pt-BR',
+          {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+          }
+        )
+
+      : ''
+  }"
+
+  readonly
+>
+
 
   <!-- UNIDADE -->
 
@@ -913,15 +930,20 @@ fornecedores:[]
 
   <!-- EMBALAGEM -->
 
-  <input
-    class="input"
 
-    value="${
-      resposta.quantidade_embalagem || 1
-    }"
+<input
+  class="input"
 
-    readonly
-  >
+  value="${
+    resposta.quantidade_embalagem
+
+      ? resposta.quantidade_embalagem + ' UN'
+
+      : '1 UN'
+  }"
+
+  readonly
+>
 
   <!-- PRAZO -->
 
