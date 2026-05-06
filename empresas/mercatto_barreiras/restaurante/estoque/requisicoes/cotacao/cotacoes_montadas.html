@@ -762,12 +762,10 @@ function abrirCotacao(c){
                   gap:4px;
                 ">
 
-                  <div>Valor</div>
-<div>
-  ${item.unidade || "UN"}
-</div>                  <div>Emb</div>
-                  <div>Prazo</div>
-
+               <div>Valor</div>
+<div>Und</div>
+<div>Emb</div>
+<div>Prazo</div>
                 </div>
 
               </th>
@@ -816,10 +814,31 @@ fornecedores:[]
 
 <td>
 
-  ${item.comprar || 0}
+  <div style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  ">
+
+    <span>
+      ${item.comprar || 0}
+    </span>
+
+    <small style="
+      color:#6b7280;
+      font-size:11px;
+      font-weight:700;
+      text-transform:uppercase;
+    ">
+
+      ${item.unidade || "UN"}
+
+    </small>
+
+  </div>
 
 </td>
-
                 <!-- ULTIMO -->
 
                 <td>
@@ -1005,11 +1024,22 @@ async function adicionarFornecedorGeral(
 
     if(!itemCotado){
 
-      itemCotado = {
+
+      
+
+itemCotado = {
+
+  produto:item.produto,
+
+  qtd_solicitada:
+    item.comprar || 0,
+
+  unidade:
+    item.unidade || "UN",
 
   fornecedores:[]
 
-      };
+};
 
       itensCotacao.push(itemCotado);
     }
