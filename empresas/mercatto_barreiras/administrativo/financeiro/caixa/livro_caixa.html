@@ -443,33 +443,32 @@ td:nth-child(7){
 }
 
 /* =====================================================
-LINHA DIA
+SALDO DO DIA • LINHA FINA EXTRATO
 ===================================================== */
 
 .linha-dia{
 
-  background:
-  linear-gradient(
-    90deg,
-    var(--primary),
-    var(--primary2)
-  );
+  background:#eef2f7;
 
 }
 
 .linha-dia td{
 
-  background:transparent !important;
+  background:#eef2f7 !important;
 
-  color:white !important;
+  color:#475569 !important;
 
-  padding:12px 14px;
+  padding:6px 14px;
 
-  font-size:13px;
+  font-size:11px;
 
-  font-weight:800;
+  font-weight:700;
 
-  border-bottom:1px solid rgba(255,255,255,.08);
+  border-top:1px solid #dbe3ec;
+
+  border-bottom:1px solid #dbe3ec;
+
+  letter-spacing:.3px;
 
 }
 
@@ -477,9 +476,11 @@ LINHA DIA
 
   text-align:right;
 
-  color:#b8ffcb !important;
+  color:#0f172a !important;
 
-  font-size:15px !important;
+  font-size:12px !important;
+
+  font-weight:800;
 
 }
 
@@ -1121,6 +1122,62 @@ function renderizar(lista){
 
   lista.forEach(item=>{
 
+
+/* ============================================
+LINHA SALDO DO DIA
+============================================ */
+
+const dataMovimento =
+formatarData(item.data_movimento);
+
+if(!window.ultimaDataRenderizada){
+  window.ultimaDataRenderizada = '';
+}
+
+if(window.ultimaDataRenderizada !== dataMovimento){
+
+  const linhaDia =
+  document.createElement('tr');
+
+  linhaDia.className = 'linha-dia';
+
+  linhaDia.innerHTML = `
+
+    <td colspan="8">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+
+        <span>
+          SALDO DO DIA • ${dataMovimento}
+        </span>
+
+        <span class="saldo-dia">
+          ${moeda(item.saldo)}
+        </span>
+
+      </div>
+
+    </td>
+
+  `;
+
+  tbody.appendChild(linhaDia);
+
+  window.ultimaDataRenderizada =
+  dataMovimento;
+
+}
+
+
+
+
+
+
+    
     const tr =
     document.createElement('tr');
 
@@ -1397,15 +1454,17 @@ async function salvarRegistro(){
   RELOAD
   ===================================================== */
 
-  tbody.innerHTML = '';
+  
+tbody.innerHTML = '';
 
-  pagina = 0;
+pagina = 0;
 
-  acabou = false;
+acabou = false;
 
-  await carregarResumo();
+window.ultimaDataRenderizada = '';
 
-  await carregarRegistros();
+await carregarResumo();
+await carregarRegistros();
 
 }
 
