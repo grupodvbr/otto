@@ -1117,6 +1117,12 @@ async function carregarRegistros(){
 
 .eq('empresa',empresaAtual)
 
+.order('data_movimento',{
+
+  ascending:false
+
+})
+
 .order('created_at',{
 
   ascending:false
@@ -1404,11 +1410,17 @@ const empresa = empresaAtual;
 
 .eq('empresa',empresaAtual)
 
+.order('data_movimento',{
+
+  ascending:false
+
+})
+
 .order('created_at',{
 
-    ascending:false
+  ascending:false
 
-  })
+})
 
   .limit(1)
 
