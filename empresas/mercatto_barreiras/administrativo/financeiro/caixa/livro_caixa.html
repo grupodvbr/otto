@@ -904,7 +904,7 @@ window.supabase.createClient(
 CONFIG
 ===================================================== */
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 
 
 /* =====================================================
@@ -1203,9 +1203,17 @@ async function carregarRegistros(){
 
   }
 
-  renderizar(data);
+if(pagina === 0){
 
-  pagina++;
+  tbody.innerHTML = '';
+
+  window.ultimaDataRenderizada = '';
+
+}
+
+renderizar(data);
+
+pagina++;
 
   carregando = false;
 
@@ -1663,10 +1671,10 @@ supabaseClient
 
       })
 
-      .limit(
-        pagina * PAGE_SIZE || PAGE_SIZE
-      );
-
+.range(
+  0,
+  ((pagina + 1) * PAGE_SIZE) - 1
+);
       if(error){
 
         console.error(error);
